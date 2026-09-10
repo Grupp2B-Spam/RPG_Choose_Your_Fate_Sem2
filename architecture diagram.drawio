@@ -1,0 +1,80 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Side-1" id="tTQ-zC3u_t1Ewmjv1-tR">
+    <mxGraphModel dx="1030" dy="535" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-14" edge="1" parent="1" source="CjazWG1_VPvdUJzaLHnW-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="CjazWG1_VPvdUJzaLHnW-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-17" edge="1" parent="1" source="CjazWG1_VPvdUJzaLHnW-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="CjazWG1_VPvdUJzaLHnW-9">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="340" />
+              <mxPoint x="80" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-20" edge="1" parent="1" source="CjazWG1_VPvdUJzaLHnW-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="CjazWG1_VPvdUJzaLHnW-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-21" edge="1" parent="1" source="CjazWG1_VPvdUJzaLHnW-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="CjazWG1_VPvdUJzaLHnW-8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="55" />
+              <mxPoint x="280" y="120" />
+              <mxPoint x="200" y="120" />
+            </Array>
+            <mxPoint x="340" y="90" as="sourcePoint" />
+            <mxPoint x="200" y="225" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="Frontend client" vertex="1">
+          <mxGeometry height="60" width="120" x="340" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-5" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="System component types" vertex="1">
+          <mxGeometry height="230" width="330" x="690" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-3" parent="CjazWG1_VPvdUJzaLHnW-5" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Outside integrations" vertex="1">
+          <mxGeometry height="60" width="120" x="200" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-2" parent="CjazWG1_VPvdUJzaLHnW-5" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Micro services" vertex="1">
+          <mxGeometry height="60" width="120" x="200" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-6" parent="CjazWG1_VPvdUJzaLHnW-5" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="external objects" vertex="1">
+          <mxGeometry height="60" width="120" x="40" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-19" edge="1" parent="1" source="CjazWG1_VPvdUJzaLHnW-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="CjazWG1_VPvdUJzaLHnW-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-7" parent="1" style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://icons.diagrams.net/assets/sap/1/SAP_SE_RabbitMQ.svg" value="RabbitMQ" vertex="1">
+          <mxGeometry height="60" width="60" x="500" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="AccountManager" vertex="1">
+          <mxGeometry height="60" width="120" x="110" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="InventoryManager" vertex="1">
+          <mxGeometry height="60" width="120" x="20" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="SceneManager" vertex="1">
+          <mxGeometry height="60" width="120" x="50" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="StoryPathManager" vertex="1">
+          <mxGeometry height="60" width="120" x="610" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-13" edge="1" parent="1" source="CjazWG1_VPvdUJzaLHnW-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=none;endFill=0;startArrow=classic;startFill=1;" target="CjazWG1_VPvdUJzaLHnW-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-16" edge="1" parent="1" source="CjazWG1_VPvdUJzaLHnW-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="CjazWG1_VPvdUJzaLHnW-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="PaywallHandler" vertex="1">
+          <mxGeometry height="60" width="120" x="760" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="CjazWG1_VPvdUJzaLHnW-15" parent="1" style="image;html=1;image=img/lib/clip_art/computers/Database_128x128.png" value="" vertex="1">
+          <mxGeometry height="80" width="80" x="370" y="545" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
