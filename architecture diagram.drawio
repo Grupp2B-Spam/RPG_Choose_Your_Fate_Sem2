@@ -144,7 +144,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="gXQ0Egcie_XFgyRIGtu7-69" parent="1" style="image;html=1;image=img/lib/clip_art/computers/Database_128x128.png" value="chapter/scene/choice vault&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;MySQL&lt;/div&gt;" vertex="1">
-          <mxGeometry height="80" width="80" x="740" y="240" as="geometry" />
+          <mxGeometry height="80" width="80" x="680" y="290" as="geometry" />
         </mxCell>
         <mxCell id="gXQ0Egcie_XFgyRIGtu7-75" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="This block needs clearer areas&lt;div&gt;(too much overlap)&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="120" x="520" y="-360" as="geometry" />
