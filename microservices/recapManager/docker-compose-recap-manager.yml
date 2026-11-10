@@ -1,0 +1,59 @@
+# MySQL initializes the recap schema from src/main/resources/01_schema_recap_vault.sql.
+# The seeding only happens on the first start when the volume is created.
+# If you need to reset the seeding, run "docker compose down -v" to delete the volume.
+services:
+  backend:
+    profiles: ["prod"]
+    build: .
+    ports:
+      - "8090:8090"
+    environment:
+      MYSQL_URI: jdbc:mysql://recap-vault:3306/recap-vault
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      AI_ENABLED: true
+      JWT_PUBLIC_KEY_LOCATION: file:/app/config/recap-jwt-public.pem
+      JWT_ISSUER: ${JWT_ISSUER:-http://localhost:8092}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-choose-your-fate}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-default}
+      SWAGGER_PUBLIC: ${SWAGGER_PUBLIC:-false}
+    volumes:
+      - type: bind
+        source: ${JWT_PUBLIC_KEY_FILE:-./.local/recap-jwt-public.pem}
+        target: /app/config/recap-jwt-public.pem
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      recap-vault: 
+        condition: service_healthy
+        
+  recap-vault:
+    image: mysql:9.5.0
+    container_name: recap-vault
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+    volumes:
+      - recap-vault:/var/lib/mysql
+      - type: bind
+        source: ./src/main/resources/01_schema_recap_vault.sql
+        target: /docker-entrypoint-initdb.d/01_schema_recap_vault.sql
+        read_only: true
+        bind:
+          create_host_path: false
+    hostname: recap-vault
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  recap-vault:
+    driver: local
+
+include:
+  - ../../docker-compose.yml

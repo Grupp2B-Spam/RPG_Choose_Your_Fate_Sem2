@@ -12,6 +12,12 @@ Start the database containers in detached mode:
 docker compose up -d
 ```
 
+### running multiple microservices
+To run multiple microservices in docker we are using the -f system, where we run multiple segmented docker compose files from one command.
+
+make sure that things that are reused between different microservices are added to the docker compose file in the root!!!
+where as things that are only used by your microservice are added to the microservices docker compose file.
+
 If you need a clean MySQL reseed, recreate the Docker volumes:
 
 All our SQL scripts are in rpg_mysql folder
