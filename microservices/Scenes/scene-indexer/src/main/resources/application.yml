@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: scene-indexer
+  main:
+    web-application-type: none
+  mongodb:
+    uri: ${MONGODB_URI:mongodb://indexer:indexer-local-only@localhost:27017/scenes?authSource=scenes}
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    username: ${RABBIT_USER:dev}
+    password: ${RABBIT_PASS:dev-local-only}
+    listener:
+      simple:
+        default-requeue-rejected: false
+logging:
+  level:
+    dk.chooseyourfate: INFO
