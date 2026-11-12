@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11151b">
+  <meta name="description" content="Local developer console for the Choose Your Fate SceneManager and SceneIndexer services.">
+  <title>Scene Control - Choose Your Fate</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="layout">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#overview" aria-label="Scene Control home">
+        <span class="brand-mark"><span></span><span></span><span></span><span></span></span>
+        <span class="brand-text">CHOOSE YOUR FATE <small>DEV ENVIRONMENT</small></span>
+      </a>
+      <div class="sidebar-section-label">WORKSPACE</div>
+      <nav class="nav-links">
+        <a class="nav-link active" href="#overview" data-nav="overview"><span class="nav-symbol">◈</span><span>Overview</span></a>
+        <a class="nav-link" href="#endpoints" data-nav="endpoints"><span class="nav-symbol">⌁</span><span>API explorer</span></a>
+        <a class="nav-link" href="#mock" data-nav="mock"><span class="nav-symbol">⇄</span><span>Mock publisher</span></a>
+        <a class="nav-link" href="#contracts" data-nav="contracts"><span class="nav-symbol">{ }</span><span>Data contracts</span></a>
+      </nav>
+      <div class="sidebar-section-label second-label">SERVICES</div>
+      <div class="service-mini"><span class="status-dot neutral" id="side-manager-dot"></span><span>SceneManager</span><span class="mini-state" id="side-manager-label">Checking</span></div>
+      <div class="service-mini"><span class="status-dot neutral" id="side-broker-dot"></span><span>RabbitMQ</span><span class="mini-state" id="side-broker-label">Checking</span></div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-bottom-title">SCENE CONTROL <span>v1.0</span></div>
+        <p>Standalone local tools, not part of the player-facing game.</p>
+      </div>
+    </aside>
+
+    <main id="main-content" class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb">Workspace <span>/</span> Choose Your Fate <span>/</span> <b>Scene Control</b></div>
+        <div class="top-actions">
+          <span class="environment-label"><span class="env-dot"></span>LOCAL DEVELOPMENT</span>
+          <button class="button ghost small" id="refresh-button" type="button" aria-label="Refresh service and queue status"><span aria-hidden="true">↻</span> Refresh</button>
+        </div>
+      </header>
+
+      <div class="page-wrap">
+
+
+        <section class="status-grid" aria-label="System status">
+          <div class="status-card"><div class="metric-label"><span class="little-icon">●</span> SCENE MANAGER</div><div class="metric-value" id="manager-state">Checking<span class="loading-ellipsis">...</span></div><div class="metric-meta" id="manager-detail">http://127.0.0.1:8080</div></div>
+          <div class="status-card"><div class="metric-label"><span class="little-icon gold">◆</span> MESSAGE BROKER</div><div class="metric-value" id="broker-state">Checking<span class="loading-ellipsis">...</span></div><div class="metric-meta" id="broker-detail">http://127.0.0.1:15672</div></div>
+          <div class="status-card"><div class="metric-label"><span class="little-icon blue">↗</span> REST ENDPOINTS</div><div class="metric-value">03 <span class="metric-soft">routes</span></div><div class="metric-meta">GET / GET / POST</div></div>
+          <div class="status-card"><div class="metric-label"><span class="little-icon pale">⇄</span> EVENT PIPELINES</div><div class="metric-value">02 <span class="metric-soft">topics</span></div><div class="metric-meta">scene.changed / choice.made</div></div>
+        </section>
+
+        <section class="section" aria-labelledby="flow-title">
+          <div class="section-top">
+            <div><h2 id="flow-title">System architecture</h2>
+            </div>
+          </div>
+          <div class="panel pipeline-panel">
+            <div class="pipeline" role="img" aria-label="Mock StoryContentManager publishes scene.changed through RabbitMQ into SceneIndexer, which writes MongoDB. SceneManager reads MongoDB and publishes choice.made events to two demo queues.">
+              <div class="pipeline-step"><div class="step-icon golden">✦</div><strong>Mocked StoryContentManager</strong><span>StoryContentManager stand-in</span><small>Publishes scene.changed</small></div>
+              <div class="pipeline-arrow"><span>scene.changed</span><b>→</b></div>
+              <div class="pipeline-step"><div class="step-icon lavender">⇄</div><strong>RabbitMQ</strong><span>game.events queue</span></div>
+              <div class="pipeline-arrow"><span>consumes</span><b>→</b></div>
+              <div class="pipeline-step"><div class="step-icon coral">⌘</div><strong>SceneIndexer</strong><span>Event listener</span><small>Writes the db</small></div>
+              <div class="pipeline-arrow"><span>writes</span><b>→</b></div>
+              <div class="pipeline-step"><div class="step-icon blue">▤</div><strong>MongoDB</strong><span>scenes collection</span></div>
+              <div class="pipeline-arrow reverse"><span>read-only</span><b>←</b></div>
+              <div class="pipeline-step"><div class="step-icon mint">▣</div><strong>SceneManager</strong><span>Player REST API</span><small>choice.made → subscribers</small></div>
+            </div>
+            <div class="pipeline-footer"><span class="legend-swatch green"></span> Writes: SceneIndexer <span class="legend-divider">·</span> <span class="legend-swatch yellow"></span> Reads: SceneManager <span class="legend-divider">·</span> Both demo subscriber queues receive <code>choice.made</code></div>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="connect-title">
+          <div class="section-top">
+            <div>
+              <h2 id="connect-title">CONNECTIVITY</h2>
+            </div>
+          </div>
+          <div class="connection-grid">
+            <div class="connection-card"><div class="connection-heading"><span class="connection-icon">◇</span> RABBITMQ / Queue Broker</div><div class="connection-address" id="amqp-host">127.0.0.1:5672</div><div class="connection-desc">From your host machine</div><button class="text-action copy-address" type="button" data-copy-target="amqp-host">Copy address ↗</button></div>
+            <div class="connection-card"><div class="connection-heading"><span class="connection-icon cyan">◇</span> MANAGEMENT API &amp; UI</div><div class="connection-address" id="rabbit-ui">127.0.0.1:15672</div><div class="connection-desc">HTTP API used by the mock publisher</div><a class="text-action" id="rabbit-ui-link" href="http://127.0.0.1:15672" target="_blank" rel="noopener noreferrer">Open management UI ↗</a></div>
+            <div class="connection-card"><div class="connection-heading"><span class="connection-icon green">◇</span> SCENEMANAGER / REST</div><div class="connection-address" id="manager-url">127.0.0.1:8080</div><div class="connection-desc">Java REST API accessed through this dashboard</div><button class="text-action copy-address" type="button" data-copy-target="manager-url">Copy address ↗</button></div>
+          </div>
+          <div class="info-strip">
+            <span> The mock is <strong>a publisher</strong>, not a second queue or separate IP.</span>
+          </div>
+        </section>
+
+        <section class="section" aria-labelledby="queue-title">
+          <div class="section-top">
+            <div>
+              <h2 id="queue-title">Live queues</h2>
+            </div>
+            <span class="section-chip" id="queues-updated">NOT YET LOADED</span>
+          </div>
+          <div class="panel queue-panel"><div class="table-scroller"><table><thead><tr><th>QUEUE NAME</th><th>PURPOSE / ROUTING</th><th class="number-col">READY</th><th class="number-col">UNACKED</th><th class="number-col">CONSUMERS</th><th>STATUS</th></tr></thead><tbody id="queue-table"><tr><td colspan="6" class="loading-row">Loading queue metrics...</td></tr></tbody></table></div></div>
+        </section>
+
+        <section class="section" id="endpoints" aria-labelledby="api-title">
+          <div class="section-top">
+            <div>
+             <h2 id="api-title">Test SceneManager endpoints</h2><p class="section-intro">Requests are proxied locally</p>
+            </div>
+          </div>
+          <div class="api-layout">
+            <div class="api-forms">
+              <div class="panel api-card"><div class="api-card-header"><div class="method-line"><span class="method method-get">GET</span><code>/scenes/{id}</code></div><span class="api-index">01</span></div><p>Retrieve a published scene and all its choices.</p><form id="get-scene-form"><label for="get-scene-id">Scene ID</label><div class="form-actions"><input id="get-scene-id" name="sceneId" value="demo-start" required><button class="button action" type="submit">Send request ↗</button></div></form></div>
+              <div class="panel api-card"><div class="api-card-header"><div class="method-line"><span class="method method-get">GET</span><code>/scenes/{id}/nextscenes</code></div><span class="api-index">02</span></div><p>List the existing, non-deleted scenes linked to a scene.</p><form id="get-next-form"><label for="get-next-id">Scene ID</label><div class="form-actions"><input id="get-next-id" name="sceneId" value="demo-start" required><button class="button action" type="submit">Send request ↗</button></div></form></div>
+              <div class="panel api-card"><div class="api-card-header"><div class="method-line"><span class="method method-post">POST</span><code>/scenes/{id}/choices/{choiceId}</code></div><span class="api-index">03</span></div><p>Validate a choice and publish a <code>choice.made</code> event.</p><form id="choose-form"><div class="three-fields"><div><label for="choice-scene-id">Scene ID</label><input id="choice-scene-id" name="sceneId" value="demo-start" required></div><div><label for="choice-id">Choice ID</label><input id="choice-id" name="choiceId" value="left" required></div><div><label for="character-id">Character ID</label><input id="character-id" name="characterId" value="demo-character" required></div></div><div class="submit-row"><small>Publishes an event. Does not verify character progress.</small><button class="button action" type="submit">Send request ↗</button></div></form></div>
+            </div>
+            <div class="api-output"><div class="panel response-panel"><div class="response-header"><div><span class="response-overline">RESPONSE TERMINAL</span><h3 id="response-title">Awaiting request</h3></div><span class="response-status" id="response-status">IDLE</span></div><div class="response-meta" id="response-meta">Make a request to inspect the HTTP response.</div><pre id="response-body" class="response-code" aria-live="polite">{
+  "message": "Run an endpoint on the left"
+}</pre><div class="response-footer"><span id="response-timestamp">NO REQUEST YET</span><button type="button" id="copy-response" class="text-action">Copy response ↗</button></div></div>
+              <div class="panel preview-panel"><div class="response-overline">SCENE PREVIEW</div><div id="scene-preview" class="preview-empty">Select <strong>GET /scenes/{id}</strong> to preview its title, text, and choice paths here.</div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="mock" aria-labelledby="mock-title">
+          <div class="section-top">
+            <div><h2 id="mock-title">Mock StoryContentManager</h2><p class="section-intro">Moch StoryContentManager, SceneIndexer should consumes it asynchronously.</p>
+            </div>
+            <span class="section-chip">SCENE.CHANGED</span>
+            </div>
+          <div class="mock-grid"><div class="panel editor-panel"><div class="editor-header"><div><span class="editor-pill">JSON</span><b>SceneChangedEvent</b></div><div class="editor-tabs"><button type="button" class="editor-tab selected" id="load-upsert">UPSERT</button><button type="button" class="editor-tab" id="load-delete">DELETE</button></div></div><label for="event-json" class="visually-hidden">Scene event JSON editor</label><textarea id="event-json" class="code-editor" spellcheck="false" aria-label="JSON SceneChangedEvent to publish"></textarea><div class="editor-footer"><span>game.events <b>→</b> scene.changed</span><button type="button" class="button primary" id="publish-event">Publish event ↗</button></div></div>
+          <div class="mock-side"><div class="panel mock-instructions"><span class="small-label">QUICK START</span><h3>Populate the scene projection</h3><p>Seeds three safe demo-prefixed scenes: <code>demo-start</code>, <code>demo-mill</code>, and <code>demo-village</code>.</p><button class="button full-width outline" id="seed-scenes" type="button">Seed 3 example scenes <span aria-hidden="true">＋</span></button><div class="mock-step"><span>01</span> Dashboard sends events to the broker management API.</div><div class="mock-step"><span>02</span> RabbitMQ routes them to the indexer queue.</div><div class="mock-step"><span>03</span> SceneIndexer writes MongoDB. SceneManager serves the new scenes.</div><p class="fine-print">Seed events use version 1. Publishing them again will not overwrite newer scene versions. This is local development functionality only.</p></div><div class="panel publish-result"><span class="small-label">PUBLISH STATUS</span><div id="publish-status" aria-live="polite">No events published in this session.</div></div></div></div>
+        </section>
+
+        <section class="section" id="contracts" aria-labelledby="contracts-title">
+          <div class="section-top">
+            <div><h2 id="contracts-title">REFERENCES</h2><p class="section-intro">Documentation of data types</p>
+            </div>
+          </div>
+          <div class="panel contract-panel"><div class="contract-tabs" role="tablist" aria-label="Data contract"><button type="button" class="contract-tab selected" id="tab-scene" role="tab" aria-selected="true" data-contract="scene">SceneDocument</button><button type="button" class="contract-tab" id="tab-choice" role="tab" aria-selected="false" data-contract="choice">Choice</button><button type="button" class="contract-tab" id="tab-updated" role="tab" aria-selected="false" data-contract="updated">SceneChangedEvent</button><button type="button" class="contract-tab" id="tab-made" role="tab" aria-selected="false" data-contract="made">ChoiceMadeEvent</button></div><div class="contract-content"><div class="contract-information"><div class="small-label" id="contract-kind">MONGO DOCUMENT</div><h3 id="contract-title">SceneDocument</h3><p id="contract-description">The read-optimized projection stored in MongoDB. SceneIndexer owns writes; SceneManager owns reads.</p><div class="contract-note" id="contract-note">A deleted scene is retained as a tombstone (<code>deleted: true</code>) and is hidden from GET responses.</div></div><div class="contract-code-wrap"><div class="contract-code-head"><span>EXAMPLE STRUCTURE</span><button class="text-action" type="button" id="copy-contract">Copy JSON ↗</button></div><pre class="contract-code" id="contract-code"></pre></div></div></div>
+        </section>
+
+        <footer class="footer"><span>CHOOSE YOUR FATE / SCENE CONTROL</span><span>Local-only developer dashboard</span></footer>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
