@@ -6,19 +6,12 @@ import dk.ek.gruppe2.chooseyourfate.dto.CharacterViewResponseDTO;
 import dk.ek.gruppe2.chooseyourfate.dto.CreateCharacterRequestDTO;
 import dk.ek.gruppe2.chooseyourfate.dto.MultipleCharacterViewsResponseDto;
 import dk.ek.gruppe2.chooseyourfate.exception.ResourceNotFoundException;
-import dk.ek.gruppe2.chooseyourfate.interfaces.CharacterDataAccess;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.Account;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.Chapter;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.CharacterAvatar;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.CharacterDetails;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.RaceDetails;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.Scene;
-import dk.ek.gruppe2.chooseyourfate.repository.mysql.AccountRepository;
-import dk.ek.gruppe2.chooseyourfate.repository.mysql.ChapterRepository;
-import dk.ek.gruppe2.chooseyourfate.repository.mysql.CharacterAvatarRepository;
-import dk.ek.gruppe2.chooseyourfate.repository.mysql.CharacterDetailsRepository;
-import dk.ek.gruppe2.chooseyourfate.repository.mysql.RaceDetailsRepository;
-import dk.ek.gruppe2.chooseyourfate.repository.mysql.SceneRepository;
+import dk.ek.gruppe2.chooseyourfate.model.CharacterAvatar;
+import dk.ek.gruppe2.chooseyourfate.model.CharacterDetails;
+import dk.ek.gruppe2.chooseyourfate.model.RaceDetails;
+import dk.ek.gruppe2.chooseyourfate.repository.CharacterAvatarRepository;
+import dk.ek.gruppe2.chooseyourfate.repository.CharacterDetailsRepository;
+import dk.ek.gruppe2.chooseyourfate.repository.RaceDetailsRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.ParameterMode;
 import jakarta.persistence.StoredProcedureQuery;
@@ -28,37 +21,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class CharacterService implements CharacterDataAccess<Integer> {
-
+public class CharacterService {
     private EntityManager entityManager;
 
     private final CharacterAvatarRepository characterAvatarRepository;
-    private final ChapterRepository chapterRepository;
-    private final SceneRepository sceneRepository;
     private final RaceDetailsRepository raceDetailsRepository;
-
     private final CharacterDetailsRepository characterDetailsRepository;
-    private final AccountRepository accountRepository;
 
     public CharacterService(
             CharacterAvatarRepository characterAvatarRepository,
-            ChapterRepository chapterRepository,
-            SceneRepository sceneRepository,
             RaceDetailsRepository raceDetailsRepository,
             EntityManager entityManager,
-            CharacterDetailsRepository characterDetailsRepository,
-            AccountRepository accountRepository
+            CharacterDetailsRepository characterDetailsRepository
     ) {
         this.characterAvatarRepository = characterAvatarRepository;
         this.characterDetailsRepository = characterDetailsRepository;
-        this.chapterRepository = chapterRepository;
-        this.sceneRepository = sceneRepository;
         this.raceDetailsRepository = raceDetailsRepository;
-        this.accountRepository = accountRepository;
         this.entityManager = entityManager;
     }
 
-    @Override
     public List<CharacterResponseDTO> getAllCharacters() {
         return characterAvatarRepository.findAll()
                 .stream()
@@ -66,13 +47,11 @@ public class CharacterService implements CharacterDataAccess<Integer> {
                 .toList();
     }
 
-    @Override
     public CharacterResponseDTO getCharacterById(Integer id) {
         return toDto(getCharacterEntity(id));
     }
 
     // Builds one SQL-backed character view so the frontend does not need separate character and detail requests.
-    @Override
     public MultipleCharacterViewsResponseDto getCharactersViewBy_AccountId(Integer id) {
         long characterCount = characterAvatarRepository.countByAccount_Id(id);
 
@@ -85,32 +64,26 @@ public class CharacterService implements CharacterDataAccess<Integer> {
             views.add(toViewDto(character, details));
         }
 
-        Account account = accountRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("account not found with id: " + id));
-        
-        Boolean canCreateMoreCharacters = characterCount < account.getCharacterLimit();
-
-        return new MultipleCharacterViewsResponseDto(views, canCreateMoreCharacters);
+        return new MultipleCharacterViewsResponseDto(views);
     }
 
-    @Override
     public CharacterResponseDTO createCharacter(Integer accountId, CreateCharacterRequestDTO request) {
         if (request.getChapterId() == null || request.getSceneId() == null) {
             RaceDetails raceDetails = raceDetailsRepository.findById(request.getRaceDetailsId())
                     .orElseThrow(() -> new ResourceNotFoundException("Race details not found with id: " + request.getRaceDetailsId()));
 
-            Chapter startingChapter = raceDetails.getStartingChapter();
+            Integer startingChapter = raceDetails.getStartingChapter();
             if (startingChapter == null) {
                 throw new ResourceNotFoundException("Starting chapter not configured for race details with id: " + request.getRaceDetailsId());
             }
 
-            Scene startingScene = startingChapter.getStartingScene();
+            Integer startingScene = raceDetails.getStartingScene();
             if (startingScene == null) {
                 throw new ResourceNotFoundException("Starting scene not configured for race details with id: " + request.getRaceDetailsId());
             }
 
-            request.setChapterId(startingChapter.getId());
-            request.setSceneId(startingScene.getId());
+            request.setChapterId(startingChapter);
+            request.setSceneId(startingScene);
         }
 
         validateCreateRequest(request);
@@ -135,7 +108,6 @@ public class CharacterService implements CharacterDataAccess<Integer> {
         return toDto(getCharacterEntity(createdCharacterId));
     }
 
-    @Override
     public void deleteCharacter(Integer id) {
         if (!characterAvatarRepository.existsById(id)) {
             throw new ResourceNotFoundException("Character not found with id: " + id);
@@ -148,7 +120,6 @@ public class CharacterService implements CharacterDataAccess<Integer> {
     }
 
     //Made to retreive all characters connected to the account that is logged in.
-    @Override
     public List<CharacterResponseDTO> getCharactersByAccountId(Integer id) {
         return getCharacterentitesByAccountId(id).stream()
                 .map(this::toDto)
@@ -174,28 +145,17 @@ public class CharacterService implements CharacterDataAccess<Integer> {
     // and avoids database-level foreign key violations. This method also enforces domain-specific consistency, such as
     // ensuring that the selected scene belongs to the selected chapter.
     private void validateCreateRequest(CreateCharacterRequestDTO request) {
-        if (!chapterRepository.existsById(request.getChapterId())) {
-            throw new ResourceNotFoundException("Chapter not found with id: " + request.getChapterId());
-        }
-
         if (!raceDetailsRepository.existsById(request.getRaceDetailsId())) {
             throw new ResourceNotFoundException("Race details not found with id: " + request.getRaceDetailsId());
-        }
-
-        var scene = sceneRepository.findById(request.getSceneId())
-                .orElseThrow(() -> new ResourceNotFoundException("Scene not found with id: " + request.getSceneId()));
-
-        if (!scene.getChapter().getId().equals(request.getChapterId())) {
-            throw new IllegalArgumentException("Selected scene does not belong to the selected chapter.");
         }
     }
 
     private CharacterResponseDTO toDto(CharacterAvatar character) {
         return new CharacterResponseDTO(
                 character.getId(),
-                character.getAccount().getId(),
-                character.getChapter().getId(),
-                character.getScene().getId(),
+                character.getAccount(),
+                character.getChapter(),
+                character.getScene(),
                 character.getRaceDetails().getId(),
                 character.getName(),
                 character.getFlag()
@@ -211,8 +171,7 @@ public class CharacterService implements CharacterDataAccess<Integer> {
         return new CharacterViewResponseDTO(
                 character.getId(),
                 character.getName(),
-                character.getChapter().getId(),
-                character.getChapter().getName(),
+                character.getChapter(),
                 character.getRaceDetails().getId(),
                 character.getRaceDetails().getName(),
                 new CharacterStatsDTO(

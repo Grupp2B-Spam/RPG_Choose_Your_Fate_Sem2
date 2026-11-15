@@ -24,14 +24,12 @@ public class CharacterController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public List<CharacterResponseDTO> getAllCharacters(
     ) {
         return characterService.getAllCharacters();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#id, authentication)")
     public CharacterResponseDTO getCharacterById(
             @PathVariable Integer id
     ) {
@@ -41,45 +39,23 @@ public class CharacterController {
 
     // Returns the character screen view with character, chapter, race, stats, and creation-limit info together.
     @GetMapping("/all/view")
-    @PreAuthorize("hasRole('ADMIN') or @accountAuthorizationService.canModifyAccount(authentication)")
-    public MultipleCharacterViewsResponseDto getCharacterViewById(
-        Authentication auth
-    ) {
-        Map<String, Object> extraInfo =  (Map<String, Object>) auth.getDetails(); 
-
-        Integer accountId = Integer.parseInt(extraInfo.get("sqlId").toString());
-
+    public MultipleCharacterViewsResponseDto getCharacterViewById(@RequestBody Integer accountId) {
         return characterService.getCharactersViewBy_AccountId(accountId);
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or @accountAuthorizationService.canModifyAccount(authentication)")
     public CharacterResponseDTO createCharacter(
-            @RequestBody CreateCharacterRequestDTO request,
-            Authentication auth
-    ) {
-        Map<String, Object> extraInfo =  (Map<String, Object>) auth.getDetails(); 
-
-        Integer accountId = Integer.parseInt(extraInfo.get("sqlId").toString());
+        @RequestBody CreateCharacterRequestDTO request, Integer accountId) {
         return characterService.createCharacter(accountId, request);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#id, authentication)")
-    public void deleteCharacter(
-            @PathVariable Integer id
-    ) {
+    public void deleteCharacter(@PathVariable Integer id) {
         characterService.deleteCharacter(id);
     }
     
     @GetMapping("/all")
-    public List<CharacterResponseDTO> getCharactersByAccountId(
-            Authentication auth
-    ) {
-        Map<String, Object> extraInfo =  (Map<String, Object>) auth.getDetails(); 
-
-        Integer accountId = Integer.parseInt(extraInfo.get("sqlId").toString());
-
+    public List<CharacterResponseDTO> getCharactersByAccountId(@RequestBody Integer accountId) {
         return characterService.getCharactersByAccountId(accountId);
     }
 }

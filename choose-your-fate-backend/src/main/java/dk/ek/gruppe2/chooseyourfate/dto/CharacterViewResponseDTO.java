@@ -11,7 +11,7 @@ public class CharacterViewResponseDTO {
         CharacterStatsDTO stats;
 
         public CharacterViewResponseDTO(Integer characterId, String characterName, Integer chapterId,
-                        String chapterName, Integer raceDetailsId, String raceName, CharacterStatsDTO stats) {
+                                        Integer raceDetailsId, String raceName, CharacterStatsDTO stats) {
                 this.characterId = characterId;
                 this.characterName = characterName;
                 this.chapterId = chapterId;

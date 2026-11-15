@@ -19,13 +19,11 @@ public class EquipmentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public List<EquipmentResponseDTO> getAllEquipment() {
         return equipmentService.getAllEquipment();
     }
 
     @GetMapping("/{characterId}")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#characterId, authentication)")
     public EquipmentResponseDTO getEquipmentByCharacterId(@PathVariable Integer characterId
     ) {
         return equipmentService.getEquipmentByCharacterId(characterId);

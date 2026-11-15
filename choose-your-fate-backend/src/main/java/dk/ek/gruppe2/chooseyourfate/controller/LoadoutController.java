@@ -1,7 +1,6 @@
 package dk.ek.gruppe2.chooseyourfate.controller;
 
 import dk.ek.gruppe2.chooseyourfate.dto.LoadoutResponseDTO;
-import dk.ek.gruppe2.chooseyourfate.enums.DataSourceType;
 import dk.ek.gruppe2.chooseyourfate.service.LoadoutService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,6 @@ public class LoadoutController {
     }
 
     @GetMapping("/{characterId}")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#characterId, authentication)")
     public LoadoutResponseDTO getLoadout(@PathVariable Integer characterId)
     {
         return loadoutService.getLoadoutByCharacterId(characterId);
@@ -25,7 +23,6 @@ public class LoadoutController {
 
 
     @PostMapping("/{characterId}/unequip")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#characterId, authentication)")
     public LoadoutResponseDTO unequipItem(
             @PathVariable Integer characterId,
             @RequestBody Integer itemId
@@ -34,7 +31,6 @@ public class LoadoutController {
     }
 
     @PostMapping("/{characterId}/equip")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#characterId, authentication)")
     public LoadoutResponseDTO equipItem(
             @PathVariable Integer characterId,
             @RequestBody Integer itemId

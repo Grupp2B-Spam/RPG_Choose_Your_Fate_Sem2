@@ -5,7 +5,7 @@ import java.util.List;
 public class MultipleCharacterViewsResponseDto {
     List<CharacterViewResponseDTO> views;
     Boolean canCreateMoreCharacters;
-    public MultipleCharacterViewsResponseDto(List<CharacterViewResponseDTO> views, Boolean canCreateMoreCharacters) {
+    public MultipleCharacterViewsResponseDto(List<CharacterViewResponseDTO> views) {
         this.views = views;
         this.canCreateMoreCharacters = canCreateMoreCharacters;
     }

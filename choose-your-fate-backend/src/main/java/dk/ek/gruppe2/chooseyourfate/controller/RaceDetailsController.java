@@ -29,13 +29,11 @@ public class RaceDetailsController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public RaceDetailsResponseDTO createRaceDetails(@RequestBody RaceDetailsRequestDTO request) {
         return raceDetailsService.createRaceDetails(request);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public void deleteRaceDetails(@PathVariable Integer id) {
         raceDetailsService.deleteRaceDetails(id);
     }

@@ -1,9 +1,9 @@
 package dk.ek.gruppe2.chooseyourfate.service;
 
 import dk.ek.gruppe2.chooseyourfate.dto.*;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.Equipment;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.Inventory;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.Item;
+import dk.ek.gruppe2.chooseyourfate.model.Equipment;
+import dk.ek.gruppe2.chooseyourfate.model.Inventory;
+import dk.ek.gruppe2.chooseyourfate.model.Item;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

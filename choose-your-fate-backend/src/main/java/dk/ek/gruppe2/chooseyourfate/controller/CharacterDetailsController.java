@@ -19,14 +19,11 @@ public class CharacterDetailsController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public List<CharacterDetailsResponseDTO> getAllCharacterDetails(
-    ) {
+    public List<CharacterDetailsResponseDTO> getAllCharacterDetails() {
         return characterDetailsService.getAllCharacterDetails();
     }
 
     @GetMapping("/{characterId}")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#characterId, authentication)")
     public CharacterDetailsResponseDTO getCharacterDetailsByCharacterId(
             @PathVariable Integer characterId
     ) {
@@ -34,7 +31,6 @@ public class CharacterDetailsController {
     }
 
     @PutMapping("/{characterId}")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#characterId, authentication)")
     public CharacterDetailsResponseDTO updateCharacterDetails(
             @PathVariable Integer characterId,
             @RequestBody UpdateCharacterDetailsRequestDTO request

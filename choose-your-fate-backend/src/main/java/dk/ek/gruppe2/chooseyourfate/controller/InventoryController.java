@@ -16,19 +16,16 @@ public class InventoryController {
     }
 
     @GetMapping("/{characterId}")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#id, authentication)")
     public InventoryResponseDTO getInventoryByCharacterId(@PathVariable Integer characterId) {
         return inventoryService.getInventoryByCharacterId(characterId);
     }
 
     @PostMapping("/{inventoryId}/items/{itemId}")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#id, authentication)")
     public InventoryResponseDTO addItemToInventory(@PathVariable Integer inventoryId, @PathVariable Integer itemId) {
         return inventoryService.addItemToInventory(inventoryId, itemId);
     }
 
     @PostMapping("/{inventoryId}/items/{itemId}/use")
-    @PreAuthorize("hasRole('ADMIN') or @characterAuthorizationService.canAccessCharacter(#id, authentication)")
     public void removeItem(@PathVariable Integer inventoryId, @PathVariable Integer itemId) {
         inventoryService.removeItem(inventoryId, itemId);
     }

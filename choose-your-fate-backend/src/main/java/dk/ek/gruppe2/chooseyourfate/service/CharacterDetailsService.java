@@ -3,8 +3,8 @@ package dk.ek.gruppe2.chooseyourfate.service;
 import dk.ek.gruppe2.chooseyourfate.dto.CharacterDetailsResponseDTO;
 import dk.ek.gruppe2.chooseyourfate.dto.UpdateCharacterDetailsRequestDTO;
 import dk.ek.gruppe2.chooseyourfate.exception.ResourceNotFoundException;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.CharacterDetails;
-import dk.ek.gruppe2.chooseyourfate.repository.mysql.CharacterDetailsRepository;
+import dk.ek.gruppe2.chooseyourfate.model.CharacterDetails;
+import dk.ek.gruppe2.chooseyourfate.repository.CharacterDetailsRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

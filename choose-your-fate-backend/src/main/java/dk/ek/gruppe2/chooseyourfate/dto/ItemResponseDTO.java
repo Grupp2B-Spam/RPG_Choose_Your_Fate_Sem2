@@ -1,7 +1,7 @@
 package dk.ek.gruppe2.chooseyourfate.dto;
 
 import dk.ek.gruppe2.chooseyourfate.enums.ItemType;
-import dk.ek.gruppe2.chooseyourfate.model.mysql.Item;
+import dk.ek.gruppe2.chooseyourfate.model.Item;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
