@@ -2,7 +2,6 @@ package dk.ek.gruppe2.chooseyourfate.controller;
 
 import dk.ek.gruppe2.chooseyourfate.dto.EquipmentResponseDTO;
 import dk.ek.gruppe2.chooseyourfate.service.EquipmentService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

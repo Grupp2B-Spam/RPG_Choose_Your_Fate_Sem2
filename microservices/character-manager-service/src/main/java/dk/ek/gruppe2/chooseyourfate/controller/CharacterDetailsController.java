@@ -3,7 +3,6 @@ package dk.ek.gruppe2.chooseyourfate.controller;
 import dk.ek.gruppe2.chooseyourfate.dto.CharacterDetailsResponseDTO;
 import dk.ek.gruppe2.chooseyourfate.dto.UpdateCharacterDetailsRequestDTO;
 import dk.ek.gruppe2.chooseyourfate.service.CharacterDetailsService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

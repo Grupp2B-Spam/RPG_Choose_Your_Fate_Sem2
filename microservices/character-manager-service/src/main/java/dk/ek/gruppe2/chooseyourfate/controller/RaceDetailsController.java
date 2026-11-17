@@ -3,7 +3,6 @@ package dk.ek.gruppe2.chooseyourfate.controller;
 import dk.ek.gruppe2.chooseyourfate.dto.RaceDetailsRequestDTO;
 import dk.ek.gruppe2.chooseyourfate.dto.RaceDetailsResponseDTO;
 import dk.ek.gruppe2.chooseyourfate.service.RaceDetailsService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

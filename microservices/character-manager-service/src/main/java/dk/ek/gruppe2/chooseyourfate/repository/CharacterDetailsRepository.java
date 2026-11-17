@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface CharacterDetailsRepository extends JpaRepository<CharacterDetails, Integer> {
     // Loads character details together with the character data needed for the combined view.
-    @EntityGraph(attributePaths = {"character", "character.account", "character.chapter", "character.raceDetails"})
+    @EntityGraph(attributePaths = {"character", "character.raceDetails"})
     @Query("select cd from CharacterDetails cd where cd.characterId = :characterId")
     Optional<CharacterDetails> findByIdWithCharacterView(@Param("characterId") Integer characterId);
 }

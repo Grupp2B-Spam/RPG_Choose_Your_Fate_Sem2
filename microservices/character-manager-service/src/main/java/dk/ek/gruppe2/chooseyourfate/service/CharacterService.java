@@ -53,7 +53,7 @@ public class CharacterService {
 
     // Builds one SQL-backed character view so the frontend does not need separate character and detail requests.
     public MultipleCharacterViewsResponseDto getCharactersViewBy_AccountId(Integer id) {
-        long characterCount = characterAvatarRepository.countByAccount_Id(id);
+        long characterCount = characterAvatarRepository.countByAccountId(id);
 
         List<CharacterAvatar> characters = getCharacterentitesByAccountId(id);
         
@@ -127,7 +127,7 @@ public class CharacterService {
     }
 
     private List<CharacterAvatar> getCharacterentitesByAccountId(Integer id) {
-        return characterAvatarRepository.findByAccount_Id(id);
+        return characterAvatarRepository.findByAccountId(id);
     }
 
     private CharacterAvatar getCharacterEntity(Integer id) {
