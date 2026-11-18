@@ -22,7 +22,7 @@ services:
   # queues and bindings can be inspected while developing — without a bound queue a topic
   # exchange discards messages silently, which is otherwise hard to tell from a bug.
   rabbitmq:
-    image: rabbitmq:3.13-management
+    image: rabbitmq:4-management-alpine
     container_name: choose-your-fate-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
