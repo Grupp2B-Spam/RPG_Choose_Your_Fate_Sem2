@@ -29,6 +29,27 @@ services:
       rpg_mysql_sq: 
         condition: service_healthy
         
+  # Message broker for the microservices. The management plugin exposes a UI on 15672
+  # where exchanges, queues and bindings can be inspected while developing.
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    hostname: rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
   rpg_mysql_sq:
     image: mysql:9.5.0
     container_name: rpg_mysql_sq
@@ -63,4 +84,6 @@ volumes:
   rpg_mysql_sq:
     driver: local
   rpg_mysql_secondary:
+    driver: local
+  rabbitmq:
     driver: local
