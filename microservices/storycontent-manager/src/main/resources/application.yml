@@ -6,6 +6,10 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    # Required for the returns callback in RabbitConfig to fire. The mandatory flag on
+    # the template asks the broker to hand back unroutable messages; this is what makes
+    # the connection able to receive them.
+    publisher-returns: true
 
 server:
   port: ${SERVER_PORT:8081}
