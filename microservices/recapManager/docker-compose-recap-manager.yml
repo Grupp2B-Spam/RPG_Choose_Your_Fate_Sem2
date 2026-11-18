@@ -57,6 +57,3 @@ services:
 volumes:
   recap-vault:
     driver: local
-
-include:
-  - ../../docker-compose.yml
