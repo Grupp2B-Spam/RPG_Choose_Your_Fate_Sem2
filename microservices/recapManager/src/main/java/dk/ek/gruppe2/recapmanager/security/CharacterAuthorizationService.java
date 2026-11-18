@@ -23,7 +23,7 @@ public class CharacterAuthorizationService {
         return subject != null && !subject.isBlank() && characterAccessChecker.canAccess(characterId, subject);
     }
 
-    /** Tool arguments are selected by the model, so check every tool invocation as well. */
+    /** Enforce ownership before fetching journey entries or invoking the model. */
     public void requireAccessToCharacter(Integer characterId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (characterId != null && characterId > 0

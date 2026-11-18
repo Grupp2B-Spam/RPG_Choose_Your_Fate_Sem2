@@ -23,7 +23,7 @@ public class AiController {
     @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @characterAuthorizationService.canAccessCharacter(#request.characterId, authentication))")
     @Operation(
         summary = "Ask the AI",
-        description = "Sends a request to the configured AI provider. The model will autonomously call the relevant tools to fetch data and generate a response. Possible request types: CHARACTER_RECAP, PATH_SUMMARY"
+        description = "Returns the requested recap or summary. If new journey entries are available from StoryPathManager, combines them with the saved narrative, saves the updated narrative, and returns it. If there are no new entries, returns the saved narrative unchanged. Formats: CHARACTER_RECAP, PATH_SUMMARY."
     )
     public AiResponseDTO ask(@Valid @RequestBody AiRequestDTO request) {
         return new AiResponseDTO(aiService.handleRequest(request));

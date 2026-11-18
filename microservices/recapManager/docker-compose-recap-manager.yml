@@ -17,6 +17,9 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-choose-your-fate}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-default}
       SWAGGER_PUBLIC: ${SWAGGER_PUBLIC:-false}
+      STORYPATH_MODE: ${STORYPATH_MODE:-grpc}
+      STORYPATH_GRPC_TARGET: ${STORYPATH_GRPC_TARGET:-storypath-manager:9091}
+      STORYPATH_GRPC_PLAINTEXT: ${STORYPATH_GRPC_PLAINTEXT:-false}
     volumes:
       - type: bind
         source: ${JWT_PUBLIC_KEY_FILE:-./.local/recap-jwt-public.pem}
