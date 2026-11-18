@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package choose_your_fate.storypath.v1;
+option java_package = "dk.ek.gruppe2.recapmanager.grpc.storypath.v1";
+option java_multiple_files = true;
+
+// Implemented by StoryPathManager. RecapManager queries this service.
+service StoryPathService {
+  rpc GetChoicesAfter (GetChoicesAfterRequest) returns (GetChoicesAfterResponse);
+}
+
+message GetChoicesAfterRequest {
+  int32 character_id = 1;
+  // Exclusive, durable per-character event sequence; never use choice_id as a cursor.
+  int64 after_sequence = 2;
+  int32 page_size = 3;
+  // 0 captures the current high-water mark. Echo the returned value on subsequent pages.
+  int64 snapshot_sequence = 4;
+}
+
+message GetChoicesAfterResponse {
+  int32 character_id = 1;
+  int64 snapshot_sequence = 2;
+  // Strictly ascending sequence, after_sequence < sequence <= snapshot_sequence.
+  repeated PathChoice choices = 3;
+  bool has_more = 4;
+}
+
+message PathChoice {
+  int64 sequence = 1;
+  int32 choice_id = 2;
+  string from_scene = 3;
+  string to_scene = 4;
+  string description = 5;
+  string consequence = 6;
+  int32 story_weight = 7;
+}

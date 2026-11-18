@@ -11,56 +11,24 @@ services:
     ports:
       - "5173:80"
 
-  backend:
-    profiles: ["prod"]
-    build: ./choose-your-fate-backend
-    ports:
-      - "8080:8080"
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: bar-scan-rabbitmq
     environment:
-      MYSQL_URI: jdbc:mysql://rpg_mysql_sq:3306/choose_your_fate
-      MYSQL_USERNAME: root
-      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
-      MYSQL_SECONDARY_URI: jdbc:mysql://rpg_mysql_secondary:3306/choose_your_fate
-      MYSQL_SECONDARY_USERNAME: root
-      MYSQL_SECONDARY_PASSWORD: ${MYSQL_SECONDARY_ROOT_PASSWORD:-123456}
-      ELEVEN_LABS_API_KEY: ${ELEVEN_LABS_API_KEY:-}
-      AI_ENABLED: false
-    depends_on:
-      rpg_mysql_sq: 
-        condition: service_healthy
-        
-  rpg_mysql_sq:
-    image: mysql:9.5.0
-    container_name: rpg_mysql_sq
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
     ports:
-      - "3307:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      - "5672:5672"
+      - "15672:15672"
     volumes:
-      - rpg_mysql_sq:/var/lib/mysql
-      - ./rpg_mysql_sq:/docker-entrypoint-initdb.d
-    hostname: rpg_mysql_sq
+      - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 30s
-
-  rpg_mysql_secondary:
-    image: mysql:9.5.0
-    container_name: rpg_mysql_secondary
-    ports:
-      - "3308:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_SECONDARY_ROOT_PASSWORD:-123456}
-    volumes:
-      - rpg_mysql_secondary:/var/lib/mysql
-      - ./rpg_mysql_sq:/docker-entrypoint-initdb.d
-    hostname: rpg_mysql_secondary
+      start_period: 20s
+    restart: unless-stopped
 
 volumes:
-  rpg_mysql_sq:
-    driver: local
-  rpg_mysql_secondary:
-    driver: local
+  rabbitmq-data:
