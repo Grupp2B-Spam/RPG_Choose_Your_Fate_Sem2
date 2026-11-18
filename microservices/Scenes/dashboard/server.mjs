@@ -1,5 +1,7 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const publicRoot = new URL('./public/', import.meta.url);
@@ -8,6 +10,7 @@ const staticFiles = new Map([
   ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/styles.css', ['styles.css', 'text/css; charset=utf-8']],
   ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
+  ['/favicon.ico', ['favicon.ico', 'image/x-icon']],
 ]);
 
 const defaults = {
@@ -20,14 +23,93 @@ const defaults = {
   rabbitUser: process.env.RABBIT_USER || 'dev',
   rabbitPass: process.env.RABBIT_PASS || 'dev-local-only',
   amqpHostAddress: process.env.AMQP_HOST_ADDRESS || '127.0.0.1:5672',
+  amqpDockerAddress: process.env.AMQP_DOCKER_ADDRESS || 'rabbitmq:5672',
+  mongoHostAddress: process.env.MONGO_HOST_ADDRESS || '127.0.0.1:27017',
+  mongoDockerAddress: process.env.MONGO_DOCKER_ADDRESS || 'mongo:27017',
+  exchange: process.env.GAME_EXCHANGE || 'game.events',
+  updateQueue: process.env.UPDATE_QUEUE || 'scene-indexer.scene-changed',
+  updateRoutingKey: process.env.UPDATE_ROUTING_KEY || 'scene.changed',
+  deadQueue: process.env.DEAD_QUEUE || 'scene-indexer.dead',
+  choiceRoutingKey: process.env.CHOICE_ROUTING_KEY || 'choice.made',
+  choiceStoryPathQueue: process.env.CHOICE_STORYPATH_QUEUE || 'demo.storypath.choice-made',
+  choiceCharacterQueue: process.env.CHOICE_CHARACTER_QUEUE || 'demo.character.choice-made',
 };
 
-const queueDefinitions = [
-  { name: 'scene-indexer.scene-changed', role: 'Scene update queue', event: 'scene.changed' },
-  { name: 'scene-indexer.dead', role: 'Failed scene events', event: 'scene.changed.failed' },
-  { name: 'demo.storypath.choice-made', role: 'Mock StoryPathManager', event: 'choice.made' },
-  { name: 'demo.character.choice-made', role: 'Mock CharacterManager', event: 'choice.made' },
+// Queue names are logical RabbitMQ destinations, not separate IP addresses.
+function queueDefinitions(config) {
+  return [
+    { name: config.updateQueue, role: 'SceneUpdateQueue / SceneIndexer', event: config.updateRoutingKey },
+    { name: config.deadQueue, role: 'Indexer dead-letter queue', event: 'scene.changed.failed' },
+    { name: config.choiceStoryPathQueue, role: 'ChoiceQueue / demo StoryPathManager', event: config.choiceRoutingKey },
+    { name: config.choiceCharacterQueue, role: 'ChoiceQueue / demo CharacterManager', event: config.choiceRoutingKey },
+  ];
+}
+
+// Only local, Docker DNS and private-network targets can be entered, because
+// dashboard connections are made by the server using its broker credentials.
+const editableKeys = [
+  'managerUrl', 'managerPublicUrl', 'rabbitUrl', 'rabbitPublicUrl',
+  'amqpHostAddress', 'amqpDockerAddress', 'mongoHostAddress', 'mongoDockerAddress',
+  'exchange', 'updateQueue', 'updateRoutingKey', 'deadQueue',
+  'choiceRoutingKey', 'choiceStoryPathQueue', 'choiceCharacterQueue',
 ];
+const urlKeys = new Set(['managerUrl', 'managerPublicUrl', 'rabbitUrl', 'rabbitPublicUrl']);
+const addressKeys = new Set(['amqpHostAddress', 'amqpDockerAddress', 'mongoHostAddress', 'mongoDockerAddress']);
+const nameKeys = new Set(editableKeys.filter(key => !urlKeys.has(key) && !addressKeys.has(key)));
+
+function localHost(hostname) {
+  const host = hostname.toLowerCase();
+  if (['localhost', 'host.docker.internal', 'rabbitmq', 'scene-manager', 'mongo'].includes(host)) return true;
+  if (host === '::1' || host === '[::1]') return true;
+  const p = host.split('.');
+  if (p.length !== 4 || p.some(n => !/^\d{1,3}$/.test(n) || Number(n) > 255)) return false;
+  const [a, b] = p.map(Number);
+  return a === 127 || a === 10 || (a === 192 && b === 168) || (a === 172 && b >= 16 && b <= 31);
+}
+
+function validateSettings(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw Object.assign(new Error('Settings must be a JSON object'), { status: 400 });
+  const keys = Object.keys(input);
+  if (!keys.length || keys.some(key => !editableKeys.includes(key))) throw Object.assign(new Error('Unknown or empty settings'), { status: 400 });
+  const values = {};
+  for (const key of keys) {
+    const raw = input[key];
+    if (typeof raw !== 'string' || raw.length > 250 || !raw.trim()) throw Object.assign(new Error(`${key} must be a non-empty string`), { status: 400 });
+    const value = raw.trim();
+    if (urlKeys.has(key)) {
+      let parsed;
+      try { parsed = new URL(value); } catch { /* handled below */ }
+      if (!parsed || !['http:', 'https:'].includes(parsed.protocol) || !localHost(parsed.hostname)
+          || parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash) {
+        throw Object.assign(new Error(`${key} must be a local/private HTTP(S) origin with no credentials or path`), { status: 400 });
+      }
+      values[key] = parsed.origin;
+    } else if (addressKeys.has(key)) {
+      const m = /^([a-zA-Z0-9.\-]+|\[::1\]):(\d{1,5})$/.exec(value);
+      if (!m || !localHost(m[1]) || Number(m[2]) < 1 || Number(m[2]) > 65535) {
+        throw Object.assign(new Error(`${key} must be a local/private host:port`), { status: 400 });
+      }
+      values[key] = value;
+    } else if (nameKeys.has(key)) {
+      if (!/^[a-zA-Z0-9_.-]{1,120}$/.test(value)) throw Object.assign(new Error(`${key} must be a valid RabbitMQ name`), { status: 400 });
+      values[key] = value;
+    }
+  }
+  return values;
+}
+
+function publicSettings(config) {
+  return {
+    // Keep the previous public keys for older dashboard clients.
+    sceneManager: new URL(config.managerPublicUrl).origin,
+    brokerManagement: new URL(config.rabbitPublicUrl).origin,
+    brokerAmqpHost: config.amqpHostAddress,
+    brokerAmqpDocker: config.amqpDockerAddress,
+    mockPublisher: 'Dashboard server -> RabbitMQ management API',
+    demoId: 'demo-start',
+    ...Object.fromEntries(editableKeys.map(key => [key, config[key]])),
+  };
+}
 
 const demoScenes = [
   {
@@ -107,7 +189,7 @@ function validateSceneEvent(event) {
 }
 
 async function publishScene(event, config, fetcher) {
-  const url = new URL('/api/exchanges/%2F/game.events/publish', config.rabbitUrl);
+  const url = new URL(`/api/exchanges/%2F/${encodeURIComponent(config.exchange)}/publish`, config.rabbitUrl);
   const published = await requestJson(url, {
     method: 'POST',
     headers: {
@@ -116,7 +198,7 @@ async function publishScene(event, config, fetcher) {
     },
     body: JSON.stringify({
       properties: { delivery_mode: 2, content_type: 'application/json' },
-      routing_key: 'scene.changed',
+      routing_key: config.updateRoutingKey,
       payload: JSON.stringify(event),
       payload_encoding: 'string',
     }),
@@ -136,10 +218,24 @@ async function publishScene(event, config, fetcher) {
 
 /** Create the standalone dashboard server. Does not start it, so tests can use mock upstreams. */
 export function createDashboardServer(overrides = {}) {
-  const config = { ...defaults, ...overrides };
+  const configFile = overrides.configFile === undefined
+    ? (process.env.DASHBOARD_CONFIG_FILE || fileURLToPath(new URL('./config/connections.json', import.meta.url)))
+    : overrides.configFile;
+  const baseConfig = { ...defaults, ...overrides };
   const fetcher = overrides.fetcher || fetch;
-  const managerBase = new URL(config.managerUrl);
-  const rabbitBase = new URL(config.rabbitUrl);
+  let saved = {};
+  if (configFile && existsSync(configFile)) {
+    try { saved = validateSettings(JSON.parse(readFileSync(configFile, 'utf8'))); }
+    catch (error) { throw new Error(`Invalid dashboard config file: ${error.message}`); }
+  }
+  let config = { ...baseConfig, ...saved };
+  function persist(next) {
+    if (!configFile) return;
+    mkdirSync(dirname(configFile), { recursive: true });
+    const temporary = `${configFile}.tmp`;
+    writeFileSync(temporary, JSON.stringify(next, null, 2) + '\n', { mode: 0o600 });
+    renameSync(temporary, configFile);
+  }
 
   return http.createServer(async (req, res) => {
     const url = new URL(req.url || '/', 'http://dashboard.local');
@@ -160,23 +256,39 @@ export function createDashboardServer(overrides = {}) {
       }
 
       if (req.method === 'GET' && path === '/api/config') {
-        return json(res, 200, {
-          sceneManager: new URL(config.managerPublicUrl).origin,
-          brokerManagement: new URL(config.rabbitPublicUrl).origin,
-          brokerAmqpHost: config.amqpHostAddress,
-          brokerAmqpDocker: 'rabbitmq:5672',
-          exchange: 'game.events',
-          updateRoutingKey: 'scene.changed',
-          updateQueue: 'scene-indexer.scene-changed',
-          mockPublisher: 'This dashboard (server-side via RabbitMQ Management API)',
-          demoId: 'demo-start',
-        });
+        return json(res, 200, publicSettings(config));
+      }
+
+      if (req.method === 'PUT' && path === '/api/config') {
+        if (req.headers['content-type']?.split(';')[0].trim() !== 'application/json') {
+          return json(res, 415, { error: 'Use application/json to save settings' });
+        }
+        // Avoid cross-origin pages changing the loopback dashboard's configuration.
+        if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) {
+          return json(res, 403, { error: 'Cross-origin settings changes are not allowed' });
+        }
+        const changes = validateSettings(await readJson(req));
+        const updated = { ...saved, ...changes };
+        persist(updated);
+        saved = updated;
+        config = { ...baseConfig, ...saved };
+        return json(res, 200, { message: 'Dashboard settings saved', config: publicSettings(config) });
+      }
+
+      if (req.method === 'POST' && path === '/api/config/reset') {
+        if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) {
+          return json(res, 403, { error: 'Cross-origin reset is not allowed' });
+        }
+        if (configFile && existsSync(configFile)) unlinkSync(configFile);
+        saved = {};
+        config = { ...baseConfig };
+        return json(res, 200, { message: 'Dashboard settings reset', config: publicSettings(config) });
       }
 
       if (req.method === 'GET' && path === '/api/status') {
         const [manager, broker] = await Promise.allSettled([
-          requestJson(new URL('/scenes/demo-start', managerBase), {}, fetcher),
-          requestJson(new URL('/api/overview', rabbitBase), { headers: { authorization: headerAuth(config) } }, fetcher),
+          requestJson(new URL('/scenes/demo-start', config.managerUrl), {}, fetcher),
+          requestJson(new URL('/api/overview', config.rabbitUrl), { headers: { authorization: headerAuth(config) } }, fetcher),
         ]);
         return json(res, 200, {
           manager: manager.status === 'fulfilled'
@@ -190,10 +302,10 @@ export function createDashboardServer(overrides = {}) {
       }
 
       if (req.method === 'GET' && path === '/api/queues') {
-        const results = await Promise.all(queueDefinitions.map(async (queue) => {
+        const results = await Promise.all(queueDefinitions(config).map(async (queue) => {
           const endpoint = `/api/queues/%2F/${encodeURIComponent(queue.name)}`;
           try {
-            const result = await requestJson(new URL(endpoint, rabbitBase), {
+            const result = await requestJson(new URL(endpoint, config.rabbitUrl), {
               headers: { authorization: headerAuth(config) },
             }, fetcher);
             if (result.status === 404) return { ...queue, exists: false, ready: 0, unacked: 0, consumers: 0 };
@@ -217,7 +329,7 @@ export function createDashboardServer(overrides = {}) {
         if (!((req.method === 'GET' && (isReadScene || isNext)) || (req.method === 'POST' && isChoice))) {
           return json(res, 405, { error: 'Unsupported SceneManager method or path' });
         }
-        const upstream = new URL(`/scenes${rest}`, managerBase);
+        const upstream = new URL(`/scenes${rest}`, config.managerUrl);
         const options = { method: req.method };
         if (req.method === 'POST') {
           const input = await readJson(req);
@@ -264,5 +376,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === fileURLToPath(new URL(
     console.log(`Scene dashboard: http://${defaults.host}:${defaults.port}`);
     console.log(`SceneManager upstream: ${defaults.managerUrl}`);
     console.log(`RabbitMQ management upstream: ${defaults.rabbitUrl}`);
+    console.log('Editable connection settings: /api/config (saved locally in dashboard/config/)');
   });
 }

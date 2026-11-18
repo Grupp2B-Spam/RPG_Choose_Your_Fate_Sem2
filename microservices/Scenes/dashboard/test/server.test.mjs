@@ -51,7 +51,7 @@ async function call(path, options = {}) {
   return { status: response.status, body: JSON.parse(text), headers: response.headers };
 }
 
-for (const file of ['/', '/app.js', '/styles.css']) {
+for (const file of ['/', '/app.js', '/styles.css', '/favicon.ico']) {
   test(`Serves frontend asset ${file}`, async () => {
     const response = await fetch(base + file);
     assert.equal(response.status, 200);

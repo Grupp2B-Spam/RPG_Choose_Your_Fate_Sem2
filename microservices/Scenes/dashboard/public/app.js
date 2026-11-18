@@ -95,7 +95,7 @@ async function loadStatus() {
     if (!response.ok) throw new Error('Cannot check status');
     setServiceState('manager', response.data.manager);
     setServiceState('broker', response.data.broker);
-    if (response.data.broker?.version) byId('broker-detail').textContent = `RabbitMQ ${response.data.broker.version} · management API`;
+    if (response.data.broker?.version) byId('broker-detail').textContent = `${lastConnectionConfig?.rabbitPublicUrl || 'RabbitMQ management'} · RabbitMQ ${response.data.broker.version}`;
   } catch {
     setServiceState('manager', { online: false });
     setServiceState('broker', { online: false });
@@ -146,19 +146,72 @@ async function loadQueues() {
   }
 }
 
+let lastConnectionConfig = null;
+const settingsFields = [
+  'rabbitUrl', 'rabbitPublicUrl', 'amqpDockerAddress', 'amqpHostAddress',
+  'updateQueue', 'updateRoutingKey', 'deadQueue',
+  'exchange', 'choiceRoutingKey', 'choiceStoryPathQueue', 'choiceCharacterQueue',
+  'managerUrl', 'managerPublicUrl', 'mongoDockerAddress', 'mongoHostAddress',
+];
+function renderSettings(config) {
+  lastConnectionConfig = config;
+  const form = byId('connection-form');
+  for (const key of settingsFields) form.elements.namedItem(key).value = config[key] || '';
+  byId('choice-broker-address').textContent = config.amqpDockerAddress;
+  byId('rabbit-ui-link').href = config.rabbitPublicUrl;
+  byId('manager-detail').textContent = config.managerPublicUrl;
+  byId('broker-detail').textContent = config.rabbitPublicUrl;
+  byId('arch-update-routing').textContent = config.updateRoutingKey;
+  byId('arch-update-queue').textContent = config.updateQueue;
+  byId('arch-indexer-amqp').textContent = `RabbitMQ ${config.amqpDockerAddress}`;
+  byId('arch-choice-routing').textContent = config.choiceRoutingKey;
+  byId('arch-choice-exchange').textContent = config.exchange;
+  byId('arch-choice-broker').textContent = `RabbitMQ ${config.amqpDockerAddress}`;
+  byId('arch-choice-subscribers').textContent = `${config.choiceStoryPathQueue} · ${config.choiceCharacterQueue}`;
+  byId('mock-event-route').textContent = `${config.exchange} → ${config.updateRoutingKey}`;
+}
+function settingsFeedback(message, error = false) {
+  const messageBox = byId('connection-feedback');
+  messageBox.textContent = message;
+  messageBox.classList.toggle('error', error);
+}
 async function loadConfig() {
   try {
     const response = await api('/api/config');
-    if (!response.ok) return;
-    const c = response.data;
-    byId('amqp-host').textContent = c.brokerAmqpHost;
-    byId('amqp-docker').textContent = c.brokerAmqpDocker;
-    byId('rabbit-ui').textContent = new URL(c.brokerManagement).host;
-    byId('rabbit-ui-link').href = c.brokerManagement;
-    byId('manager-url').textContent = new URL(c.sceneManager).host;
-    byId('manager-detail').textContent = c.sceneManager;
-    byId('broker-detail').textContent = c.brokerManagement;
-  } catch { /* Static reference values remain visible while offline. */ }
+    if (!response.ok) throw new Error(response.data.error || 'Could not load connection settings');
+    renderSettings(response.data);
+    settingsFeedback('Loaded local connection settings. Addresses are editable below.');
+  } catch (error) { settingsFeedback(error.message, true); }
+}
+async function saveConnections(event) {
+  event.preventDefault();
+  const button = byId('save-connections');
+  await whileBusy(button, async () => {
+    const form = byId('connection-form');
+    const data = Object.fromEntries(settingsFields.map(key => [key, form.elements.namedItem(key).value.trim()]));
+    try {
+      const response = await api('/api/config', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+      if (!response.ok) throw new Error(response.data.error || 'Could not save settings');
+      renderSettings(response.data.config);
+      settingsFeedback('Saved. Dashboard API and management connections are active now; Java/Docker addresses are reference values until you update/restart those services.');
+      displayToast('Connection settings saved');
+      await Promise.all([loadStatus(), loadQueues()]);
+    } catch (error) { settingsFeedback(error.message, true); displayToast(error.message); }
+  });
+}
+async function resetConnections() {
+  if (!confirm('Reset all dashboard connection settings to the original defaults?')) return;
+  const button = byId('reset-connections');
+  await whileBusy(button, async () => {
+    try {
+      const response = await api('/api/config/reset', { method: 'POST' });
+      if (!response.ok) throw new Error(response.data.error || 'Reset failed');
+      renderSettings(response.data.config);
+      settingsFeedback('Restored dashboard defaults. Java service configuration is unchanged.');
+      displayToast('Dashboard defaults restored');
+      await Promise.all([loadStatus(), loadQueues()]);
+    } catch (error) { settingsFeedback(error.message, true); }
+  });
 }
 
 function createPreview(scene) {
@@ -296,9 +349,9 @@ function setupHandlers() {
   byId('publish-event').addEventListener('click', publishEvent);
   byId('copy-response').addEventListener('click', () => copyText(lastResponse || byId('response-body').textContent));
   byId('copy-contract').addEventListener('click', () => copyText(formatJSON(contractDefinitions[currentContract].example)));
-  document.querySelectorAll('.copy-address').forEach((button) => button.addEventListener('click', () => {
-    copyText(byId(button.dataset.copyTarget).textContent);
-  }));
+  byId('connection-form').addEventListener('submit', saveConnections);
+  byId('reset-connections').addEventListener('click', resetConnections);
+  byId('copy-connections').addEventListener('click', () => copyText(JSON.stringify(Object.fromEntries(settingsFields.map(key => [key, byId('connection-form').elements.namedItem(key).value.trim()])), null, 2)));
   document.querySelectorAll('.contract-tab').forEach((button) => button.addEventListener('click', () => loadContract(button.dataset.contract)));
   document.querySelectorAll('.nav-link').forEach((link) => link.addEventListener('click', () => {
     document.querySelectorAll('.nav-link').forEach((item) => item.classList.remove('active'));

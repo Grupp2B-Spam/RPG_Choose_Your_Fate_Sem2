@@ -7,6 +7,7 @@
   <meta name="description" content="Local developer console for the Choose Your Fate SceneManager and SceneIndexer services.">
   <title>Scene Control - Choose Your Fate</title>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/ico" href="/favicon.ico">
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -17,13 +18,13 @@
         <span class="brand-mark"><span></span><span></span><span></span><span></span></span>
         <span class="brand-text">CHOOSE YOUR FATE <small>DEV ENVIRONMENT</small></span>
       </a>
-      <div class="sidebar-section-label">WORKSPACE</div>
+      <!-- <div class="sidebar-section-label">WORKSPACE</div>
       <nav class="nav-links">
         <a class="nav-link active" href="#overview" data-nav="overview"><span class="nav-symbol">◈</span><span>Overview</span></a>
         <a class="nav-link" href="#endpoints" data-nav="endpoints"><span class="nav-symbol">⌁</span><span>API explorer</span></a>
-        <a class="nav-link" href="#mock" data-nav="mock"><span class="nav-symbol">⇄</span><span>Mock publisher</span></a>
+        <a class="nav-link" h ref="#mock" data-nav="mock"><span class="nav-symbol">⇄</span><span>Mock publisher</span></a>
         <a class="nav-link" href="#contracts" data-nav="contracts"><span class="nav-symbol">{ }</span><span>Data contracts</span></a>
-      </nav>
+      </nav> -->
       <div class="sidebar-section-label second-label">SERVICES</div>
       <div class="service-mini"><span class="status-dot neutral" id="side-manager-dot"></span><span>SceneManager</span><span class="mini-state" id="side-manager-label">Checking</span></div>
       <div class="service-mini"><span class="status-dot neutral" id="side-broker-dot"></span><span>RabbitMQ</span><span class="mini-state" id="side-broker-label">Checking</span></div>
@@ -57,19 +58,33 @@
             <div><h2 id="flow-title">System architecture</h2>
             </div>
           </div>
-          <div class="panel pipeline-panel">
-            <div class="pipeline" role="img" aria-label="Mock StoryContentManager publishes scene.changed through RabbitMQ into SceneIndexer, which writes MongoDB. SceneManager reads MongoDB and publishes choice.made events to two demo queues.">
-              <div class="pipeline-step"><div class="step-icon golden">✦</div><strong>Mocked StoryContentManager</strong><span>StoryContentManager stand-in</span><small>Publishes scene.changed</small></div>
-              <div class="pipeline-arrow"><span>scene.changed</span><b>→</b></div>
-              <div class="pipeline-step"><div class="step-icon lavender">⇄</div><strong>RabbitMQ</strong><span>game.events queue</span></div>
-              <div class="pipeline-arrow"><span>consumes</span><b>→</b></div>
-              <div class="pipeline-step"><div class="step-icon coral">⌘</div><strong>SceneIndexer</strong><span>Event listener</span><small>Writes the db</small></div>
-              <div class="pipeline-arrow"><span>writes</span><b>→</b></div>
-              <div class="pipeline-step"><div class="step-icon blue">▤</div><strong>MongoDB</strong><span>scenes collection</span></div>
-              <div class="pipeline-arrow reverse"><span>read-only</span><b>←</b></div>
-              <div class="pipeline-step"><div class="step-icon mint">▣</div><strong>SceneManager</strong><span>Player REST API</span><small>choice.made → subscribers</small></div>
+          <div class="panel architecture-panel">
+            <div class="architecture-board" aria-label="Mock StoryContentManager publishes to SceneUpdateQueue; SceneIndexer consumes the queue and writes MongoDB; SceneManager reads MongoDB and publishes to ChoiceQueue.">
+              <div class="architecture-content">
+                <div class="architecture-label">CONTENT / SCENES</div>
+                <div class="arch-columns">
+                  <div class="arch-write-track">
+                    <div class="arch-node arch-source"><span class="arch-type">MOCK PUBLISHER</span><strong>StoryContentManager</strong><small>Dashboard mock — not a queue</small></div>
+                    <div class="arch-down"><span>publishes <code id="arch-update-routing">scene.changed</code></span><b>↓</b></div>
+                    <div class="arch-node arch-queue"><span class="arch-type">SCENE UPDATE QUEUE</span><strong>SceneUpdateQueue</strong><small id="arch-update-queue">scene-indexer.scene-changed</small><small id="arch-indexer-amqp">RabbitMQ rabbitmq:5672</small></div>
+                    <div class="arch-down"><span>consumer</span><b>↓</b></div>
+                    <div class="arch-node arch-service"><span class="arch-type">WRITE MODEL</span><strong>SceneIndexer</strong><small>Writes scenes only</small></div>
+                    <div class="arch-down green-arrow"><span>writes</span><b>↓</b></div>
+                    <div class="arch-node arch-database"><span class="arch-type">SCENE READ MODEL</span><strong>MongoDB</strong><small>scenes collection</small></div>
+                  </div>
+                  <div class="arch-read-track">
+                    <div class="arch-manager-node arch-node arch-service"><span class="arch-type">READ MODEL</span><strong>SceneManager</strong><small>Serves scenes · validates choices</small></div>
+                    <div class="arch-read-arrow"><b>↗</b><span>reads MongoDB<br>(read only)</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="arch-outgoing">
+                <div class="arch-publish-arrow"><span>publishes after validation</span><b>→</b></div>
+                <div class="arch-node arch-choice"><span class="arch-type">PLAYER CHOICES</span><strong>ChoiceQueue</strong><small>logical flow — <code id="arch-choice-routing">choice.made</code></small><small id="arch-choice-broker">RabbitMQ rabbitmq:5672</small></div>
+                <div class="arch-subscribers">RabbitMQ <code id="arch-choice-exchange">game.events</code> exchange<br><span id="arch-choice-subscribers">demo.storypath.choice-made · demo.character.choice-made</span></div>
+              </div>
             </div>
-            <div class="pipeline-footer"><span class="legend-swatch green"></span> Writes: SceneIndexer <span class="legend-divider">·</span> <span class="legend-swatch yellow"></span> Reads: SceneManager <span class="legend-divider">·</span> Both demo subscriber queues receive <code>choice.made</code></div>
+            <div class="architecture-footer">One RabbitMQ broker carries both event flows. <strong>SceneUpdateQueue</strong> and <strong>ChoiceQueue</strong> are logical names in the architecture; the running demo uses the RabbitMQ queues shown below.</div>
           </div>
         </section>
 
@@ -79,14 +94,50 @@
               <h2 id="connect-title">CONNECTIVITY</h2>
             </div>
           </div>
-          <div class="connection-grid">
-            <div class="connection-card"><div class="connection-heading"><span class="connection-icon">◇</span> RABBITMQ / Queue Broker</div><div class="connection-address" id="amqp-host">127.0.0.1:5672</div><div class="connection-desc">From your host machine</div><button class="text-action copy-address" type="button" data-copy-target="amqp-host">Copy address ↗</button></div>
-            <div class="connection-card"><div class="connection-heading"><span class="connection-icon cyan">◇</span> MANAGEMENT API &amp; UI</div><div class="connection-address" id="rabbit-ui">127.0.0.1:15672</div><div class="connection-desc">HTTP API used by the mock publisher</div><a class="text-action" id="rabbit-ui-link" href="http://127.0.0.1:15672" target="_blank" rel="noopener noreferrer">Open management UI ↗</a></div>
-            <div class="connection-card"><div class="connection-heading"><span class="connection-icon green">◇</span> SCENEMANAGER / REST</div><div class="connection-address" id="manager-url">127.0.0.1:8080</div><div class="connection-desc">Java REST API accessed through this dashboard</div><button class="text-action copy-address" type="button" data-copy-target="manager-url">Copy address ↗</button></div>
-          </div>
-          <div class="info-strip">
-            <span> The mock is <strong>a publisher</strong>, not a second queue or separate IP.</span>
-          </div>
+          <form id="connection-form" class="connection-editor" autocomplete="off">
+            <div class="connection-groups">
+              <fieldset class="panel connection-group">
+                <legend>SCENE UPDATES — Mock → SceneUpdateQueue → SceneIndexer</legend>
+                <p class="group-description">The mock publishes through RabbitMQ's management API. SceneIndexer consumes the queue through AMQP.</p>
+                <div class="connection-fields">
+                  <label>RabbitMQ management URL <em>dashboard live</em><input name="rabbitUrl" type="url" required value="http://127.0.0.1:15672"></label>
+                  <label>Management UI (browser link)<input name="rabbitPublicUrl" type="url" required value="http://127.0.0.1:15672"></label>
+                  <label>Indexer → RabbitMQ (Docker AMQP)<input name="amqpDockerAddress" required value="rabbitmq:5672"></label>
+                  <label>RabbitMQ (host AMQP)<input name="amqpHostAddress" required value="127.0.0.1:5672"></label>
+                  <label>SceneUpdateQueue (actual queue name)<input name="updateQueue" required value="scene-indexer.scene-changed"></label>
+                  <label>Scene update routing key<input name="updateRoutingKey" required value="scene.changed"></label>
+                  <label>Dead-letter queue<input name="deadQueue" required value="scene-indexer.dead"></label>
+                </div>
+              </fieldset>
+              <fieldset class="panel connection-group">
+                <legend>PLAYER CHOICES — SceneManager → ChoiceQueue</legend>
+                <p class="group-description">ChoiceQueue uses the <strong>same RabbitMQ broker</strong> as scene updates; it is not a separate IP or a single named queue in this demo.</p>
+                <div class="connection-fields">
+                  <label>RabbitMQ exchange (both flows)<input name="exchange" required value="game.events"></label>
+                  <label>Player-choice routing key<input name="choiceRoutingKey" required value="choice.made"></label>
+                  <label>StoryPath demo subscriber queue<input name="choiceStoryPathQueue" required value="demo.storypath.choice-made"></label>
+                  <label>Character demo subscriber queue<input name="choiceCharacterQueue" required value="demo.character.choice-made"></label>
+                </div>
+                <div class="connection-summary">ChoiceQueue broker: <code id="choice-broker-address">rabbitmq:5672</code></div>
+              </fieldset>
+              <fieldset class="panel connection-group">
+                <legend>REST &amp; DATABASE — SceneManager ↔ MongoDB</legend>
+                <p class="group-description">The dashboard proxies REST calls to SceneManager; SceneManager reads the Mongo scene projection.</p>
+                <div class="connection-fields">
+                  <label>SceneManager upstream URL <em>dashboard live</em><input name="managerUrl" type="url" required value="http://127.0.0.1:8080"></label>
+                  <label>SceneManager browser address<input name="managerPublicUrl" type="url" required value="http://127.0.0.1:8080"></label>
+                  <label>MongoDB (Docker)<input name="mongoDockerAddress" required value="mongo:27017"></label>
+                  <label>MongoDB (host)<input name="mongoHostAddress" required value="127.0.0.1:27017"></label>
+                </div>
+              </fieldset>
+            </div>
+            <div class="connection-actions">
+              <div><strong>Editable connection reference</strong><p>Dashboard live fields update its HTTP connections immediately. Docker/Java fields are saved for reference but require matching Compose/Java configuration and a service restart.</p></div>
+              <div class="connection-buttons"><button class="button ghost" type="button" id="reset-connections">Reset defaults</button><button class="button primary" type="submit" id="save-connections">Save addresses</button></div>
+            </div>
+            <p class="connection-feedback" id="connection-feedback" aria-live="polite">Loading saved addresses…</p>
+            <div class="connection-utilities"><a class="text-action" id="rabbit-ui-link" href="http://127.0.0.1:15672" target="_blank" rel="noopener noreferrer">Open RabbitMQ management UI ↗</a><span>Configuration: <code>dashboard/config/connections.json</code></span><button class="text-action" type="button" id="copy-connections">Copy settings JSON ↗</button></div>
+          </form>
         </section>
 
         <section class="section" aria-labelledby="queue-title">
@@ -121,11 +172,11 @@
 
         <section class="section" id="mock" aria-labelledby="mock-title">
           <div class="section-top">
-            <div><h2 id="mock-title">Mock StoryContentManager</h2><p class="section-intro">Moch StoryContentManager, SceneIndexer should consumes it asynchronously.</p>
+            <div><h2 id="mock-title">Mock StoryContentManager</h2><p class="section-intro">Mock publisher for StoryContentManager; SceneIndexer consumes its scene updates asynchronously.</p>
             </div>
             <span class="section-chip">SCENE.CHANGED</span>
             </div>
-          <div class="mock-grid"><div class="panel editor-panel"><div class="editor-header"><div><span class="editor-pill">JSON</span><b>SceneChangedEvent</b></div><div class="editor-tabs"><button type="button" class="editor-tab selected" id="load-upsert">UPSERT</button><button type="button" class="editor-tab" id="load-delete">DELETE</button></div></div><label for="event-json" class="visually-hidden">Scene event JSON editor</label><textarea id="event-json" class="code-editor" spellcheck="false" aria-label="JSON SceneChangedEvent to publish"></textarea><div class="editor-footer"><span>game.events <b>→</b> scene.changed</span><button type="button" class="button primary" id="publish-event">Publish event ↗</button></div></div>
+          <div class="mock-grid"><div class="panel editor-panel"><div class="editor-header"><div><span class="editor-pill">JSON</span><b>SceneChangedEvent</b></div><div class="editor-tabs"><button type="button" class="editor-tab selected" id="load-upsert">UPSERT</button><button type="button" class="editor-tab" id="load-delete">DELETE</button></div></div><label for="event-json" class="visually-hidden">Scene event JSON editor</label><textarea id="event-json" class="code-editor" spellcheck="false" aria-label="JSON SceneChangedEvent to publish"></textarea><div class="editor-footer"><span><span id="mock-event-route">game.events → scene.changed</span></span><button type="button" class="button primary" id="publish-event">Publish event ↗</button></div></div>
           <div class="mock-side"><div class="panel mock-instructions"><span class="small-label">QUICK START</span><h3>Populate the scene projection</h3><p>Seeds three safe demo-prefixed scenes: <code>demo-start</code>, <code>demo-mill</code>, and <code>demo-village</code>.</p><button class="button full-width outline" id="seed-scenes" type="button">Seed 3 example scenes <span aria-hidden="true">＋</span></button><div class="mock-step"><span>01</span> Dashboard sends events to the broker management API.</div><div class="mock-step"><span>02</span> RabbitMQ routes them to the indexer queue.</div><div class="mock-step"><span>03</span> SceneIndexer writes MongoDB. SceneManager serves the new scenes.</div><p class="fine-print">Seed events use version 1. Publishing them again will not overwrite newer scene versions. This is local development functionality only.</p></div><div class="panel publish-result"><span class="small-label">PUBLISH STATUS</span><div id="publish-status" aria-live="polite">No events published in this session.</div></div></div></div>
         </section>
 
