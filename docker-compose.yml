@@ -32,3 +32,6 @@ services:
 
 volumes:
   rabbitmq-data:
+
+include:
+  - microservices/recapManager/docker-compose-recap-manager.yml
