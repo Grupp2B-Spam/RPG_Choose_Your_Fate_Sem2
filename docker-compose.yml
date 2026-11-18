@@ -1,6 +1,13 @@
 # mysql server seeded with databases from dump files in the folder ./rpg_mysql
 # The seeding only happens on the first start when the volume is created.
 # If you need to reset the seeding, run "docker compose down -v" to delete the volume.
+
+# Each microservice owns a compose file next to its code, describing the service and
+# the database it owns. They are merged into one project here, so everything shares a
+# network and each person edits only their own file.
+include:
+  - microservices/storycontent-manager/compose.yaml
+
 services:
   frontend:
     profiles: ["prod"]
