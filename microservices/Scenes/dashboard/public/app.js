@@ -359,6 +359,94 @@ function setupHandlers() {
   }));
 }
 
+
+/** Draw right-angle arrows between the actual card edges, including responsive layouts.
+ * SVG paths are presentation only; nodes and queue labels remain real HTML.
+ */
+function setupArchitectureConnectors() {
+  const board = document.querySelector('.architecture-board');
+  const mongo = board?.querySelector('.arch-database');
+  const manager = board?.querySelector('.arch-manager-node');
+  const choice = board?.querySelector('.arch-choice');
+  const canvas = byId('arch-connectors');
+  if (!board || !mongo || !manager || !choice || !canvas) return;
+
+  const readPath = byId('arch-read-path');
+  const publishPath = byId('arch-publish-path');
+  const readLabel = byId('arch-read-label');
+  const publishLabel = byId('arch-publish-label');
+  let frame = 0;
+
+  function draw() {
+    frame = 0;
+    const root = board.getBoundingClientRect();
+    if (!root.width || !root.height) return;
+    canvas.setAttribute('viewBox', `0 0 ${root.width} ${root.height}`);
+    const position = (el) => {
+      const r = el.getBoundingClientRect();
+      return { left: r.left - root.left, right: r.right - root.left,
+        top: r.top - root.top, bottom: r.bottom - root.top,
+        midX: (r.left + r.right) / 2 - root.left,
+        midY: (r.top + r.bottom) / 2 - root.top };
+    };
+    const db = position(mongo);
+    const mgr = position(manager);
+    const queue = position(choice);
+    const mobile = window.matchMedia('(max-width:700px)').matches;
+    const stacked = window.matchMedia('(max-width:1120px)').matches;
+    // Labels are positioned independently of their paths and never intercept clicks.
+    const place = (element, x, y, align = 'left') => {
+      element.style.left = `${x}px`;
+      element.style.top = `${y}px`;
+      element.style.transform = align === 'center' ? 'translate(-50%,-50%)' : 'translateY(-50%)';
+    };
+
+    if (mobile) {
+      const readMid = (db.bottom + mgr.top) / 2;
+      readPath.setAttribute('d', `M ${db.midX} ${db.bottom} V ${readMid} H ${mgr.midX} V ${mgr.top}`);
+      place(readLabel, Math.min(db.midX + 15, root.width - readLabel.offsetWidth - 6), readMid);
+      const choiceMid = (mgr.bottom + queue.top) / 2;
+      publishPath.setAttribute('d', `M ${mgr.midX} ${mgr.bottom} V ${choiceMid} H ${queue.midX} V ${queue.top}`);
+      place(publishLabel, Math.max(6, mgr.midX - publishLabel.offsetWidth - 17), choiceMid);
+    } else {
+      const readX = mgr.midX;
+      readPath.setAttribute('d', `M ${db.right} ${db.midY} H ${readX} V ${mgr.bottom}`);
+      place(readLabel, Math.min(readX + 12, root.width - readLabel.offsetWidth - 6),
+        (db.midY + mgr.bottom) / 2);
+
+      if (stacked) {
+        // The right side is an open lane, avoiding the scene cards above.
+        const laneX = root.width - 20;
+        const turnY = queue.top - 19;
+        publishPath.setAttribute('d', `M ${mgr.right} ${mgr.midY} H ${laneX} V ${turnY} H ${queue.midX} V ${queue.top}`);
+        place(publishLabel, queue.midX, turnY - 15, 'center');
+      } else {
+        const bendX = (mgr.right + queue.left) / 2;
+        publishPath.setAttribute('d', `M ${mgr.right} ${mgr.midY} H ${bendX} V ${queue.midY} H ${queue.left}`);
+        // Prefer the free space just left of the vertical leg, between the cards.
+        if (mgr.top - queue.bottom > publishLabel.offsetHeight + 10) {
+          place(publishLabel, Math.max(6, bendX - publishLabel.offsetWidth - 9),
+            (queue.bottom + mgr.top) / 2);
+        } else {
+          place(publishLabel, bendX, Math.min(mgr.top, queue.top) - 17, 'center');
+        }
+      }
+    }
+  }
+  const schedule = () => {
+    if (!frame) frame = requestAnimationFrame(draw);
+  };
+  // Avoid stale fixed coordinates when labels wrap or the viewport changes.
+  if (typeof ResizeObserver !== 'undefined') {
+    const observer = new ResizeObserver(schedule);
+    [board, mongo, manager, choice].forEach((element) => observer.observe(element));
+  }
+  window.addEventListener('resize', schedule);
+  if (document.fonts?.ready) document.fonts.ready.then(schedule);
+  schedule();
+}
+
+setupArchitectureConnectors();
 setupHandlers();
 modeChanged('UPSERT');
 loadContract('scene');

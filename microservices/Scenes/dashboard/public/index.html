@@ -74,15 +74,24 @@
                   </div>
                   <div class="arch-read-track">
                     <div class="arch-manager-node arch-node arch-service"><span class="arch-type">READ MODEL</span><strong>SceneManager</strong><small>Serves scenes · validates choices</small></div>
-                    <div class="arch-read-arrow"><b>↗</b><span>reads MongoDB<br>(read only)</span></div>
                   </div>
                 </div>
               </div>
               <div class="arch-outgoing">
-                <div class="arch-publish-arrow"><span>publishes after validation</span><b>→</b></div>
                 <div class="arch-node arch-choice"><span class="arch-type">PLAYER CHOICES</span><strong>ChoiceQueue</strong><small>logical flow — <code id="arch-choice-routing">choice.made</code></small><small id="arch-choice-broker">RabbitMQ rabbitmq:5672</small></div>
                 <div class="arch-subscribers">RabbitMQ <code id="arch-choice-exchange">game.events</code> exchange<br><span id="arch-choice-subscribers">demo.storypath.choice-made · demo.character.choice-made</span></div>
               </div>
+              <!-- Connectors are anchored to the actual node edges and updated on resize. -->
+              <svg class="arch-connectors" id="arch-connectors" aria-hidden="true" focusable="false">
+                <defs>
+                  <marker id="arch-read-head" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#e2a8a6" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker>
+                  <marker id="arch-publish-head" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#d7e8f2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker>
+                </defs>
+                <path id="arch-read-path" class="arch-link arch-link-read" marker-end="url(#arch-read-head)"/>
+                <path id="arch-publish-path" class="arch-link arch-link-publish" marker-end="url(#arch-publish-head)"/>
+              </svg>
+              <span class="arch-connector-label arch-read-label" id="arch-read-label" aria-hidden="true">reads MongoDB (read only)</span>
+              <span class="arch-connector-label arch-publish-label" id="arch-publish-label" aria-hidden="true">publishes after validation</span>
             </div>
             <div class="architecture-footer">One RabbitMQ broker carries both event flows. <strong>SceneUpdateQueue</strong> and <strong>ChoiceQueue</strong> are logical names in the architecture; the running demo uses the RabbitMQ queues shown below.</div>
           </div>
