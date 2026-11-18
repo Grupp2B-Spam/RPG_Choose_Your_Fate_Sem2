@@ -2,9 +2,13 @@
 # The seeding only happens on the first start when the volume is created.
 # If you need to reset the seeding, run "docker compose down -v" to delete the volume.
 services:
-  backend:
+  # Named after the service rather than "backend": after include, service names share
+  # one namespace across every included file, so two services both called "backend"
+  # would silently override one another.
+  recap-manager:
     profiles: ["prod"]
     build: .
+    container_name: recap-manager
     ports:
       - "8090:8090"
     environment:
