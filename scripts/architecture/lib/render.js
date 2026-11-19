@@ -79,6 +79,22 @@ function contracts(manifest, s) {
   return ['<b>Contracts</b>', ...lines].join('<br>');
 }
 
+/**
+ * A piece of infrastructure, as the diagram prints it.
+ *
+ * The image tag is the reason this is a token rather than typed into the template:
+ * it is a version, and a version typed into a drawing is a version that goes stale.
+ */
+function infraLabel(i) {
+  const lines = [`<b>${i.display}</b>`, i.kind];
+  if (i.image) lines.push(i.image);
+  if (i.external) lines.push('external to the cluster');
+  if (i.container) lines.push(`container: ${i.container}`);
+  if (i.ports && i.ports.length > 0) lines.push(`ports: ${i.ports.join(' · ')}`);
+  if (i.note) lines.push(`<font style="font-size: 10px">${i.note}</font>`);
+  return lines.join('<br>');
+}
+
 function eventLabel(e) {
   const n = (e.queues || []).length;
   return [
@@ -123,6 +139,7 @@ function contractTable(manifest) {
 function createResolver(manifest) {
   const byId = new Map(manifest.services.map((s) => [s.id, s]));
   const eventsByName = new Map((manifest.events || []).map((e) => [e.name, e]));
+  const infraById = new Map((manifest.infrastructure || []).map((i) => [i.id, i]));
 
   return function resolve(token) {
     const parts = String(token).split(':');
@@ -145,6 +162,12 @@ function createResolver(manifest) {
         case 'contracts': return contracts(manifest, s);
         default: return null;
       }
+    }
+
+    if (parts[0] === 'infra' && parts.length === 3) {
+      const i = infraById.get(parts[1]);
+      if (!i) return null;
+      return parts[2] === 'label' ? infraLabel(i) : null;
     }
 
     if (parts[0] === 'event' && parts.length === 3) {

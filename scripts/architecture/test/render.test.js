@@ -94,3 +94,23 @@ test('an unknown field returns null', () => {
 test('an unknown token kind returns null', () => {
   assert.equal(resolve('sevice:recap-manager:card'), null);
 });
+
+test('infra label carries the display name and the image tag', () => {
+  const html = resolve('infra:rabbitmq:label');
+  assert.match(html, /RabbitMQ/);
+  assert.match(html, /rabbitmq:4-management-alpine/);
+});
+
+test('infra label of an external service says so instead of inventing an image', () => {
+  const html = resolve('infra:elevenlabs:label');
+  assert.match(html, /external/i);
+  assert.doesNotMatch(html, /image/i);
+});
+
+test('an unknown infra id returns null', () => {
+  assert.equal(resolve('infra:rabbitmq-2:label'), null);
+});
+
+test('an unknown infra field returns null', () => {
+  assert.equal(resolve('infra:rabbitmq:colour'), null);
+});

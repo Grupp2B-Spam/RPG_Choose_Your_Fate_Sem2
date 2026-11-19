@@ -29,7 +29,7 @@ function validateManifest(obj) {
     return ['manifest is not an object'];
   }
 
-  for (const field of ['version', 'updated', 'broker']) {
+  for (const field of ['version', 'updated']) {
     if (obj.meta == null || obj.meta[field] == null) {
       problems.push(`meta.${field} is missing`);
     }

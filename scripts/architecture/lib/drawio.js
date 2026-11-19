@@ -9,13 +9,19 @@
  * files last time.
  */
 
-const DIAGRAM = /<diagram name="([^"]*)" id="([^"]*)"[^>]*>([\s\S]*?)<\/diagram>/g;
+// Attribute order is not guaranteed. draw.io writes name before id today, but a file
+// that puts id first is equally valid, and a regex demanding one order would report
+// every tab as missing rather than reading the file.
+const DIAGRAM = /<diagram(\s[^>]*)?>([\s\S]*?)<\/diagram>/g;
+const DIAGRAM_PRESENT = /<diagram\b/;
 const CELL_OPEN = /<mxCell\b[^>]*>/g;
 const CELL_CLOSE = '</mxCell>';
 const ATTR = /(\w+)="([^"]*)"/g;
 const GEOMETRY = /<mxGeometry\b([^>]*)/;
 const POINTS_ARRAY = /<Array as="points">([\s\S]*?)<\/Array>/;
 const POINT = /<mxPoint\b([^>]*)/g;
+const TAG = /<[^>]*>/g;
+const BARE_AMPERSAND = /&(?!(?:[a-zA-Z][a-zA-Z0-9]*|#[0-9]+|#x[0-9a-fA-F]+);)/g;
 
 function attributes(text) {
   const found = {};
@@ -98,8 +104,9 @@ function parseCell(block) {
 function scan(xmlText) {
   const tabs = [];
   for (const d of xmlText.matchAll(DIAGRAM)) {
-    const cells = cellBlocks(d[3]).map(parseCell);
-    tabs.push({ name: d[1], id: d[2], cells });
+    const a = attributes(d[1] || '');
+    const cells = cellBlocks(d[2]).map(parseCell);
+    tabs.push({ name: a.name, id: a.id, cells });
   }
   return { tabs };
 }
@@ -133,7 +140,30 @@ function wellFormedProblems(xmlText) {
     problems.push(`${count('<mxCell') - matched} unterminated <mxCell> element(s)`);
   }
 
+  // The two ways a .drawio file ends up unopenable without any of the counts above
+  // noticing. Both come from hand-editing the template in a text editor, which the
+  // README invites people to do.
+  const bare = xmlText.match(BARE_AMPERSAND);
+  if (bare) {
+    problems.push(
+      `${bare.length} bare ampersand(s): write &amp; — an unescaped & makes draw.io refuse the file`
+    );
+  }
+
+  for (const tag of xmlText.matchAll(TAG)) {
+    const quotes = (tag[0].match(/"/g) || []).length;
+    if (quotes % 2 !== 0) {
+      problems.push(`unbalanced quote in ${tag[0].slice(0, 60).replace(/\s+/g, ' ')}…`);
+      break;
+    }
+  }
+
   return problems;
 }
 
-module.exports = { scan, wellFormedProblems };
+/** True when the file contains something calling itself a diagram that `scan` could not read. */
+function looksUnreadable(xmlText, scanned) {
+  return scanned.tabs.length === 0 && DIAGRAM_PRESENT.test(xmlText);
+}
+
+module.exports = { scan, wellFormedProblems, looksUnreadable };

@@ -168,7 +168,7 @@ strict JSON):
   "meta": {
     "version": 3,
     "updated": "2026-11-18",
-    "broker": "RabbitMQ 4 (management-alpine)"
+    "tabs": ["arch-main", "flow-choice", "…"]   // the tabs the diagram must have
   },
 
   "services": [
@@ -235,6 +235,10 @@ strict JSON):
     }
   ],
 
+  // An entry carrying an `image` is a version that can go stale, so check 4 requires
+  // the diagram to draw it through an {{infra:<id>:label}} token rather than typing the
+  // tag into the template. Entries with no version — an external API, say — may stay
+  // hand-drawn.
   "infrastructure": [
     { "id": "rabbitmq", "display": "RabbitMQ", "kind": "broker",
       "image": "rabbitmq:4-management-alpine", "ports": [5672, 15672] }
@@ -298,6 +302,7 @@ Token grammar, deliberately small:
 | `{{service:<id>:events}}` | Published and consumed event names |
 | `{{service:<id>:contracts}}` | Contract file basenames, marked by declared state |
 | `{{event:<name>:label}}` | Event name + exchange + queue count |
+| `{{infra:<id>:label}}` | A broker or store: name, image tag, ports |
 | `{{table:contracts}}` | The whole contract matrix (tab 6) as HTML |
 | `{{meta:updated}}` | The manifest date, for the "last updated" stamp |
 
@@ -351,6 +356,21 @@ printed and do not fail.
 | 9 | Each exchange name in the manifest appears literally in the publishing service's source | warning |
 | 10 | Each service's `ports.http` matches `compose.file` / `compose.service`, skipped when `ports` is absent | warning |
 | 11 | Every event has at least one consumer, and every consumer names a queue | warning |
+| 12 | A service's box is dashed exactly when its status is `planned` | error |
+| 13 | Every `parent`, `source` and `target` names a cell that exists | error |
+| 14 | No child is drawn outside its parent's bounds | error |
+
+Checks 12 to 14 were added after a review of the first build, which demonstrated two ways
+the diagram could ship something false with CI green. Check 12 closes the gap between the
+badge, which comes from the manifest, and the border, which is hand-drawn: without it a
+one-line manifest edit could put `● v1.0.0` inside a dashed "does not exist yet" box.
+Checks 13 and 14 catch content draw.io discards silently — an edge whose endpoint was
+deleted, or a box dragged outside its group — which otherwise disappears from the diagram
+with nothing said.
+
+Check 2 also rejects a bare `&` and an unbalanced quote. Those are the two ways a
+hand-edited template produces a file draw.io refuses to open, and the substring counts
+alone did not see them.
 
 Check 6 is scoped to siblings of the same parent deliberately: a status badge sits inside
 its service box and a service box sits inside its bounded-context group, so an unscoped

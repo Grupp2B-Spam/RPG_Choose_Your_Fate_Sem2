@@ -2,7 +2,6 @@
   "meta": {
     "version": 3,
     "updated": "2026-11-18",
-    "broker": "RabbitMQ 4 (management-alpine)",
     "note": "Describes main plus the unmerged service branches, as if they were merged. See docs/superpowers/specs/2026-11-18-architecture-diagram-v3-design.md section 8.1.",
     "tabs": [
       "arch-main",

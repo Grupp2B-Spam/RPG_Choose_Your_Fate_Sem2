@@ -35,8 +35,19 @@ test('tab 4 shows the host ports for both vaults', () => {
   assert.match(text, /3309/);
 });
 
-test('tab 4 is labelled as current state', () => {
-  assert.match(h.textOf(TAB), /Current state/i);
+test('tab 4 says which compose it draws, and that main differs', () => {
+  const text = h.textOf(TAB);
+  assert.match(text, /consolidated compose the group is keeping/i);
+  assert.match(text, /not yet what main does/i);
+});
+
+test('tab 4 names the compose service rename main has not taken yet', () => {
+  assert.match(h.textOf(TAB), /backend rather than recap-manager/);
+});
+
+test('the broker version on tab 4 comes from the manifest, not the template', () => {
+  const image = h.manifest.infrastructure.find((i) => i.id === 'rabbitmq').image;
+  assert.match(h.unescape(h.cellById(TAB, 'dc-rabbit-infra').value), new RegExp(image));
 });
 
 test('tab 4 explains the prod profile', () => {
@@ -51,7 +62,7 @@ test('tab 4 names the services that have no compose file yet', () => {
 });
 
 test('every container on tab 4 sits inside the compose project', () => {
-  const containers = h.cellsOf(TAB).filter((c) => /^dc-(root|rabbit|frontend|inc-)/.test(c.id));
+  const containers = h.cellsOf(TAB).filter((c) => ['dc-root', 'dc-rabbit', 'dc-frontend', 'dc-inc-recap', 'dc-inc-storycontent'].includes(c.id));
   for (const c of containers) {
     assert.equal(c.parent, 'dc-project', `${c.id} is outside the project box`);
   }
