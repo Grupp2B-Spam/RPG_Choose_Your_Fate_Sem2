@@ -640,109 +640,252 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
-        <mxCell id="k8-title" value="Local Kubernetes — production-like environment" style="text;html=1;fontSize=22;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="60" y="-70" width="1400" height="36" as="geometry" />
+        <mxCell id="k8-title" value="Local Kubernetes deployment" style="text;html=1;fontSize=24;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="-130" width="1400" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="k8-sub" value="Names follow the agreed convention: one string per service, used for the Deployment, the Service, the image and the Maven artifact — because a Kubernetes Service name becomes a DNS name other services resolve." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
-          <mxGeometry x="60" y="-30" width="1400" height="24" as="geometry" />
-        </mxCell>
-        <mxCell id="k8-banner" value="TARGET STATE — none of this exists yet. There is not a single Kubernetes manifest in the repository; every box below is planned, and the one open choice is marked as open." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;strokeWidth=2;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#8d6e28;" vertex="1" parent="1">
-          <mxGeometry x="60" y="10" width="1540" height="40" as="geometry" />
+        <mxCell id="k8-sub" value="The destination, not today. One name per service — Deployment, Service, image and Maven artifact all share it — because a Service name becomes the DNS name other services resolve." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="-85" width="1500" height="24" as="geometry" />
         </mxCell>
 
-        <mxCell id="k8-cluster" value="kind cluster — namespace default" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#f7f9fa;strokeColor=#90a4ae;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#546e7a;arcSize=4;" vertex="1" parent="1">
-          <mxGeometry x="60" y="70" width="1540" height="1060" as="geometry" />
+        <mxCell id="k8-logo" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=k8s;" vertex="1" parent="1">
+          <mxGeometry x="40" y="0" width="110" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-logo-label" value="Kubernetes&lt;br&gt;cluster" style="text;html=1;fontSize=16;fontStyle=1;align=left;verticalAlign=middle;fontColor=#2875E2;" vertex="1" parent="1">
+          <mxGeometry x="170" y="10" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-banner" value="Nothing below exists yet. There is not one Kubernetes manifest in the repository — every box is planned, and the undecided choices are drawn as open." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;strokeWidth=2;align=center;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#8d6e28;" vertex="1" parent="1">
+          <mxGeometry x="600" y="20" width="1420" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="k8-n-ingress" value="&lt;b&gt;Ingress&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;the only way in. REST and GraphQL reach the cluster here; gRPC never leaves it.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="40" y="50" width="360" height="110" as="geometry" />
+        <mxCell id="k8-client-player" value="&lt;b&gt;Player client&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;browser — outside the cluster&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=center;verticalAlign=middle;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="300" width="240" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="k8-n-registry" value="&lt;b&gt;Local registry&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;every Deployment pulls its image from here. Recommended over loading images by hand, because the CI/CD pipeline has to push somewhere anyway.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#eceff1;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="440" y="50" width="360" height="110" as="geometry" />
-        </mxCell>
-        <mxCell id="k8-n-keda" value="&lt;b&gt;KEDA&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;watches queue depth on RabbitMQ and starts a Job per message. This is the serverless requirement.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#f3edf7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="840" y="50" width="360" height="110" as="geometry" />
+        <mxCell id="k8-client-author" value="&lt;b&gt;Author / admin client&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;browser — outside the cluster&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=center;verticalAlign=middle;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="240" height="100" as="geometry" />
         </mxCell>
 
-        <mxCell id="k8-n-account-manager" value="&lt;b&gt;account-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service (ClusterIP)&lt;br&gt;liveness /actuator/health/liveness&lt;br&gt;readiness /actuator/health/readiness&lt;br&gt;scales on request rate&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="40" y="200" width="330" height="180" as="geometry" />
-        </mxCell>
-        <mxCell id="k8-n-storycontent-manager" value="&lt;b&gt;storycontent-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service (ClusterIP)&lt;br&gt;admin-only and low traffic — one replica is enough&lt;br&gt;readiness reflects broker connectivity&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="410" y="200" width="330" height="180" as="geometry" />
-        </mxCell>
-        <mxCell id="k8-n-scene-manager" value="&lt;b&gt;scene-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service (ClusterIP)&lt;br&gt;query serving — scales on request rate or CPU&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="780" y="200" width="330" height="180" as="geometry" />
-        </mxCell>
-        <mxCell id="k8-n-character-manager" value="&lt;b&gt;character-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service (ClusterIP)&lt;br&gt;consumer — scales on queue depth&lt;br&gt;handlers commute, so replicas are safe (ADR-011)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="1150" y="200" width="330" height="180" as="geometry" />
+        <mxCell id="k8-cluster" value="kind cluster — namespace default" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#f7f9fa;strokeColor=#2875E2;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#2875E2;arcSize=3;" vertex="1" parent="1">
+          <mxGeometry x="320" y="120" width="1700" height="1200" as="geometry" />
         </mxCell>
 
-        <mxCell id="k8-n-storypath-manager" value="&lt;b&gt;storypath-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service (ClusterIP :9091 gRPC)&lt;br&gt;&lt;b&gt;replicas: 1&lt;/b&gt; — an ordered log, so competing consumers would produce a false history until ADR-013 is answered&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="40" y="420" width="330" height="180" as="geometry" />
+        <mxCell id="k8-n-ingress" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#e1d5e7;strokeColor=#9673a6;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="40" y="60" width="260" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="k8-n-recap-manager" value="&lt;b&gt;recap-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service (ClusterIP)&lt;br&gt;calls storypath-manager:9091 over gRPC&lt;br&gt;JWT public key mounted from a Secret&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="410" y="420" width="330" height="180" as="geometry" />
+        <mxCell id="k8-i-ingress" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=ing;" vertex="1" parent="k8-n-ingress">
+          <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="k8-n-scene-indexer" value="&lt;b&gt;scene-indexer&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment, no Service&lt;br&gt;same image and release as scene-manager, deployed separately so projection restarts without taking queries down (ADR-010)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#fdf6e3;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="780" y="420" width="330" height="180" as="geometry" />
-        </mxCell>
-        <mxCell id="k8-n-texttospeech-manager" value="&lt;b&gt;texttospeech-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;&lt;b&gt;KEDA ScaledJob&lt;/b&gt;, not a Deployment&lt;br&gt;scales to zero; one pod per message&lt;br&gt;Quarkus native binary — starts in milliseconds, which is what makes scale-to-zero worth having (ADR-009)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#f3edf7;strokeColor=#9673a6;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="1150" y="420" width="330" height="180" as="geometry" />
+        <mxCell id="k8-t-ingress" value="&lt;b&gt;Ingress&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;the only way in · REST and GraphQL&lt;br&gt;gRPC never leaves the cluster&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-ingress">
+          <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
         </mxCell>
 
-        <mxCell id="k8-n-rabbitmq" value="&lt;b&gt;rabbitmq&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;StatefulSet + Service&lt;br&gt;rabbitmq.default.svc.cluster.local:5672&lt;br&gt;the host the AsyncAPI contract already names&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#fff2e0;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="40" y="640" width="330" height="160" as="geometry" />
+        <mxCell id="k8-n-account-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="40" y="180" width="260" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="k8-n-account-vault" value="&lt;b&gt;account-vault&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;StatefulSet · MySQL · PersistentVolumeClaim&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="410" y="640" width="330" height="160" as="geometry" />
+        <mxCell id="k8-i-account" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=deploy;" vertex="1" parent="k8-n-account-manager">
+          <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="k8-n-story-content-vault" value="&lt;b&gt;story-content-vault&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;StatefulSet · MySQL · PersistentVolumeClaim&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="780" y="640" width="330" height="160" as="geometry" />
-        </mxCell>
-        <mxCell id="k8-n-scene-read-model" value="&lt;b&gt;scene-read-model&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;StatefulSet · MongoDB · PersistentVolumeClaim&lt;br&gt;written by scene-indexer, read by scene-manager — one owner, two deployments&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="1150" y="640" width="330" height="160" as="geometry" />
+        <mxCell id="k8-t-account" value="&lt;b&gt;account-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service&lt;br&gt;signs the JWTs everyone verifies&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-account-manager">
+          <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
         </mxCell>
 
-        <mxCell id="k8-n-character-vault" value="&lt;b&gt;character-vault&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;StatefulSet · MySQL · PersistentVolumeClaim&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="40" y="840" width="330" height="160" as="geometry" />
+        <mxCell id="k8-n-storycontent-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="40" y="300" width="260" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="k8-n-storypath-vault" value="&lt;b&gt;storypath-vault&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;StatefulSet · MySQL · PersistentVolumeClaim&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="410" y="840" width="330" height="160" as="geometry" />
+        <mxCell id="k8-i-storycontent" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=deploy;" vertex="1" parent="k8-n-storycontent-manager">
+          <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="k8-n-recap-vault" value="&lt;b&gt;recap-vault&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;StatefulSet · MySQL · PersistentVolumeClaim&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="780" y="840" width="330" height="160" as="geometry" />
-        </mxCell>
-        <mxCell id="k8-n-minio" value="&lt;b&gt;minio&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;StatefulSet · object store · PersistentVolumeClaim&lt;br&gt;audio addressed by content hash&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="k8-cluster">
-          <mxGeometry x="1150" y="840" width="330" height="160" as="geometry" />
+        <mxCell id="k8-t-storycontent" value="&lt;b&gt;storycontent-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service · one replica&lt;br&gt;admin-only and low traffic&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-storycontent-manager">
+          <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
         </mxCell>
 
-        <mxCell id="k8-e1" value="watches queue depth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-keda" target="k8-n-rabbitmq">
+        <mxCell id="k8-n-scene-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="340" y="180" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-i-scene" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=deploy;" vertex="1" parent="k8-n-scene-manager">
+          <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-t-scene" value="&lt;b&gt;scene-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service&lt;br&gt;query serving · scales on request rate&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-scene-manager">
+          <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-n-scene-indexer" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#fdf6e3;strokeColor=#b0bec5;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="340" y="300" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-i-indexer" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=deploy;" vertex="1" parent="k8-n-scene-indexer">
+          <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-t-indexer" value="&lt;b&gt;scene-indexer&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment, no Service&lt;br&gt;same image and release as scene-manager&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-scene-indexer">
+          <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-n-rabbitmq" value="&lt;b&gt;rabbitmq&lt;/b&gt; — StatefulSet + Service&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;rabbitmq.default.svc.cluster.local:5672&lt;br&gt;the host the AsyncAPI contract already names&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#fff2e0;strokeColor=#d79b00;strokeWidth=2;verticalAlign=top;align=center;spacingTop=8;fontSize=13;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="640" y="60" width="280" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-q1" value="scenemanager.scene-content&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;scene-content.updated&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=10;align=center;" vertex="1" parent="k8-n-rabbitmq">
+          <mxGeometry x="20" y="90" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-q2" value="charactermanager.item-rules&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;item-definition.updated&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=10;align=center;" vertex="1" parent="k8-n-rabbitmq">
+          <mxGeometry x="20" y="170" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-q3" value="storypathmanager.player-choice&lt;br&gt;charactermanager.player-choice&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;player-choice.made — two queues&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=10;align=center;" vertex="1" parent="k8-n-rabbitmq">
+          <mxGeometry x="20" y="250" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-q4" value="texttospeechmanager.recap&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;recap-generated&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=10;align=center;" vertex="1" parent="k8-n-rabbitmq">
+          <mxGeometry x="20" y="330" width="240" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-q5" value="three account-deletion queues&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;account-deletion-requested — the saga&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#d79b00;fontSize=10;align=center;" vertex="1" parent="k8-n-rabbitmq">
+          <mxGeometry x="20" y="410" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-n-character-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="960" y="60" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-i-character" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=deploy;" vertex="1" parent="k8-n-character-manager">
+          <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-t-character" value="&lt;b&gt;character-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service&lt;br&gt;consumer · scales on queue depth&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-character-manager">
+          <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-n-storypath-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="960" y="180" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-i-storypath" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=deploy;" vertex="1" parent="k8-n-storypath-manager">
+          <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-t-storypath" value="&lt;b&gt;storypath-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service :9091 gRPC&lt;br&gt;&lt;b&gt;replicas: 1&lt;/b&gt; — an ordered log, until ADR-013&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-storypath-manager">
+          <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-n-recap-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="960" y="300" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-i-recap" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=deploy;" vertex="1" parent="k8-n-recap-manager">
+          <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-t-recap" value="&lt;b&gt;recap-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service&lt;br&gt;JWT public key from a Secret&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-recap-manager">
+          <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-n-texttospeech-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#f3edf7;strokeColor=#9673a6;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="960" y="420" width="260" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-i-tts" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=job;" vertex="1" parent="k8-n-texttospeech-manager">
+          <mxGeometry x="10" y="30" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-t-tts" value="&lt;b&gt;texttospeech-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;KEDA &lt;b&gt;ScaledJob&lt;/b&gt;, not a Deployment&lt;br&gt;scales to zero · one pod per message&lt;br&gt;Quarkus native — milliseconds to start (ADR-009)&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-texttospeech-manager">
+          <mxGeometry x="68" y="8" width="184" height="94" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-n-keda" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#f3edf7;strokeColor=#9673a6;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="960" y="560" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-t-keda" value="&lt;b&gt;KEDA&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;reads queue depth from RabbitMQ directly&lt;br&gt;and starts a Job per message&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;spacingLeft=10;" vertex="1" parent="k8-n-keda">
+          <mxGeometry x="0" y="8" width="252" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-n-hpa" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#78909c;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="960" y="680" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-i-hpa" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=hpa;" vertex="1" parent="k8-n-hpa">
+          <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-t-hpa" value="&lt;b&gt;HorizontalPodAutoscaler&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;only the deployments whose handlers commute&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-hpa">
+          <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-n-statefulsets" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;verticalAlign=top;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="40" y="540" width="260" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-i-sts" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=sts;" vertex="1" parent="k8-n-statefulsets">
+          <mxGeometry x="10" y="14" width="44" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-t-sts" value="&lt;b&gt;StatefulSets&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;one per owner, PersistentVolumeClaim each:&lt;br&gt;account-vault · story-content-vault&lt;br&gt;scene-read-model (MongoDB) · character-vault&lt;br&gt;storypath-vault · recap-vault · minio&lt;br&gt;&lt;br&gt;No service reads another's volume. Tab 1 says which owns what.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;spacingTop=6;" vertex="1" parent="k8-n-statefulsets">
+          <mxGeometry x="62" y="8" width="190" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-obs" value="Observability — proposed, not chosen" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=4 4;fillColor=#fdf6e3;strokeColor=#d6a860;verticalAlign=top;align=left;spacingLeft=12;spacingTop=5;fontSize=12;fontStyle=1;fontColor=#8d6e28;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="1260" y="60" width="400" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-n-promtail" value="&lt;b&gt;Promtail&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;DaemonSet · scrapes pod logs&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;fontSize=11;align=center;" vertex="1" parent="k8-obs">
+          <mxGeometry x="20" y="50" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-n-loki" value="&lt;b&gt;Loki&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;log store&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;fontSize=11;align=center;" vertex="1" parent="k8-obs">
+          <mxGeometry x="210" y="50" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-n-rabbitmq-exporter" value="&lt;b&gt;RabbitMQ Exporter&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;queue depth as metrics&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;fontSize=11;align=center;" vertex="1" parent="k8-obs">
+          <mxGeometry x="20" y="150" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-n-prometheus" value="&lt;b&gt;Prometheus&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;scrapes Actuator + exporter&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;fontSize=11;align=center;" vertex="1" parent="k8-obs">
+          <mxGeometry x="210" y="150" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-n-grafana" value="&lt;b&gt;Grafana&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;one query surface over logs and metrics&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;fontSize=11;align=center;" vertex="1" parent="k8-obs">
+          <mxGeometry x="115" y="260" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-obs-note" value="&lt;b&gt;Why this shape&lt;/b&gt;&lt;br&gt;What matters is correlation: an id that survives from an HTTP request, through the broker, into a consumer. Per-service logs that cannot be joined are of little use when one player action touches four services.&lt;br&gt;&lt;br&gt;None of this is decided (OPEN-DESIGN-ISSUES 2.5). It is drawn so the group has something concrete to agree or reject." style="text;html=1;align=left;verticalAlign=top;fontSize=10;strokeColor=none;fillColor=#fffdf5;whiteSpace=wrap;spacingLeft=8;spacingTop=6;" vertex="1" parent="k8-obs">
+          <mxGeometry x="20" y="380" width="360" height="165" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-note-open-keda" value="&lt;b&gt;Open — how KEDA gets its metric&lt;/b&gt;&lt;br&gt;Drawn reading RabbitMQ directly, which is KEDA's own scaler and needs nothing else. The alternative is RabbitMQ Exporter → Prometheus → KEDA, which is worth it only if the scaling decision needs a derived metric rather than a queue length.&lt;br&gt;&lt;br&gt;Also open: nothing here is built, so ADR-009's claim that a Quarkus native binary makes scale-to-zero worth having is still a claim, not a measurement." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="640" y="600" width="280" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-note-images" value="&lt;b&gt;Open — how images reach the cluster&lt;/b&gt;&lt;br&gt;kind load docker-image is simplest and needs no registry, but it is a manual step that cannot appear in a pipeline. A local registry is one more component to run, and is what the CD pipeline will have to push to anyway. Drawn as a registry; the group has not decided." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="40" y="800" width="560" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-note-autoscale" value="&lt;b&gt;Probes, configuration and scaling&lt;/b&gt;&lt;br&gt;Liveness asks whether the process is alive, and a failure restarts the pod. Readiness asks whether it can serve, and a failure only removes it from the Service. A service that cannot reach RabbitMQ is not broken and must not be restarted — so readiness reflects broker connectivity and liveness does not.&lt;br&gt;&lt;br&gt;Every host, port and credential comes from the environment with a local default, so the same image runs in compose and here. Graceful shutdown is longer than one message, so a redeploy does not abandon work. Consumers scale on queue depth; query-serving services scale on request rate or CPU — not one metric." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="k8-cluster">
+          <mxGeometry x="40" y="1000" width="560" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="k8-e-player" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="k8-client-player" target="k8-n-ingress">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="k8-e2" value="starts a Job per message" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-keda" target="k8-n-texttospeech-manager">
+        <mxCell id="k8-e-author" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="k8-client-author" target="k8-n-ingress">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="k8-e3" value="gRPC :9091" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c5ce7;strokeWidth=2;endArrow=block;endFill=1;fontSize=9;fontColor=#6c5ce7;" edge="1" parent="k8-cluster" source="k8-n-recap-manager" target="k8-n-storypath-manager">
+        <mxCell id="k8-e-ing-scene" value="routes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-ingress" target="k8-n-scene-manager">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="k8-e4" value="REST / GraphQL" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-ingress" target="k8-n-scene-manager">
+        <mxCell id="k8-e-ing-account" value="routes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-ingress" target="k8-n-account-manager">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="k8-e5" value="REST / GraphQL" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-ingress" target="k8-n-character-manager">
+        <mxCell id="k8-e-scene-broker" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=9;fontColor=#b07d00;" edge="1" parent="k8-cluster" source="k8-n-scene-manager" target="k8-n-rabbitmq">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <mxCell id="k8-note-probes" value="&lt;b&gt;Liveness and readiness answer different questions&lt;/b&gt;&lt;br&gt;Liveness asks whether the process is alive; a failure restarts the pod. Readiness asks whether it can serve; a failure removes it from the Service without restarting it.&lt;br&gt;&lt;br&gt;A service that cannot reach RabbitMQ is not broken and must not be restarted — but it must not receive traffic either. So readiness reflects broker connectivity and liveness does not." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="1660" y="70" width="340" height="250" as="geometry" />
+        <mxCell id="k8-e-storycontent-broker" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=9;fontColor=#b07d00;" edge="1" parent="k8-cluster" source="k8-n-storycontent-manager" target="k8-n-rabbitmq">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="k8-note-config" value="&lt;b&gt;Configuration through the environment&lt;/b&gt;&lt;br&gt;Every host, port and credential is read from an environment variable with a local default, so the same image runs unchanged in compose and in the cluster and only the configuration differs. A service that hardcodes localhost works on one laptop and nowhere else, and the failure only shows up at assembly.&lt;br&gt;&lt;br&gt;Graceful shutdown is set longer than it takes to handle one message, so a redeploy does not abandon work mid-message." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="1660" y="340" width="340" height="270" as="geometry" />
+        <mxCell id="k8-e-broker-character" value="consumes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=9;fontColor=#b07d00;" edge="1" parent="k8-cluster" source="k8-n-rabbitmq" target="k8-n-character-manager">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="k8-note-images" value="&lt;b&gt;Open — how images reach the cluster&lt;/b&gt;&lt;br&gt;kind load docker-image is simplest and needs no registry, but it is a manual step that cannot appear in a pipeline. A local registry is one more component to run and is what the CD pipeline will have to push to anyway.&lt;br&gt;&lt;br&gt;Drawn here as a registry, but the group has not decided." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="1660" y="630" width="340" height="240" as="geometry" />
+        <mxCell id="k8-e-broker-storypath" value="consumes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=9;fontColor=#b07d00;" edge="1" parent="k8-cluster" source="k8-n-rabbitmq" target="k8-n-storypath-manager">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="k8-note-autoscale" value="&lt;b&gt;What each thing scales on&lt;/b&gt;&lt;br&gt;Not one metric. Consumers scale on queue depth; query-serving services scale on request rate or CPU. Only the services whose handlers commute may be replicated at all — which is the operational payoff of ADR-011, and why storypath-manager is pinned to one replica." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="1660" y="890" width="340" height="220" as="geometry" />
+        <mxCell id="k8-e-recap-storypath" value="gRPC :9091" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c5ce7;strokeWidth=2;endArrow=block;endFill=1;fontSize=9;fontColor=#6c5ce7;" edge="1" parent="k8-cluster" source="k8-n-recap-manager" target="k8-n-storypath-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-e-keda-broker" value="polls queue depth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-keda" target="k8-n-rabbitmq">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-e-keda-tts" value="starts a Job per message" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#9673a6;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-keda" target="k8-n-texttospeech-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-e-hpa-character" value="scales" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#78909c;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-hpa" target="k8-n-character-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-e-promtail-loki" value="sends logs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-obs" source="k8-n-promtail" target="k8-n-loki">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-e-exporter-prom" value="exposes metrics" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-obs" source="k8-n-rabbitmq-exporter" target="k8-n-prometheus">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-e-loki-grafana" value="queries" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-obs" source="k8-n-grafana" target="k8-n-loki">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-e-prom-grafana" value="queries" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-obs" source="k8-n-grafana" target="k8-n-prometheus">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="k8-e-promtail-pods" value="scrapes logs from every pod" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=1;dashed=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="k8-cluster" source="k8-n-promtail" target="k8-n-recap-manager">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

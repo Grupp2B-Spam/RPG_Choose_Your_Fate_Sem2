@@ -38,6 +38,31 @@ const textOf = (tabId) =>
     .map((c) => unescape(c.value))
     .join('\n');
 
+/**
+ * A card's text, including the children it is composed of.
+ *
+ * A card is a container whose icon and prose are separate child cells, so reading the
+ * container's own `value` sees nothing.
+ */
+const textUnder = (tabId, cellId) => {
+  const cells = cellsOf(tabId);
+  const wanted = new Set([cellId]);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const c of cells) {
+      if (c.parent && wanted.has(c.parent) && !wanted.has(c.id)) {
+        wanted.add(c.id);
+        grew = true;
+      }
+    }
+  }
+  return cells
+    .filter((c) => wanted.has(c.id))
+    .map((c) => unescape(c.value))
+    .join('\n');
+};
+
 const cellOf = (serviceId, tabId = 'arch-main') => cellById(tabId, `panel-${serviceId}`);
 const styleOf = (serviceId, tabId = 'arch-main') => (cellOf(serviceId, tabId) || {}).style || '';
 
@@ -61,6 +86,7 @@ module.exports = {
   cellsOf,
   cellById,
   textOf,
+  textUnder,
   cellOf,
   styleOf,
   edgesOf,

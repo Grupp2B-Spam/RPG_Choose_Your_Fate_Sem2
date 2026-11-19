@@ -445,6 +445,49 @@
       "status": "planned",
       "external": true,
       "note": "Paid per call, which is why the content hash matters."
+    },
+
+    {
+      "id": "promtail",
+      "display": "Promtail",
+      "kind": "log shipper",
+      "status": "planned",
+      "note": "Scrapes container logs from every pod and ships them to Loki."
+    },
+    {
+      "id": "loki",
+      "display": "Loki",
+      "kind": "log store",
+      "status": "planned",
+      "note": "Logs queried by correlation id, which is the property that matters when one player action touches four services."
+    },
+    {
+      "id": "prometheus",
+      "display": "Prometheus",
+      "kind": "metrics store",
+      "status": "planned",
+      "note": "Scrapes Actuator endpoints and the RabbitMQ exporter."
+    },
+    {
+      "id": "rabbitmq-exporter",
+      "display": "RabbitMQ Exporter",
+      "kind": "metrics exporter",
+      "status": "planned",
+      "note": "Exposes queue depth and consumer counts as Prometheus metrics."
+    },
+    {
+      "id": "grafana",
+      "display": "Grafana",
+      "kind": "dashboards",
+      "status": "planned",
+      "note": "One query surface over both Loki and Prometheus."
+    },
+    {
+      "id": "keda",
+      "display": "KEDA",
+      "kind": "event-driven autoscaler",
+      "status": "planned",
+      "note": "Reads RabbitMQ queue depth directly and runs TextToSpeechManager as a ScaledJob."
     }
   ],
   "events": [
@@ -584,6 +627,12 @@
       "id": "PORTS",
       "short": "No port allocation is agreed.",
       "detail": "8081 and 8090 are taken, and 8092 is implied by RecapManager's JWT_ISSUER default without being written down.",
+      "blocks": []
+    },
+    {
+      "id": "MONITORING",
+      "short": "No logging or monitoring solution has been chosen.",
+      "detail": "The exam requires one suited to distributed systems. What matters is correlation: an id that survives from an HTTP request through the broker into a consumer is worth more than per-service logs that cannot be joined. Promtail, Loki, Prometheus and Grafana are drawn on the Kubernetes tab as a proposal, not a decision.",
       "blocks": []
     },
     {
