@@ -13,13 +13,8 @@ test('tab 4 shows RabbitMQ 4 under its project container name', () => {
   assert.match(text, /choose-your-fate-rabbitmq/);
 });
 
-test('tab 4 draws the consolidated broker, not the stale one, as the live service', () => {
-  const rabbit = h.cellById(TAB, 'dc-rabbit');
-  assert.doesNotMatch(h.unescape(rabbit.value), /bar-scan-rabbitmq|3\.13/);
-});
-
-test('tab 4 says plainly that main still has the stale broker', () => {
-  assert.match(h.textOf(TAB), /bar-scan-rabbitmq/);
+test('tab 4 no longer mentions the broker main has since replaced', () => {
+  assert.doesNotMatch(h.textOf(TAB), /bar-scan-rabbitmq|3\.13/);
 });
 
 test('tab 4 shows the include structure', () => {
@@ -35,14 +30,12 @@ test('tab 4 shows the host ports for both vaults', () => {
   assert.match(text, /3309/);
 });
 
-test('tab 4 says which compose it draws, and that main differs', () => {
-  const text = h.textOf(TAB);
-  assert.match(text, /consolidated compose the group is keeping/i);
-  assert.match(text, /not yet what main does/i);
+test('tab 4 is labelled as current state', () => {
+  assert.match(h.textOf(TAB), /what docker compose starts today/i);
 });
 
-test('tab 4 names the compose service rename main has not taken yet', () => {
-  assert.match(h.textOf(TAB), /backend rather than recap-manager/);
+test('tab 4 says how little of the system this environment actually is', () => {
+  assert.match(h.textOf(TAB), /two of the seven/i);
 });
 
 test('the broker version on tab 4 comes from the manifest, not the template', () => {

@@ -26,8 +26,8 @@ test('card of a planned service says planned and shows no version', () => {
 
 test('card of a branch service names the branch', () => {
   assert.match(
-    resolve('service:storycontent-manager:card'),
-    /patrick\/create-storycontentmanager-microservice/
+    resolve('service:character-manager:card'),
+    /mikolsen\/create-charactermanager-microservice/
   );
 });
 

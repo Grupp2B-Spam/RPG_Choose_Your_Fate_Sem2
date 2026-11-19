@@ -85,9 +85,9 @@ These would make the work a failure even if it shipped:
 | No Python on PATH (`python3` resolves to the Windows Store shim) | Node only, despite `scripts/build_availability_test_docx.py` existing. |
 | PowerShell's XML round-trip corrupts draw.io files by adding namespace declarations | The build script does **text splicing** on the template, never parse-and-reserialise. This is a hard rule carried from v2. |
 | draw.io re-serialises any file it saves | Only the *template* is opened in draw.io. Generated outputs are never hand-edited. |
-| Three services live on unmerged branches — `storycontent-manager` + `contracts` on `patrick/create-storycontentmanager-microservice`, `Scenes` on `SceneManager`, `character-manager-service` on `mikolsen/create-charactermanager-microservice`. `main` holds only `recapManager` | The manifest describes the system **as if those branches were merged**. This is the group's decision, taken deliberately: a diagram of `main` alone would show six empty boxes for services that are in fact written. Verify's filesystem checks therefore report absences from any single checkout, which is why checks 8–11 are warnings rather than errors (§7.7). |
+| Services live on unmerged branches — originally three; `storycontent-manager` and `contracts` landed on `main` on 19 November, leaving `Scenes` and `character-manager-service` | The manifest describes the system **as if those branches were merged**. This is the group's decision, taken deliberately: a diagram of `main` alone would show empty boxes for services that are in fact written. Verify's filesystem checks therefore report absences from any single checkout, which is why checks 8–11 are warnings rather than errors (§7.7). The first merge bore this out: four of the five warnings cleared on their own when `main` caught up. |
 | `choose-your-fate-backend` is a running monolith that no compose file starts, and the source the services are being lifted from (ADR-008) | It appears on the diagram as a legacy node being decomposed, so that tab 1 shows what exists today next to what is replacing it. See §7.3 and §7.9. |
-| `main`'s `docker-compose.yml` still runs `rabbitmq:3.13-management` under the container name `bar-scan-rabbitmq` — a leftover from another project | The consolidated compose on the `storycontent-manager` branch (RabbitMQ 4, `include:` per service) is the one the group expects to keep, and is what tab 4 draws. |
+| `main`'s `docker-compose.yml` ran `rabbitmq:3.13-management` under the container name `bar-scan-rabbitmq` — a leftover from another project — until 19 November | The consolidated compose (RabbitMQ 4, `include:` per service) is now on `main`, and tab 4 draws it as current state. |
 | The report is delivered in English | The diagram is English only. v2's Danish/English pair is dropped, and with it the translation table and the second output file. See §7.1. |
 | Seven services, several with no code yet | Status is a first-class field, not a footnote. |
 
@@ -465,7 +465,8 @@ violations.
 2. **The monolith is on the diagram**, so the difference between what runs today and what
    replaces it is visible rather than asserted.
 3. **Ports are left blank** for services with no agreed allocation. No invented numbers.
-4. **The consolidated compose is authoritative** for tab 4, not the version on `main`.
+4. **The consolidated compose is authoritative** for tab 4. It was on a branch when this
+   was decided and reached `main` on 19 November, so tab 4 now simply draws `main`.
 5. **English only** — one output file, no translation layer (§7.1).
 
 ### 8.2 Calls made here, to be overruled rather than discovered

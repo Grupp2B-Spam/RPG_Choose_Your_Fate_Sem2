@@ -59,7 +59,7 @@
         <mxCell id="panel-storycontent-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="grp-content">
           <mxGeometry x="20" y="50" width="280" height="290" as="geometry" />
         </mxCell>
-        <mxCell id="card-storycontent-manager" value="&lt;b&gt;StoryContentManager&lt;/b&gt;&lt;br&gt;The write side of authored content: chapters, scenes, choices, NPCs, item and quest definitions.&lt;br&gt;◐ skeleton · v0.0.1-SNAPSHOT&lt;br&gt;&lt;i&gt;branch: patrick/create-storycontentmanager-microservice&lt;/i&gt;" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
+        <mxCell id="card-storycontent-manager" value="&lt;b&gt;StoryContentManager&lt;/b&gt;&lt;br&gt;The write side of authored content: chapters, scenes, choices, NPCs, item and quest definitions.&lt;br&gt;◐ skeleton · v0.0.1-SNAPSHOT" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
           <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
         </mxCell>
         <mxCell id="apis-storycontent-manager" value="&lt;b&gt;APIs&lt;/b&gt;&lt;br&gt;REST · authoring API, admin only &lt;i&gt;(not decided)&lt;/i&gt;" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
@@ -567,7 +567,7 @@
         <mxCell id="dc-title" value="Development environment — docker compose" style="text;html=1;fontSize=22;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="60" y="-70" width="1400" height="36" as="geometry" />
         </mxCell>
-        <mxCell id="dc-sub" value="The consolidated compose the group is keeping — not yet what main does; see the note on the right. Each service owns a compose file next to its code, and the root file merges them with include:, so everything shares one network and each person edits only their own file." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
+        <mxCell id="dc-sub" value="Current state: what docker compose starts today, on main. Each service owns a compose file next to its code, and the root file merges them with include:, so everything shares one network and each person edits only their own file." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="60" y="-30" width="1400" height="24" as="geometry" />
         </mxCell>
 
@@ -627,7 +627,7 @@
         <mxCell id="dc-n2" value="&lt;b&gt;What is not here yet&lt;/b&gt;&lt;br&gt;AccountManager, SceneManager, CharacterManager, StoryPathManager and TextToSpeechManager have no compose file, and neither does MinIO. Ollama runs on the host at localhost:11434 rather than in the project, so a recap can be generated without a GPU container in the compose file.&lt;br&gt;&lt;br&gt;The monolith is not started by any compose file either." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="1360" y="270" width="340" height="250" as="geometry" />
         </mxCell>
-        <mxCell id="dc-n3" value="&lt;b&gt;The broker still differs between branches&lt;/b&gt;&lt;br&gt;This tab draws the consolidated compose the group is keeping. The root file on main still runs rabbitmq:3.13-management under the container name bar-scan-rabbitmq, a leftover from another project, includes only recapManager, and calls the recap service backend rather than recap-manager. Until that merges, `docker compose up` on main gives you a different broker from the one the contracts describe." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+        <mxCell id="dc-n3" value="&lt;b&gt;How much of the system this is&lt;/b&gt;&lt;br&gt;Two of the seven services. What this environment exercises is the broker, two databases and one publisher — not the architecture on tab 1.&lt;br&gt;&lt;br&gt;That is worth knowing before reading a green `docker compose up` as evidence that the system works. The system-level cooperation test the exam asks for needs a choice flowing from SceneManager through the broker into two consumers, and none of those three exist here yet." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="1360" y="540" width="340" height="240" as="geometry" />
         </mxCell>
       </root>

@@ -2,7 +2,7 @@
   "meta": {
     "version": 3,
     "updated": "2026-11-18",
-    "note": "Describes main plus the unmerged service branches, as if they were merged. See docs/superpowers/specs/2026-11-18-architecture-diagram-v3-design.md section 8.1.",
+    "note": "Describes main plus the service branches that have not merged yet — SceneManager and CharacterManager — as if they had. A service with no 'branch' field is not written anywhere. See docs/superpowers/specs/2026-11-18-architecture-diagram-v3-design.md section 8.1.",
     "tabs": [
       "arch-main",
       "flow-choice",
@@ -57,7 +57,7 @@
       "kind": "service",
       "display": "StoryContentManager",
       "status": "skeleton",
-      "branch": "patrick/create-storycontentmanager-microservice",
+      "branch": "main",
       "version": "0.0.1-SNAPSHOT",
       "stack": "Spring Boot 4.0.3 / Java 21",
       "context": "content",
