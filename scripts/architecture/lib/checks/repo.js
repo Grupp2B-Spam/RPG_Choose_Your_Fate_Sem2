@@ -118,6 +118,32 @@ function run(ctx) {
   const findings = [];
   const { repoRoot, manifest } = ctx;
 
+  // --- 15: the payload the diagram prints is still the one in the contract ----------
+  // The diagram draws field names so a reader can see the message shape without opening
+  // a YAML file. That is only worth doing if the two cannot drift apart, so every field
+  // the manifest declares must still appear in the contract that describes it.
+  for (const e of manifest.events || []) {
+    const fields = (e.payload && e.payload.fields) || [];
+    if (fields.length === 0 || !e.contract || !e.contract.path) continue;
+
+    let contractText;
+    try {
+      contractText = fs.readFileSync(path.join(repoRoot, e.contract.path), 'utf8');
+    } catch {
+      continue; // nothing to compare against yet; check 8 already reports the absence
+    }
+
+    const missing = fields.map((f) => f.name).filter((name) => !contractText.includes(name));
+    if (missing.length > 0) {
+      findings.push(
+        warning(
+          15,
+          `event '${e.name}': ${missing.join(', ')} ${missing.length === 1 ? 'is' : 'are'} drawn on the diagram but absent from ${e.contract.path}`
+        )
+      );
+    }
+  }
+
   for (const s of manifest.services) {
     // --- 8: declared contract state against the filesystem --------------------------
     for (const c of contractsOf(manifest, s)) {

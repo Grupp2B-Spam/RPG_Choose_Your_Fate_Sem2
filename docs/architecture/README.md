@@ -23,6 +23,11 @@ node scripts/architecture/verify.js    # checks; exits non-zero on an error
 - **A new service:** add it to `architecture.json` *and* draw a box in the template with a
   `{{service:<id>:card}}` token. Verify fails if you add one without the other.
 - **A new tab:** add its `<diagram>` to the template and its id to `meta.tabs`.
+- **A message payload:** edit the event's `payload.fields` in `architecture.json`. Verify
+  warns if a field you declare is no longer in the contract file that describes the event,
+  so the picture and the AsyncAPI document cannot drift apart quietly. An event with no
+  designed payload keeps `state: "undesigned"` and an empty field list — the page then
+  says so, rather than printing a guess that would be read as a contract.
 - **A broker or store version:** edit the `infrastructure` entry. Anything with an
   `image` must be drawn through `{{infra:<id>:label}}` — verify refuses a version that
   lives in the manifest but is typed into the drawing, because then bumping it changes

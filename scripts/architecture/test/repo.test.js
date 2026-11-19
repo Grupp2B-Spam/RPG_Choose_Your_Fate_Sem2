@@ -159,3 +159,35 @@ test('a contract attached to two published events is reported once', () => {
   const found = run(ctx(root, [s], events)).filter((f) => f.check === 8);
   assert.equal(found.length, 1);
 });
+
+test('check 15 warns when a declared payload field is missing from the contract', () => {
+  const root = repo({ 'c.yaml': 'sceneId: 1\nsceneVersion: 2\n' });
+  const events = [{
+    name: 'scene-content.updated', exchange: 'x.events', publisher: 'recap-manager', consumers: [],
+    contract: { path: 'c.yaml', state: 'written' },
+    payload: { state: 'documented', fields: [{ name: 'sceneId' }, { name: 'ghostField' }] },
+  }];
+  const found = run(ctx(root, [service()], events)).find((f) => f.check === 15);
+  assert.equal(found.severity, 'warning');
+  assert.match(found.message, /ghostField/);
+});
+
+test('check 15 is quiet when every declared field appears in the contract', () => {
+  const root = repo({ 'c.yaml': 'sceneId: 1\nsceneVersion: 2\n' });
+  const events = [{
+    name: 'scene-content.updated', exchange: 'x.events', publisher: 'recap-manager', consumers: [],
+    contract: { path: 'c.yaml', state: 'written' },
+    payload: { state: 'documented', fields: [{ name: 'sceneId' }, { name: 'sceneVersion' }] },
+  }];
+  assert.equal(run(ctx(root, [service()], events)).filter((f) => f.check === 15).length, 0);
+});
+
+test('check 15 skips an event whose contract does not exist yet', () => {
+  const root = repo({ 'readme.md': 'x' });
+  const events = [{
+    name: 'player-choice.made', exchange: 'x.events', publisher: 'recap-manager', consumers: [],
+    contract: { path: 'gone.yaml', state: 'todo' },
+    payload: { state: 'proposed', fields: [{ name: 'characterId' }] },
+  }];
+  assert.equal(run(ctx(root, [service()], events)).filter((f) => f.check === 15).length, 0);
+});

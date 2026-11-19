@@ -303,6 +303,8 @@ Token grammar, deliberately small:
 | `{{service:<id>:contracts}}` | Contract file basenames, marked by declared state |
 | `{{event:<name>:label}}` | Event name + exchange + queue count |
 | `{{infra:<id>:label}}` | A broker or store: name, image tag, ports |
+| `{{event:<name>:payload}}` | The message body as a field list, or a statement that none is designed |
+| `{{meta:envelope}}` | The fields every message carries, whatever the topic |
 | `{{table:contracts}}` | The whole contract matrix (tab 6) as HTML |
 | `{{meta:updated}}` | The manifest date, for the "last updated" stamp |
 
@@ -359,6 +361,7 @@ printed and do not fail.
 | 12 | A service's box is dashed exactly when its status is `planned` | error |
 | 13 | Every `parent`, `source` and `target` names a cell that exists | error |
 | 14 | No child is drawn outside its parent's bounds | error |
+| 15 | Every payload field the manifest declares still appears in the contract that describes it | warning |
 
 Checks 12 to 14 were added after a review of the first build, which demonstrated two ways
 the diagram could ship something false with CI green. Check 12 closes the gap between the
@@ -405,8 +408,9 @@ it is clearer as its own tab, and it is the tab the report's section 2.2 is writ
 | 3 | Flow — recap with narration | 2.3, 2.4.2 | Rewritten: `RecapManager` to `StoryPathManager` over **gRPC** `GetChoicesAfter(characterId, afterSequence, pageSize, snapshotSequence)`, the stored checkpoint, pagination via `snapshotSequence`, then `recap-generated` to TTS. Content-hash idempotence retained from v2. |
 | 4 | Development environment — docker-compose | 3.1 | Containers, images, host ports, volumes, healthchecks, the `include:` structure and the `prod` profile. Drawn from the **consolidated** compose — RabbitMQ 4 and one included file per service — which is the one the group keeps, not the stale `rabbitmq:3.13` / `bar-scan-rabbitmq` version still on `main` (§5). Current state, not target state: what `docker compose up` starts. |
 | 5 | Local Kubernetes | 3.2 | Drawn as a **flow**, not a catalogue: clients outside the cluster boundary, traffic in through the Ingress, out through the broker to its consumers, with KEDA, the autoscaler and a proposed observability stack arranged around it. Every arrow is labelled with the relationship it carries. Kubernetes objects use draw.io's `mxgraph.kubernetes` stencils, in a child cell beside the text so a missing stencil leaves the card readable. Datastores are one StatefulSets box rather than eight, because tab 1 already says who owns what. Target state: no Kubernetes manifest exists, so every node is `planned` under a banner saying so, and the two undecided questions — how images reach the cluster, and how KEDA gets its metric — are drawn as open. |
-| 6 | Contracts and versions | 2.2, 5.3 | A matrix: service by version, status, stack, exposed APIs, publishes, consumes, contract file, ADRs. Generated wholly from the manifest via `{{table:contracts}}`. This is the living reference. |
-| 7 | Rejected alternative — separate indexer | 2.4.1 | Carried over from v2, with `PurchaseManager` and `SlotsPurchased` removed (ADR-001). |
+| 6 | Published events | 2.2, 2.3, 5.4 | Who publishes what, and what is in it. A column per exchange, the publisher above its events, and under each event the payload as a field list rendered from the manifest. Documented shapes come from the AsyncAPI contract and are checked against it (check 15). `player-choice.made` is marked proposed; the two events nobody has designed are drawn dashed and say so, because a plausible guess printed in that shape would be read as a contract. An envelope box carries the five fields every message shares. |
+| 7 | Contracts and versions | 2.2, 5.3 | A matrix: service by version, status, stack, exposed APIs, publishes, consumes, contract file, ADRs. Generated wholly from the manifest via `{{table:contracts}}`. This is the living reference. |
+| 8 | Rejected alternative — separate indexer | 2.4.1 | Carried over from v2, with `PurchaseManager` and `SlotsPurchased` removed (ADR-001). |
 
 ### 7.9 Visual language
 

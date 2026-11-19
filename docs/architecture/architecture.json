@@ -9,8 +9,35 @@
       "flow-recap",
       "env-compose",
       "env-k8s",
+      "events",
       "contracts",
       "alt-indexer"
+    ],
+    "envelope": [
+      {
+        "name": "eventId",
+        "type": "uuid",
+        "note": "Consumers deduplicate on this; delivery is at-least-once."
+      },
+      {
+        "name": "eventType",
+        "type": "string",
+        "note": "Same value as the routing key."
+      },
+      {
+        "name": "occurredAt",
+        "type": "date-time",
+        "note": "When the fact happened, not when it was published."
+      },
+      {
+        "name": "schemaVersion",
+        "type": "integer",
+        "note": "Incremented only on a breaking change to payload."
+      },
+      {
+        "name": "payload",
+        "type": "object"
+      }
     ]
   },
   "services": [
@@ -446,7 +473,6 @@
       "external": true,
       "note": "Paid per call, which is why the content hash matters."
     },
-
     {
       "id": "promtail",
       "display": "Promtail",
@@ -506,7 +532,50 @@
         "path": "microservices/contracts/storycontent-manager.asyncapi.yaml",
         "state": "written"
       },
-      "note": "Carries the complete scene aggregate, not a notification to go and fetch it (ADR-005)."
+      "note": "Carries the complete scene aggregate, not a notification to go and fetch it (ADR-005).",
+      "payload": {
+        "state": "documented",
+        "fields": [
+          {
+            "name": "sceneId",
+            "type": "integer"
+          },
+          {
+            "name": "sceneVersion",
+            "type": "integer",
+            "note": "Discard anything not newer than what you hold."
+          },
+          {
+            "name": "status",
+            "type": "PUBLISHED | RETIRED"
+          },
+          {
+            "name": "chapterId",
+            "type": "integer"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "choices",
+            "type": "Choice[]",
+            "note": "choiceId, label, beat, destinationSceneId, weight, grantedItemIds"
+          },
+          {
+            "name": "npcIds",
+            "type": "integer[]"
+          },
+          {
+            "name": "questIds",
+            "type": "integer[]"
+          }
+        ]
+      }
     },
     {
       "name": "item-definition.updated",
@@ -522,6 +591,40 @@
       "contract": {
         "path": "microservices/contracts/storycontent-manager.asyncapi.yaml",
         "state": "written"
+      },
+      "payload": {
+        "state": "documented",
+        "fields": [
+          {
+            "name": "itemId",
+            "type": "integer"
+          },
+          {
+            "name": "itemVersion",
+            "type": "integer"
+          },
+          {
+            "name": "status",
+            "type": "ACTIVE | RETIRED"
+          },
+          {
+            "name": "type",
+            "type": "EQUIPMENT | CONSUMABLE | QUEST"
+          },
+          {
+            "name": "slot",
+            "type": "HEAD | CHEST | LEGS | MAINHAND",
+            "note": "Only for EQUIPMENT."
+          },
+          {
+            "name": "requirements",
+            "type": "map<string,int>"
+          },
+          {
+            "name": "modifiers",
+            "type": "map<string,int>"
+          }
+        ]
       }
     },
     {
@@ -541,7 +644,44 @@
         "path": "microservices/contracts/scene-manager.asyncapi.yaml",
         "state": "todo"
       },
-      "note": "One event, two queues, two independent consumers. Scalable for one of them and not the other."
+      "note": "One event, two queues, two independent consumers. Scalable for one of them and not the other.",
+      "payload": {
+        "state": "proposed",
+        "fields": [
+          {
+            "name": "characterId",
+            "type": "integer"
+          },
+          {
+            "name": "sequence",
+            "type": "integer",
+            "note": "Per character. Who assigns it is open (ADR-013)."
+          },
+          {
+            "name": "sceneId",
+            "type": "integer"
+          },
+          {
+            "name": "sceneVersion",
+            "type": "integer",
+            "note": "Nothing reads it yet; a field cannot be added to an immutable log later."
+          },
+          {
+            "name": "choiceId",
+            "type": "integer"
+          },
+          {
+            "name": "beat",
+            "type": "string",
+            "note": "The authored sentence, copied in so the path is self-contained (ADR-007)."
+          },
+          {
+            "name": "effects",
+            "type": "object",
+            "note": "Deltas, which is what makes the consumer commutative."
+          }
+        ]
+      }
     },
     {
       "name": "recap-generated",
@@ -557,6 +697,10 @@
       "contract": {
         "path": "microservices/contracts/recap-manager.asyncapi.yaml",
         "state": "todo"
+      },
+      "payload": {
+        "state": "undesigned",
+        "fields": []
       }
     },
     {
@@ -578,7 +722,11 @@
         "path": "microservices/contracts/account-manager.asyncapi.yaml",
         "state": "todo"
       },
-      "note": "The saga. Consumers are the services holding per-player state; content and audio hold none."
+      "note": "The saga. Consumers are the services holding per-player state; content and audio hold none.",
+      "payload": {
+        "state": "undesigned",
+        "fields": []
+      }
     }
   ],
   "openIssues": [

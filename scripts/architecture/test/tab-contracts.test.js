@@ -56,8 +56,8 @@ test('tab 7 says when a separate indexer would be right', () => {
   assert.match(h.textOf('alt-indexer'), /search cluster/i);
 });
 
-test('all seven tabs are present', () => {
-  assert.equal(h.doc.tabs.length, 7);
+test('all eight tabs are present', () => {
+  assert.equal(h.doc.tabs.length, 8);
 });
 
 test('the manifest declares exactly the tabs the diagram has', () => {

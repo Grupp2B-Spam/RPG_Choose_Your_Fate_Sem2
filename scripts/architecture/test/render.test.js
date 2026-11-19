@@ -114,3 +114,33 @@ test('an unknown infra id returns null', () => {
 test('an unknown infra field returns null', () => {
   assert.equal(resolve('infra:rabbitmq:colour'), null);
 });
+
+test('payload renders the documented fields with their types', () => {
+  const html = resolve('event:scene-content.updated:payload');
+  assert.match(html, /sceneId/);
+  assert.match(html, /integer/);
+  assert.match(html, /PUBLISHED \| RETIRED/);
+});
+
+test('payload of a proposed shape says it is not agreed', () => {
+  const html = resolve('event:player-choice.made:payload');
+  assert.match(html, /proposed/i);
+  assert.match(html, /sequence/);
+});
+
+test('payload of an event nobody has designed says so and invents nothing', () => {
+  const html = resolve('event:recap-generated:payload');
+  assert.match(html, /not designed/i);
+  assert.doesNotMatch(html, /"\w+": /);
+});
+
+test('the envelope renders the fields every message shares', () => {
+  const html = resolve('meta:envelope');
+  for (const field of ['eventId', 'eventType', 'occurredAt', 'schemaVersion', 'payload']) {
+    assert.match(html, new RegExp(field));
+  }
+});
+
+test('an unknown meta field still returns null', () => {
+  assert.equal(resolve('meta:nonsense'), null);
+});

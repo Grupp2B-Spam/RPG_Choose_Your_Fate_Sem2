@@ -104,6 +104,46 @@ function eventLabel(e) {
   ].join('<br>');
 }
 
+/**
+ * A message body, written out the way you would write it down: field, type, and the one
+ * sentence that says why the field is there.
+ *
+ * An event nobody has designed renders as exactly that. Inventing a plausible shape
+ * would be the worst thing this file could do, because it would read like a contract.
+ */
+const PAYLOAD_STATE = {
+  documented: 'from the AsyncAPI contract',
+  proposed: 'proposed — not agreed, and no contract file exists',
+  undesigned: 'not designed yet',
+};
+
+function fieldLines(fields) {
+  return fields.map((f) => {
+    const note = f.note
+      ? `<br><font style="font-size: 9px" color="#78909c">&nbsp;&nbsp;&nbsp;&nbsp;${f.note}</font>`
+      : '';
+    return `&nbsp;&nbsp;"${f.name}": <font color="#b07d00">${f.type}</font>${note}`;
+  });
+}
+
+function payload(e) {
+  const p = e.payload || { state: 'undesigned', fields: [] };
+  const heading =
+    `<b>${e.name}</b><br><font style="font-size: 9px">${PAYLOAD_STATE[p.state] || p.state}</font>`;
+
+  if (!p.fields || p.fields.length === 0) {
+    return `${heading}<br><br><i>No payload has been designed. Nothing is written here, because a plausible guess would read like a contract.</i>`;
+  }
+
+  return `${heading}<br><br>{<br>${fieldLines(p.fields).join(',<br>')}<br>}`;
+}
+
+function envelope(meta) {
+  const fields = meta.envelope || [];
+  if (fields.length === 0) return null;
+  return `<b>Envelope — the same on every topic</b><br><br>{<br>${fieldLines(fields).join(',<br>')}<br>}`;
+}
+
 function contractTable(manifest) {
   const head =
     '<tr><th>Service</th><th>Version</th><th>Status</th><th>Stack</th>' +
@@ -145,7 +185,9 @@ function createResolver(manifest) {
     const parts = String(token).split(':');
 
     if (parts[0] === 'meta' && parts.length === 2) {
-      return parts[1] === 'updated' ? manifest.meta.updated : null;
+      if (parts[1] === 'updated') return manifest.meta.updated;
+      if (parts[1] === 'envelope') return envelope(manifest.meta);
+      return null;
     }
 
     if (parts[0] === 'table' && parts.length === 2) {
@@ -173,7 +215,9 @@ function createResolver(manifest) {
     if (parts[0] === 'event' && parts.length === 3) {
       const e = eventsByName.get(parts[1]);
       if (!e) return null;
-      return parts[2] === 'label' ? eventLabel(e) : null;
+      if (parts[2] === 'label') return eventLabel(e);
+      if (parts[2] === 'payload') return payload(e);
+      return null;
     }
 
     return null;
