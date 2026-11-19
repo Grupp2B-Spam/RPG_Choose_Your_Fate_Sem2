@@ -1,5 +1,12 @@
 {
-  "meta": { "version": 3, "updated": "2026-11-18", "broker": "RabbitMQ 4" },
+  "meta": {
+    "version": 3,
+    "updated": "2026-11-18",
+    "broker": "RabbitMQ 4",
+    "tabs": [
+      "arch-main"
+    ]
+  },
   "services": [
     {
       "id": "recap-manager",
