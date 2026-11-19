@@ -1,0 +1,75 @@
+'use strict';
+
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const path = require('node:path');
+
+const { loadManifest, validateManifest } = require('../lib/manifest.js');
+
+const MANIFEST = path.join(__dirname, '..', '..', '..', 'docs', 'architecture', 'architecture.json');
+
+test('the real manifest is valid', () => {
+  assert.deepEqual(validateManifest(loadManifest(MANIFEST)), []);
+});
+
+test('records seven services and one legacy node', () => {
+  const m = loadManifest(MANIFEST);
+  assert.equal(m.services.filter((s) => s.kind === 'service').length, 7);
+  assert.equal(m.services.filter((s) => s.kind === 'legacy').length, 1);
+});
+
+test('recap-manager is the only implemented service', () => {
+  const m = loadManifest(MANIFEST);
+  const done = m.services.filter((s) => s.kind === 'service' && s.status === 'implemented');
+  assert.deepEqual(done.map((s) => s.id), ['recap-manager']);
+});
+
+test('no service invents a port it has not been given', () => {
+  const m = loadManifest(MANIFEST);
+  const withPorts = m.services.filter((s) => s.ports).map((s) => s.id).sort();
+  assert.deepEqual(withPorts, ['recap-manager', 'storycontent-manager', 'storypath-manager']);
+});
+
+test('scene-indexer is a deployment of scene-manager, not a service', () => {
+  const m = loadManifest(MANIFEST);
+  assert.equal(m.services.some((s) => s.id === 'scene-indexer'), false);
+  const sm = m.services.find((s) => s.id === 'scene-manager');
+  assert.deepEqual(sm.deployments.map((d) => d.name), ['scene-indexer']);
+});
+
+test('player-choice.made is scalable for character-manager but not storypath-manager', () => {
+  const m = loadManifest(MANIFEST);
+  const consumer = (id) =>
+    m.services.find((s) => s.id === id).consumes.find((c) => c.event === 'player-choice.made');
+  assert.equal(consumer('character-manager').scalable, true);
+  assert.equal(consumer('storypath-manager').scalable, false);
+});
+
+test('the monolith declares no bounded context and names what replaces it', () => {
+  const m = loadManifest(MANIFEST);
+  const mono = m.services.find((s) => s.kind === 'legacy');
+  assert.equal(mono.context, undefined);
+  assert.equal(mono.replacedBy.length, 7);
+});
+
+test('the gRPC contract records that it sits in the caller tree', () => {
+  const m = loadManifest(MANIFEST);
+  const sp = m.services.find((s) => s.id === 'storypath-manager');
+  const grpc = sp.exposes.find((e) => e.style === 'gRPC');
+  assert.match(grpc.contract.path, /recapManager.*story_path\.proto$/);
+  assert.match(grpc.contract.note, /ADR-012/);
+});
+
+test('every event names the exchange its publisher owns', () => {
+  const m = loadManifest(MANIFEST);
+  for (const e of m.events) {
+    assert.match(e.exchange, /\.events$/, `${e.name} has a malformed exchange`);
+  }
+});
+
+test('API versioning records the header the code actually uses', () => {
+  const m = loadManifest(MANIFEST);
+  const recap = m.services.find((s) => s.id === 'recap-manager');
+  const rest = recap.exposes.find((e) => e.style === 'REST');
+  assert.match(rest.versioning, /X-API-VERSION/);
+});

@@ -1,0 +1,443 @@
+{
+  "meta": {
+    "version": 3,
+    "updated": "2026-11-18",
+    "broker": "RabbitMQ 4 (management-alpine)",
+    "note": "Describes main plus the unmerged service branches, as if they were merged. See docs/superpowers/specs/2026-11-18-architecture-diagram-v3-design.md section 8.1."
+  },
+
+  "services": [
+    {
+      "id": "account-manager",
+      "kind": "service",
+      "display": "AccountManager",
+      "status": "planned",
+      "context": "identity",
+      "purpose": "Owns identity. Signs RS256 JWTs that every other service validates locally with the public key.",
+      "datastore": { "name": "account-vault", "kind": "MySQL" },
+      "exposes": [
+        {
+          "style": "REST",
+          "detail": "registration, login, account deletion",
+          "versioning": "not decided",
+          "contract": { "path": "microservices/contracts/account-manager.openapi.yaml", "state": "todo" }
+        }
+      ],
+      "calls": [],
+      "publishes": [
+        { "event": "account-deletion-requested", "exchange": "account.events", "state": "planned" }
+      ],
+      "consumes": [],
+      "adr": [],
+      "gaps": [
+        "Not implemented.",
+        "Third-party OAuth/OIDC provider not chosen.",
+        "The JWT claim shape every other service depends on is not agreed."
+      ]
+    },
+
+    {
+      "id": "storycontent-manager",
+      "kind": "service",
+      "display": "StoryContentManager",
+      "status": "skeleton",
+      "branch": "patrick/create-storycontentmanager-microservice",
+      "version": "0.0.1-SNAPSHOT",
+      "stack": "Spring Boot 4.0.3 / Java 21",
+      "context": "content",
+      "purpose": "The write side of authored content: chapters, scenes, choices, NPCs, item and quest definitions.",
+      "datastore": { "name": "story-content-vault", "kind": "MySQL 9.5", "hostPort": 3309 },
+      "ports": { "http": 8081 },
+      "compose": {
+        "file": "microservices/storycontent-manager/compose.yaml",
+        "service": "storycontent-manager"
+      },
+      "exposes": [
+        {
+          "style": "REST",
+          "detail": "authoring API, admin only",
+          "versioning": "not decided",
+          "contract": { "path": "microservices/contracts/storycontent-manager.openapi.yaml", "state": "todo" }
+        }
+      ],
+      "calls": [],
+      "publishes": [
+        { "event": "scene-content.updated", "exchange": "storycontent.events", "state": "implemented" },
+        { "event": "item-definition.updated", "exchange": "storycontent.events", "state": "implemented" }
+      ],
+      "consumes": [],
+      "adr": ["ADR-003", "ADR-004", "ADR-005", "ADR-006", "ADR-008"],
+      "gaps": [
+        "A walking skeleton: publishes real messages, but owns no content entities yet.",
+        "Draft versus published content is not designed."
+      ]
+    },
+
+    {
+      "id": "scene-manager",
+      "kind": "service",
+      "display": "SceneManager",
+      "status": "skeleton",
+      "branch": "SceneManager",
+      "context": "content",
+      "purpose": "The read side of content. Serves scenes to the player and validates the choice they submit.",
+      "datastore": { "name": "scene-read-model", "kind": "MongoDB" },
+      "deployments": [
+        {
+          "name": "scene-indexer",
+          "role": "projection",
+          "note": "Same codebase, same schema, same release as SceneManager. Deployed separately so projection scales apart from query serving (ADR-010)."
+        }
+      ],
+      "exposes": [
+        {
+          "style": "REST",
+          "detail": "scene delivery, choice submission",
+          "versioning": "not decided",
+          "contract": { "path": "microservices/contracts/scene-manager.openapi.yaml", "state": "todo" }
+        }
+      ],
+      "calls": [],
+      "publishes": [
+        { "event": "player-choice.made", "exchange": "scenemanager.events", "state": "planned" }
+      ],
+      "consumes": [
+        {
+          "event": "scene-content.updated",
+          "queue": "scenemanager.scene-content",
+          "scalable": true,
+          "why": "Last-write-wins guarded by sceneVersion, so arrival order does not change the result (ADR-011)."
+        }
+      ],
+      "adr": ["ADR-005", "ADR-010", "ADR-011"],
+      "gaps": [
+        "GraphQL is unassigned and this is a candidate.",
+        "Validates that a choice exists in the submitted scene, but not that the character is in that scene."
+      ]
+    },
+
+    {
+      "id": "character-manager",
+      "kind": "service",
+      "display": "CharacterManager",
+      "status": "skeleton",
+      "branch": "mikolsen/create-charactermanager-microservice",
+      "context": "state",
+      "purpose": "The character sheet: stats, inventory, equipment and quest progress, all keyed on characterId.",
+      "datastore": { "name": "character-vault", "kind": "MySQL" },
+      "exposes": [
+        {
+          "style": "REST",
+          "detail": "character sheet, inventory, equipment",
+          "versioning": "not decided",
+          "contract": { "path": "microservices/contracts/character-manager.openapi.yaml", "state": "todo" }
+        }
+      ],
+      "calls": [],
+      "publishes": [],
+      "consumes": [
+        {
+          "event": "item-definition.updated",
+          "queue": "charactermanager.item-rules",
+          "scalable": true,
+          "why": "Last-write-wins guarded by itemVersion (ADR-011)."
+        },
+        {
+          "event": "player-choice.made",
+          "queue": "charactermanager.player-choice",
+          "scalable": true,
+          "why": "Effects are deltas, and deltas commute (ADR-011)."
+        },
+        { "event": "account-deletion-requested", "queue": "charactermanager.account-deletion", "scalable": true }
+      ],
+      "adr": ["ADR-011"],
+      "gaps": ["GraphQL is unassigned and this is a candidate."]
+    },
+
+    {
+      "id": "storypath-manager",
+      "kind": "service",
+      "display": "StoryPathManager",
+      "status": "planned",
+      "context": "state",
+      "purpose": "The history: an append-only log of beats and the character's current position.",
+      "datastore": { "name": "storypath-vault", "kind": "MySQL" },
+      "ports": { "grpc": 9091 },
+      "exposes": [
+        {
+          "style": "gRPC",
+          "detail": "StoryPathService.GetChoicesAfter",
+          "versioning": "proto package v1",
+          "contract": {
+            "path": "microservices/recapManager/src/main/proto/storypath/v1/story_path.proto",
+            "state": "written",
+            "note": "Lives in the caller's tree. ADR-012 says a contract belongs with the side that implements it."
+          }
+        }
+      ],
+      "calls": [],
+      "publishes": [],
+      "consumes": [
+        {
+          "event": "player-choice.made",
+          "queue": "storypathmanager.player-choice",
+          "scalable": false,
+          "why": "The path is an ordered log, and competing consumers would produce a false history (ADR-011)."
+        },
+        { "event": "account-deletion-requested", "queue": "storypathmanager.account-deletion", "scalable": true }
+      ],
+      "adr": ["ADR-011", "ADR-012", "ADR-013", "ADR-014"],
+      "gaps": [
+        "Not implemented, although RecapManager already calls it over gRPC.",
+        "Who assigns the per-character sequence number is open (ADR-013)."
+      ]
+    },
+
+    {
+      "id": "recap-manager",
+      "kind": "service",
+      "display": "RecapManager",
+      "status": "implemented",
+      "branch": "main",
+      "version": "0.0.1-SNAPSHOT",
+      "stack": "Spring Boot 4.0.3 / Java 21",
+      "context": "state",
+      "purpose": "Generates a recap of a character's story so far with an LLM, built incrementally from a stored checkpoint.",
+      "datastore": { "name": "recap-vault", "kind": "MySQL 9.5", "hostPort": 3307 },
+      "ports": { "http": 8090 },
+      "compose": {
+        "file": "microservices/recapManager/docker-compose-recap-manager.yml",
+        "service": "recap-manager"
+      },
+      "exposes": [
+        {
+          "style": "REST",
+          "detail": "/choose-your-fate/ai",
+          "versioning": "X-API-VERSION header",
+          "contract": { "path": "microservices/contracts/recap-manager.openapi.yaml", "state": "todo" }
+        }
+      ],
+      "calls": [
+        {
+          "style": "gRPC",
+          "target": "storypath-manager",
+          "method": "StoryPathService.GetChoicesAfter",
+          "contract": {
+            "path": "microservices/recapManager/src/main/proto/storypath/v1/story_path.proto",
+            "state": "written",
+            "note": "Lives in the caller's tree. ADR-012 says a contract belongs with the side that implements it."
+          }
+        }
+      ],
+      "publishes": [
+        { "event": "recap-generated", "exchange": "recap.events", "state": "planned" }
+      ],
+      "consumes": [
+        { "event": "account-deletion-requested", "queue": "recapmanager.account-deletion", "scalable": true }
+      ],
+      "adr": ["ADR-012", "ADR-013", "ADR-014"],
+      "gaps": ["Does not publish recap-generated yet, so nothing drives TextToSpeechManager."]
+    },
+
+    {
+      "id": "texttospeech-manager",
+      "kind": "service",
+      "display": "TextToSpeechManager",
+      "status": "planned",
+      "context": "media",
+      "purpose": "Turns a recap into audio, keyed on a content hash so the same text is never paid for twice.",
+      "stack": "Quarkus, native binary",
+      "datastore": { "name": "audio-store", "kind": "MinIO" },
+      "exposes": [],
+      "calls": [],
+      "publishes": [],
+      "consumes": [
+        {
+          "event": "recap-generated",
+          "queue": "texttospeechmanager.recap",
+          "scalable": true,
+          "why": "Keyed on a content hash, so the handler is both idempotent and commutative (ADR-011)."
+        }
+      ],
+      "adr": ["ADR-009", "ADR-011"],
+      "gaps": [
+        "Not implemented.",
+        "The KEDA ScaledJob that makes this the serverless component is not built.",
+        "ADR-009's cold-start figures are quoted, not measured."
+      ]
+    },
+
+    {
+      "id": "choose-your-fate-backend",
+      "kind": "legacy",
+      "display": "choose-your-fate-backend",
+      "status": "implemented",
+      "branch": "main",
+      "version": "0.0.1-SNAPSHOT",
+      "stack": "Spring Boot 4.0.3 / Java 21",
+      "purpose": "The monolith. Seventeen controllers covering accounts, auth, content, characters, paths and AI. It is the only part of the system that runs today, and the source the services are being lifted from.",
+      "datastore": { "name": "rpg monolith database", "kind": "MySQL" },
+      "exposes": [],
+      "calls": [],
+      "publishes": [],
+      "consumes": [],
+      "adr": ["ADR-008"],
+      "replacedBy": [
+        "account-manager",
+        "storycontent-manager",
+        "scene-manager",
+        "character-manager",
+        "storypath-manager",
+        "recap-manager",
+        "texttospeech-manager"
+      ],
+      "gaps": [
+        "Started by no compose file.",
+        "No decommissioning date has been decided."
+      ]
+    }
+  ],
+
+  "infrastructure": [
+    {
+      "id": "rabbitmq",
+      "display": "RabbitMQ",
+      "kind": "broker",
+      "status": "implemented",
+      "image": "rabbitmq:4-management-alpine",
+      "container": "choose-your-fate-rabbitmq",
+      "ports": [5672, 15672],
+      "note": "One topic exchange per publishing service. Consumers own their queues and bindings."
+    },
+    {
+      "id": "minio",
+      "display": "MinIO",
+      "kind": "object store",
+      "status": "planned",
+      "note": "Audio files addressed by sha256 of text plus voice."
+    },
+    {
+      "id": "ollama",
+      "display": "Ollama",
+      "kind": "LLM runtime",
+      "status": "implemented",
+      "external": true,
+      "ports": [11434],
+      "note": "Model glm-4.6:cloud, configured in RecapManager."
+    },
+    {
+      "id": "elevenlabs",
+      "display": "ElevenLabs",
+      "kind": "text-to-speech",
+      "status": "planned",
+      "external": true,
+      "note": "Paid per call, which is why the content hash matters."
+    }
+  ],
+
+  "events": [
+    {
+      "name": "scene-content.updated",
+      "exchange": "storycontent.events",
+      "publisher": "storycontent-manager",
+      "consumers": ["scene-manager"],
+      "queues": ["scenemanager.scene-content"],
+      "ordering": "version-guarded on sceneVersion",
+      "contract": {
+        "path": "microservices/contracts/storycontent-manager.asyncapi.yaml",
+        "state": "written"
+      },
+      "note": "Carries the complete scene aggregate, not a notification to go and fetch it (ADR-005)."
+    },
+    {
+      "name": "item-definition.updated",
+      "exchange": "storycontent.events",
+      "publisher": "storycontent-manager",
+      "consumers": ["character-manager"],
+      "queues": ["charactermanager.item-rules"],
+      "ordering": "version-guarded on itemVersion",
+      "contract": {
+        "path": "microservices/contracts/storycontent-manager.asyncapi.yaml",
+        "state": "written"
+      }
+    },
+    {
+      "name": "player-choice.made",
+      "exchange": "scenemanager.events",
+      "publisher": "scene-manager",
+      "consumers": ["storypath-manager", "character-manager"],
+      "queues": ["storypathmanager.player-choice", "charactermanager.player-choice"],
+      "ordering": "per-character sequence number (ADR-013)",
+      "contract": { "path": "microservices/contracts/scene-manager.asyncapi.yaml", "state": "todo" },
+      "note": "One event, two queues, two independent consumers. Scalable for one of them and not the other."
+    },
+    {
+      "name": "recap-generated",
+      "exchange": "recap.events",
+      "publisher": "recap-manager",
+      "consumers": ["texttospeech-manager"],
+      "queues": ["texttospeechmanager.recap"],
+      "ordering": "idempotent on a content hash",
+      "contract": { "path": "microservices/contracts/recap-manager.asyncapi.yaml", "state": "todo" }
+    },
+    {
+      "name": "account-deletion-requested",
+      "exchange": "account.events",
+      "publisher": "account-manager",
+      "consumers": ["character-manager", "storypath-manager", "recap-manager"],
+      "queues": [
+        "charactermanager.account-deletion",
+        "storypathmanager.account-deletion",
+        "recapmanager.account-deletion"
+      ],
+      "ordering": "idempotent per character",
+      "contract": { "path": "microservices/contracts/account-manager.asyncapi.yaml", "state": "todo" },
+      "note": "The saga. Consumers are the services holding per-player state; content and audio hold none."
+    }
+  ],
+
+  "openIssues": [
+    {
+      "id": "ADR-013",
+      "short": "Who assigns the per-character sequence number?",
+      "detail": "If StoryPathManager assigns it on insert, ordering still depends on arrival order and nothing is gained.",
+      "blocks": ["storypath-manager"]
+    },
+    {
+      "id": "ADR-012",
+      "short": "The .proto sits in the caller's tree.",
+      "detail": "It describes StoryPathManager's API but lives in RecapManager's source, inverting the ownership rule.",
+      "blocks": ["storypath-manager"]
+    },
+    {
+      "id": "GRAPHQL",
+      "short": "No service has been assigned GraphQL.",
+      "detail": "At least one backend service must expose it. SceneManager and CharacterManager are the candidates.",
+      "blocks": ["scene-manager", "character-manager"]
+    },
+    {
+      "id": "OAUTH",
+      "short": "No third-party identity provider chosen.",
+      "detail": "OAuth/OIDC with at least one external provider is required, in addition to our own JWT.",
+      "blocks": ["account-manager"]
+    },
+    {
+      "id": "KEDA",
+      "short": "The serverless component is not built.",
+      "detail": "TextToSpeechManager as a KEDA ScaledJob scaled on queue depth is what satisfies the serverless requirement.",
+      "blocks": ["texttospeech-manager"]
+    },
+    {
+      "id": "PORTS",
+      "short": "No port allocation is agreed.",
+      "detail": "8081 and 8090 are taken, and 8092 is implied by RecapManager's JWT_ISSUER default without being written down.",
+      "blocks": []
+    },
+    {
+      "id": "IMAGES",
+      "short": "How images reach the local cluster is undecided.",
+      "detail": "kind load versus a local registry. The CI/CD pipeline has to push somewhere, which argues for the registry.",
+      "blocks": []
+    }
+  ]
+}
