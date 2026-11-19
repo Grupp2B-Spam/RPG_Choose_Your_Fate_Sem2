@@ -553,4 +553,74 @@
       </root>
     </mxGraphModel>
   </diagram>
+
+  <diagram name="Development environment — docker compose" id="env-compose">
+    <mxGraphModel dx="1040" dy="1504" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="dc-title" value="Development environment — docker compose" style="text;html=1;fontSize=22;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="-70" width="1400" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-sub" value="Current state: what docker compose actually starts today. Each service owns a compose file next to its code; the root file merges them with include:, so everything shares one network and each person edits only their own file." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="-30" width="1400" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dc-project" value="docker compose project — one network" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#f7f9fa;strokeColor=#90a4ae;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#546e7a;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="1240" height="620" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dc-root" value="&lt;b&gt;docker-compose.yml&lt;/b&gt; (root)&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;include:&lt;br&gt;· microservices/storycontent-manager/compose.yaml&lt;br&gt;· microservices/recapManager/docker-compose-recap-manager.yml&lt;br&gt;&lt;br&gt;volumes: rabbitmq-data&lt;br&gt;&lt;br&gt;Relative paths inside an included file resolve against that file's own directory, so each service still runs on its own.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="dc-project">
+          <mxGeometry x="30" y="50" width="360" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-rabbit" value="&lt;b&gt;rabbitmq&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;image: rabbitmq:4-management-alpine&lt;br&gt;container_name: choose-your-fate-rabbitmq&lt;br&gt;hostname: rabbitmq&lt;br&gt;ports: 5672 (amqp) · 15672 (management UI)&lt;br&gt;volume: rabbitmq-data&lt;br&gt;healthcheck: rabbitmq-diagnostics ping&lt;br&gt;restart: unless-stopped&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2e0;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="dc-project">
+          <mxGeometry x="420" y="50" width="380" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-frontend" value="&lt;b&gt;frontend&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;profiles: [prod]&lt;br&gt;build: ./choose-your-fate-frontend&lt;br&gt;VITE_API_URL: http://localhost:8080/&lt;br&gt;ports: 5173 → 80&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="dc-project">
+          <mxGeometry x="830" y="50" width="380" height="190" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dc-inc-recap" value="included — microservices/recapManager/" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=4 4;fillColor=#e8f5e9;strokeColor=#66a06a;verticalAlign=top;align=left;spacingLeft=12;spacingTop=5;fontSize=11;fontStyle=2;fontColor=#3f7043;" vertex="1" parent="dc-project">
+          <mxGeometry x="30" y="270" width="570" height="310" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-recap-manager" value="&lt;b&gt;recap-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;profiles: [prod]&lt;br&gt;build: .&lt;br&gt;ports: 8090 → 8090&lt;br&gt;MYSQL_URI: recap-vault:3306&lt;br&gt;STORYPATH_GRPC_TARGET: storypath-manager:9091&lt;br&gt;JWT public key: read-only bind mount&lt;br&gt;depends_on: recap-vault (service_healthy)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="dc-inc-recap">
+          <mxGeometry x="20" y="50" width="250" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-recap-vault" value="&lt;b&gt;recap-vault&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;image: mysql:9.5.0&lt;br&gt;ports: 3307 → 3306&lt;br&gt;volume: recap-vault&lt;br&gt;init: 01_schema_recap_vault.sql&lt;br&gt;healthcheck: mysqladmin ping&lt;br&gt;&lt;br&gt;Seeding runs only on the first start, when the volume is created.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="dc-inc-recap">
+          <mxGeometry x="300" y="50" width="250" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dc-inc-storycontent" value="included — microservices/storycontent-manager/" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=4 4;fillColor=#fff8e1;strokeColor=#d6a860;verticalAlign=top;align=left;spacingLeft=12;spacingTop=5;fontSize=11;fontStyle=2;fontColor=#8d6e28;" vertex="1" parent="dc-project">
+          <mxGeometry x="630" y="270" width="580" height="310" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-storycontent-manager" value="&lt;b&gt;storycontent-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;profiles: [prod]&lt;br&gt;build: .&lt;br&gt;ports: 8081 → 8081&lt;br&gt;RABBITMQ_HOST: rabbitmq&lt;br&gt;MYSQL_URI: story-content-vault:3306/story_content&lt;br&gt;depends_on: story-content-vault, rabbitmq&lt;br&gt;(both service_healthy)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="dc-inc-storycontent">
+          <mxGeometry x="20" y="50" width="250" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-storycontent-vault" value="&lt;b&gt;story-content-vault&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;image: mysql:9.5.0&lt;br&gt;ports: 3309 → 3306&lt;br&gt;MYSQL_DATABASE: story_content&lt;br&gt;volume: story-content-vault&lt;br&gt;init: ./db-init&lt;br&gt;healthcheck: mysqladmin ping&lt;br&gt;&lt;br&gt;3307 and 3308 are taken by the monolith's databases.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="dc-inc-storycontent">
+          <mxGeometry x="300" y="50" width="260" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dc-e1" value="depends_on · service_healthy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="dc-inc-recap" source="dc-recap-manager" target="dc-recap-vault">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-e2" value="depends_on · service_healthy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=1;endArrow=block;endFill=1;fontSize=9;" edge="1" parent="dc-inc-storycontent" source="dc-storycontent-manager" target="dc-storycontent-vault">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-e3" value="depends_on · publishes to storycontent.events" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=9;fontColor=#b07d00;" edge="1" parent="dc-project" source="dc-storycontent-manager" target="dc-rabbit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dc-n1" value="&lt;b&gt;What a bare `docker compose up` starts&lt;/b&gt;&lt;br&gt;Only rabbitmq and the two databases. The services and the frontend carry profiles: [prod], so they stay down unless you ask for them — which is what you want while running a service from the IDE against the containers." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1360" y="60" width="340" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-n2" value="&lt;b&gt;What is not here yet&lt;/b&gt;&lt;br&gt;AccountManager, SceneManager, CharacterManager, StoryPathManager and TextToSpeechManager have no compose file, and neither does MinIO. Ollama runs on the host at localhost:11434 rather than in the project, so a recap can be generated without a GPU container in the compose file.&lt;br&gt;&lt;br&gt;The monolith is not started by any compose file either." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1360" y="270" width="340" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="dc-n3" value="&lt;b&gt;The broker still differs between branches&lt;/b&gt;&lt;br&gt;This tab draws the consolidated compose the group is keeping. The root file on main still runs rabbitmq:3.13-management under the container name bar-scan-rabbitmq, a leftover from another project, and includes only recapManager. Until that merges, `docker compose up` on main gives you a different broker from the one the contracts describe." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1360" y="540" width="340" height="240" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
