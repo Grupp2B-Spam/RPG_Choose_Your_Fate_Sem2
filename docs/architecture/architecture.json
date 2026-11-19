@@ -8,7 +8,8 @@
       "arch-main",
       "flow-choice",
       "flow-recap",
-      "env-compose"
+      "env-compose",
+      "env-k8s"
     ]
   },
   "services": [
