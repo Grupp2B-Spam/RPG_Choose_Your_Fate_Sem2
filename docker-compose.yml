@@ -1,6 +1,13 @@
-# mysql server seeded with databases from dump files in the folder ./rpg_mysql
-# The seeding only happens on the first start when the volume is created.
-# If you need to reset the seeding, run "docker compose down -v" to delete the volume.
+# Root compose for the whole system.
+#
+# Each microservice owns a compose file next to its code, describing the service and the
+# database it owns. They are merged into one project here, so everything shares a network
+# and each person edits only their own file. Relative paths inside an included file
+# resolve against that file's directory, so a service also runs on its own.
+include:
+  - microservices/storycontent-manager/compose.yaml
+  - microservices/recapManager/docker-compose-recap-manager.yml
+
 services:
   frontend:
     profiles: ["prod"]
@@ -11,17 +18,21 @@ services:
     ports:
       - "5173:80"
 
+  # Shared message broker. The management plugin exposes a UI on 15672 where exchanges,
+  # queues and bindings can be inspected while developing — without a bound queue a topic
+  # exchange discards messages silently, which is otherwise hard to tell from a bug.
   rabbitmq:
-    image: rabbitmq:3.13-management
-    container_name: bar-scan-rabbitmq
+    image: rabbitmq:4-management-alpine
+    container_name: choose-your-fate-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: rabbitmq
-      RABBITMQ_DEFAULT_PASS: rabbitmq
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    hostname: rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
