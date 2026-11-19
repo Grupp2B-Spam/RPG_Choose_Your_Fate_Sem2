@@ -143,3 +143,19 @@ test('every repository finding is a warning, never an error', () => {
   });
   assert.ok(run(ctx(root, [s])).every((f) => f.severity === 'warning'));
 });
+
+test('a contract attached to two published events is reported once', () => {
+  const root = repo({ 'readme.md': 'x' });
+  const s = service({
+    publishes: [
+      { event: 'a.updated', exchange: 'x.events', state: 'planned' },
+      { event: 'b.updated', exchange: 'x.events', state: 'planned' },
+    ],
+  });
+  const events = [
+    { name: 'a.updated', exchange: 'x.events', publisher: 'recap-manager', consumers: [], contract: { path: 'c.yaml', state: 'written' } },
+    { name: 'b.updated', exchange: 'x.events', publisher: 'recap-manager', consumers: [], contract: { path: 'c.yaml', state: 'written' } },
+  ];
+  const found = run(ctx(root, [s], events)).filter((f) => f.check === 8);
+  assert.equal(found.length, 1);
+});

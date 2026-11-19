@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="app.diagrams.net" pages="1">
+  <diagram name="Architecture" id="arch-main">
+    <mxGraphModel dx="1040" dy="1504" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Choose Your Fate — services, ownership and communication" style="text;html=1;fontSize=26;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="700" y="-120" width="1040" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Every service owns its datastore. No service reads another's database. All player state is keyed on characterId.&lt;br&gt;Content is what authors write; state is what a player's own character accumulates." style="text;html=1;fontSize=14;fontColor=#607d8b;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="700" y="-70" width="1040" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="stamp-label" value="manifest last updated" style="text;html=1;fontSize=11;fontColor=#90a4ae;align=right;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="700" y="-22" width="620" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="stamp" value="{{meta:updated}}" style="text;html=1;fontSize=11;fontColor=#90a4ae;align=left;verticalAlign=middle;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1328" y="-22" width="412" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1" value="Author / admin client" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="880" y="40" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" value="Player client (frontend)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="40" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gw" value="&lt;b&gt;API Gateway&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;TLS termination · JWT validation · rate limiting · routing&lt;br&gt;REST and GraphQL only — gRPC never leaves the cluster (ADR-014)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="900" y="180" width="640" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="grp-identity" value="IDENTITY" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#eceff1;strokeColor=#90a4ae;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#546e7a;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="60" y="420" width="460" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="panel-account-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;dashed=1;verticalAlign=top;" vertex="1" parent="grp-identity">
+          <mxGeometry x="20" y="50" width="280" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="card-account-manager" value="{{service:account-manager:card}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-account-manager">
+          <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="apis-account-manager" value="{{service:account-manager:apis}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-account-manager">
+          <mxGeometry x="0" y="100" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="events-account-manager" value="{{service:account-manager:events}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-account-manager">
+          <mxGeometry x="0" y="160" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="contracts-account-manager" value="{{service:account-manager:contracts}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-account-manager">
+          <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="db-account-manager" value="account vault&lt;br&gt;MySQL" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-identity">
+          <mxGeometry x="330" y="130" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="grp-content" value="CONTENT&lt;br&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;author-defined&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#fff8e1;strokeColor=#d6a860;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#8d6e28;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="60" y="840" width="460" height="780" as="geometry" />
+        </mxCell>
+        <mxCell id="panel-storycontent-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="grp-content">
+          <mxGeometry x="20" y="50" width="280" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="card-storycontent-manager" value="{{service:storycontent-manager:card}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
+          <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="apis-storycontent-manager" value="{{service:storycontent-manager:apis}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
+          <mxGeometry x="0" y="100" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="events-storycontent-manager" value="{{service:storycontent-manager:events}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
+          <mxGeometry x="0" y="160" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="contracts-storycontent-manager" value="{{service:storycontent-manager:contracts}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
+          <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="db-storycontent-manager" value="story-content-vault&lt;br&gt;MySQL 9.5" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-content">
+          <mxGeometry x="330" y="130" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="panel-scene-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="grp-content">
+          <mxGeometry x="20" y="370" width="280" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="card-scene-manager" value="{{service:scene-manager:card}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-scene-manager">
+          <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="apis-scene-manager" value="{{service:scene-manager:apis}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-scene-manager">
+          <mxGeometry x="0" y="100" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="events-scene-manager" value="{{service:scene-manager:events}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-scene-manager">
+          <mxGeometry x="0" y="160" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="contracts-scene-manager" value="{{service:scene-manager:contracts}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-scene-manager">
+          <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="deploy-scene-indexer" value="SceneIndexer&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;projection worker — same codebase,&lt;br&gt;same release, deployed separately (ADR-010)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf6e3;strokeColor=#b0bec5;dashed=1;fontSize=10;align=center;" vertex="1" parent="panel-scene-manager">
+          <mxGeometry x="0" y="290" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="db-scene-manager" value="scene read model&lt;br&gt;MongoDB" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-content">
+          <mxGeometry x="330" y="450" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="grp-state" value="STATE&lt;br&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;the player's own, per character&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#e8f5e9;strokeColor=#66a06a;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#3f7043;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="420" width="460" height="1000" as="geometry" />
+        </mxCell>
+        <mxCell id="panel-character-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="grp-state">
+          <mxGeometry x="20" y="50" width="280" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="card-character-manager" value="{{service:character-manager:card}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-character-manager">
+          <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="apis-character-manager" value="{{service:character-manager:apis}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-character-manager">
+          <mxGeometry x="0" y="100" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="events-character-manager" value="{{service:character-manager:events}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-character-manager">
+          <mxGeometry x="0" y="160" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="contracts-character-manager" value="{{service:character-manager:contracts}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-character-manager">
+          <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="db-character-manager" value="character vault&lt;br&gt;MySQL" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-state">
+          <mxGeometry x="330" y="130" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="panel-storypath-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;dashed=1;verticalAlign=top;" vertex="1" parent="grp-state">
+          <mxGeometry x="20" y="370" width="280" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="card-storypath-manager" value="{{service:storypath-manager:card}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-storypath-manager">
+          <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="apis-storypath-manager" value="{{service:storypath-manager:apis}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-storypath-manager">
+          <mxGeometry x="0" y="100" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="events-storypath-manager" value="{{service:storypath-manager:events}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-storypath-manager">
+          <mxGeometry x="0" y="160" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="contracts-storypath-manager" value="{{service:storypath-manager:contracts}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-storypath-manager">
+          <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="db-storypath-manager" value="storypath vault&lt;br&gt;MySQL" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-state">
+          <mxGeometry x="330" y="450" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="panel-recap-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="grp-state">
+          <mxGeometry x="20" y="690" width="280" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="card-recap-manager" value="{{service:recap-manager:card}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-recap-manager">
+          <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="apis-recap-manager" value="{{service:recap-manager:apis}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-recap-manager">
+          <mxGeometry x="0" y="100" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="events-recap-manager" value="{{service:recap-manager:events}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-recap-manager">
+          <mxGeometry x="0" y="160" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="contracts-recap-manager" value="{{service:recap-manager:contracts}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-recap-manager">
+          <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="db-recap-manager" value="recap-vault&lt;br&gt;MySQL 9.5" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-state">
+          <mxGeometry x="330" y="770" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="grp-media" value="GENERATED MEDIA" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#f3edf7;strokeColor=#9673a6;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#6a4f7a;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="1460" width="460" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="panel-texttospeech-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;dashed=1;verticalAlign=top;" vertex="1" parent="grp-media">
+          <mxGeometry x="20" y="50" width="280" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="card-texttospeech-manager" value="{{service:texttospeech-manager:card}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-texttospeech-manager">
+          <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="apis-texttospeech-manager" value="{{service:texttospeech-manager:apis}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-texttospeech-manager">
+          <mxGeometry x="0" y="100" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="events-texttospeech-manager" value="{{service:texttospeech-manager:events}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-texttospeech-manager">
+          <mxGeometry x="0" y="160" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="contracts-texttospeech-manager" value="{{service:texttospeech-manager:contracts}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-texttospeech-manager">
+          <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="db-texttospeech-manager" value="audio store&lt;br&gt;MinIO" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-media">
+          <mxGeometry x="330" y="130" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="broker" value="&lt;b&gt;RabbitMQ&lt;/b&gt; — rabbitmq:4-management-alpine&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;one topic exchange per publishing service; consumers own their queues and bindings (ADR-004)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2e0;strokeColor=#d79b00;strokeWidth=2;verticalAlign=top;align=center;spacingTop=8;fontSize=13;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="800" y="860" width="640" height="520" as="geometry" />
+        </mxCell>
+        <mxCell id="ev-scene-content-updated" value="{{event:scene-content.updated:label}}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
+          <mxGeometry x="30" y="60" width="580" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ev-item-definition-updated" value="{{event:item-definition.updated:label}}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
+          <mxGeometry x="30" y="150" width="580" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ev-player-choice-made" value="{{event:player-choice.made:label}}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
+          <mxGeometry x="30" y="240" width="580" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ev-recap-generated" value="{{event:recap-generated:label}}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
+          <mxGeometry x="30" y="330" width="580" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ev-account-deletion-requested" value="{{event:account-deletion-requested:label}}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
+          <mxGeometry x="30" y="420" width="580" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="panel-choose-your-fate-backend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eceff1;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="800" y="1500" width="640" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="card-choose-your-fate-backend" value="{{service:choose-your-fate-backend:card}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-choose-your-fate-backend">
+          <mxGeometry x="0" y="0" width="640" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="note-legacy" value="The only part of the system that runs today. The seven services are being lifted out of it (ADR-008); the pale arrows say which bounded context each part becomes. No compose file starts it, and no decommissioning date has been set." style="text;html=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;fontSize=10;fontColor=#546e7a;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-choose-your-fate-backend">
+          <mxGeometry x="0" y="150" width="640" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="Legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b0bec5;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1660" width="460" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="lg-async" value="— — —  asynchronous event (publish / consume)" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=12;fontSize=11;fontColor=#d79b00;strokeColor=none;fillColor=none;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="40" width="440" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lg-grpc" value="————  internal gRPC call (never reaches the browser)" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=12;fontSize=11;fontColor=#6c5ce7;strokeColor=none;fillColor=none;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="72" width="440" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lg-rest" value="————  external REST / GraphQL (client-facing)" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=12;fontSize=11;fontColor=#82b366;strokeColor=none;fillColor=none;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="104" width="440" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lg-store" value="————  datastore ownership (not communication)" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=12;fontSize=11;fontColor=#90a4ae;strokeColor=none;fillColor=none;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="136" width="440" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lg-status" value="● implemented   ◐ skeleton   ○ planned (dashed border)&lt;br&gt;A dashed box is a service that does not exist yet. A branch name under the badge means the code is written but not merged." style="text;html=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=4;fontSize=11;fontColor=#546e7a;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="172" width="440" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="lg-frame" value="Dashed frame = bounded context. Database symbol = a datastore owned by exactly one service. An event box inside RabbitMQ names its exchange and how many queues bind to it." style="text;html=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=4;fontSize=11;fontColor=#546e7a;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="236" width="440" height="74" as="geometry" />
+        </mxCell>
+
+        <mxCell id="note-oauth" value="&lt;b&gt;Open — OAuth / OIDC&lt;/b&gt;&lt;br&gt;No third-party identity provider has been chosen. Required in addition to our own JWT, and it belongs in AccountManager." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="440" width="340" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="note-graphql" value="&lt;b&gt;Open — GraphQL owner&lt;/b&gt;&lt;br&gt;At least one service must expose GraphQL. SceneManager and CharacterManager are the candidates: both answer queries where a client wants many related fields in one round trip." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="620" width="340" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="note-adr013" value="&lt;b&gt;Open — ADR-013&lt;/b&gt;&lt;br&gt;Who assigns the per-character sequence number? If StoryPathManager assigns it on insert, ordering still depends on arrival order and nothing is gained — and until it is answered, StoryPathManager cannot be scaled horizontally (ADR-011)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="800" width="340" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="note-proto" value="&lt;b&gt;Open — ADR-012&lt;/b&gt;&lt;br&gt;story_path.proto describes StoryPathManager's API but lives in RecapManager's source tree, so the server's owner can have their interface changed without touching their own code." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="1000" width="340" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="note-ports" value="&lt;b&gt;Open — port allocation&lt;/b&gt;&lt;br&gt;8081 and 8090 are taken, and 8092 is implied by RecapManager's JWT_ISSUER default without anyone having written it down. Services with no agreed port show none here rather than an invented one." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="1180" width="340" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="note-keda" value="&lt;b&gt;Open — serverless&lt;/b&gt;&lt;br&gt;TextToSpeechManager is meant to run as a KEDA ScaledJob scaled on queue depth, which is why it is on Quarkus (ADR-009). Neither the job nor the cold-start measurement exists yet." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="1460" width="340" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e-c1-gw" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="c1" target="gw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-c2-gw" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="c2" target="gw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e-gw-account" value="REST · auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="gw" target="panel-account-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="780" y="300" /><mxPoint x="780" y="515" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-gw-storycontent" value="REST · /admin/*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="gw" target="panel-storycontent-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="740" y="320" /><mxPoint x="740" y="935" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-gw-scene" value="REST · scenes and choices" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="gw" target="panel-scene-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="700" y="340" /><mxPoint x="700" y="1255" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-gw-character" value="REST · character sheet" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="gw" target="panel-character-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1660" y="300" /><mxPoint x="1660" y="515" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-gw-storypath" value="REST · read only" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="gw" target="panel-storypath-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1620" y="320" /><mxPoint x="1620" y="835" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-gw-recap" value="REST · /choose-your-fate/ai" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="gw" target="panel-recap-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1580" y="340" /><mxPoint x="1580" y="1155" /></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e-recap-storypath" value="gRPC · GetChoicesAfter" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c5ce7;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#6c5ce7;" edge="1" parent="1" source="panel-recap-manager" target="panel-storypath-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="2060" y="1155" /><mxPoint x="2060" y="835" /></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e-storycontent-scene-content" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="panel-storycontent-manager" target="ev-scene-content-updated">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="660" y="935" /><mxPoint x="660" y="955" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-storycontent-item-def" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="panel-storycontent-manager" target="ev-item-definition-updated">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="620" y="1100" /><mxPoint x="620" y="1045" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-scene-content-scene" value="consumes · builds the read model" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-scene-content-updated" target="panel-scene-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="580" y="955" /><mxPoint x="580" y="1255" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-scene-player-choice" value="publishes · after validation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="panel-scene-manager" target="ev-player-choice-made">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="540" y="1340" /><mxPoint x="540" y="1135" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-account-deletion" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="panel-account-manager" target="ev-account-deletion-requested">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="500" y="515" /><mxPoint x="500" y="1315" /></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e-item-def-character" value="consumes · item rules" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-item-definition-updated" target="panel-character-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1540" y="1045" /><mxPoint x="1540" y="515" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-player-choice-storypath" value="consumes · appends the beat" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-player-choice-made" target="panel-storypath-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1500" y="1135" /><mxPoint x="1500" y="835" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-player-choice-character" value="consumes · applies the effects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-player-choice-made" target="panel-character-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1460" y="1135" /><mxPoint x="1460" y="560" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-recap-generated-pub" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="panel-recap-manager" target="ev-recap-generated">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1420" y="1200" /><mxPoint x="1420" y="1225" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-recap-generated-tts" value="consumes · makes the audio before anyone asks" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-recap-generated" target="panel-texttospeech-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1300" y="1225" /><mxPoint x="1300" y="1655" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-account-deletion-state" value="consumes · every service holding player state (the saga)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-account-deletion-requested" target="grp-state">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1340" y="1315" /><mxPoint x="1340" y="1380" /></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e-db-account" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-identity" source="panel-account-manager" target="db-account-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-db-storycontent" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-content" source="panel-storycontent-manager" target="db-storycontent-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-db-scene" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-content" source="panel-scene-manager" target="db-scene-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-db-indexer" value="writes the projection" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;fontSize=9;" edge="1" parent="grp-content" source="deploy-scene-indexer" target="db-scene-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-db-character" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-state" source="panel-character-manager" target="db-character-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-db-storypath" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-state" source="panel-storypath-manager" target="db-storypath-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-db-recap" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-state" source="panel-recap-manager" target="db-recap-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-db-tts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-media" source="panel-texttospeech-manager" target="db-texttospeech-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e-legacy-identity" value="becomes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#cfd8dc;strokeWidth=2;dashed=1;dashPattern=1 3;endArrow=block;endFill=1;fontSize=9;fontColor=#b0bec5;opacity=70;" edge="1" parent="1" source="panel-choose-your-fate-backend" target="grp-identity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-legacy-content" value="becomes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#cfd8dc;strokeWidth=2;dashed=1;dashPattern=1 3;endArrow=block;endFill=1;fontSize=9;fontColor=#b0bec5;opacity=70;" edge="1" parent="1" source="panel-choose-your-fate-backend" target="grp-content">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-legacy-state" value="becomes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#cfd8dc;strokeWidth=2;dashed=1;dashPattern=1 3;endArrow=block;endFill=1;fontSize=9;fontColor=#b0bec5;opacity=70;" edge="1" parent="1" source="panel-choose-your-fate-backend" target="grp-state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-legacy-media" value="becomes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#cfd8dc;strokeWidth=2;dashed=1;dashPattern=1 3;endArrow=block;endFill=1;fontSize=9;fontColor=#b0bec5;opacity=70;" edge="1" parent="1" source="panel-choose-your-fate-backend" target="grp-media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

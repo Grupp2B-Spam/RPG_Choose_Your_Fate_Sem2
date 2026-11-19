@@ -56,16 +56,24 @@ function treeContains(absDir, needle) {
   return false;
 }
 
-/** Every contract the manifest attributes to this service. */
+/**
+ * Every contract the manifest attributes to this service, once each.
+ *
+ * One AsyncAPI document describes every event a service publishes, so without the
+ * deduplication a publisher of two events is reported twice for the same file.
+ */
 function contractsOf(manifest, s) {
-  const out = [];
-  for (const e of s.exposes || []) if (e.contract) out.push(e.contract);
-  for (const c of s.calls || []) if (c.contract) out.push(c.contract);
+  const byPath = new Map();
+  const add = (c) => {
+    if (c && c.path && !byPath.has(c.path)) byPath.set(c.path, c);
+  };
+  for (const e of s.exposes || []) add(e.contract);
+  for (const c of s.calls || []) add(c.contract);
   for (const p of s.publishes || []) {
     const event = (manifest.events || []).find((e) => e.name === p.event);
-    if (event && event.contract) out.push(event.contract);
+    if (event) add(event.contract);
   }
-  return out;
+  return [...byPath.values()];
 }
 
 /**
