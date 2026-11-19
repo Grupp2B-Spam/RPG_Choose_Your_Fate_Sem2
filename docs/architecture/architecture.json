@@ -9,7 +9,9 @@
       "flow-choice",
       "flow-recap",
       "env-compose",
-      "env-k8s"
+      "env-k8s",
+      "contracts",
+      "alt-indexer"
     ]
   },
   "services": [

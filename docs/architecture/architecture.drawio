@@ -738,4 +738,111 @@
       </root>
     </mxGraphModel>
   </diagram>
+
+  <diagram name="Contracts and versions" id="contracts">
+    <mxGraphModel dx="1040" dy="1504" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="ct-title" value="Contracts and versions" style="text;html=1;fontSize=22;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="-70" width="1400" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="ct-sub" value="Generated in full from architecture.json. This is the tab the report's per-service section is written from, and the one to change when a service ships: edit the manifest, run the build, and every tab is correct again." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="-30" width="1400" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="ct-stamp-label" value="manifest last updated" style="text;html=1;fontSize=11;fontColor=#90a4ae;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="4" width="160" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="ct-stamp" value="2026-11-18" style="text;html=1;fontSize=11;fontColor=#90a4ae;align=left;verticalAlign=middle;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="230" y="4" width="200" height="22" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ct-table" value="&lt;table&gt;&lt;tr&gt;&lt;th&gt;Service&lt;/th&gt;&lt;th&gt;Version&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;th&gt;Stack&lt;/th&gt;&lt;th&gt;Exposes&lt;/th&gt;&lt;th&gt;Publishes&lt;/th&gt;&lt;th&gt;Consumes&lt;/th&gt;&lt;th&gt;Contracts&lt;/th&gt;&lt;th&gt;ADRs&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;AccountManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;planned&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;⚠ account-manager.openapi.yaml&lt;br&gt;⚠ account-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;StoryContentManager&lt;/td&gt;&lt;td&gt;0.0.1-SNAPSHOT&lt;/td&gt;&lt;td&gt;skeleton&lt;/td&gt;&lt;td&gt;Spring Boot 4.0.3 / Java 21&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;scene-content.updated&lt;br&gt;item-definition.updated&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;⚠ storycontent-manager.openapi.yaml&lt;br&gt;✓ storycontent-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;ADR-003, ADR-004, ADR-005, ADR-006, ADR-008&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;SceneManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;skeleton&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;player-choice.made&lt;/td&gt;&lt;td&gt;scene-content.updated&lt;/td&gt;&lt;td&gt;⚠ scene-manager.openapi.yaml&lt;br&gt;⚠ scene-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;ADR-005, ADR-010, ADR-011&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;CharacterManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;skeleton&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;item-definition.updated&lt;br&gt;player-choice.made&lt;br&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;⚠ character-manager.openapi.yaml&lt;/td&gt;&lt;td&gt;ADR-011&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;StoryPathManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;planned&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;gRPC&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;player-choice.made&lt;br&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;✓ story_path.proto&lt;/td&gt;&lt;td&gt;ADR-011, ADR-012, ADR-013, ADR-014&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;RecapManager&lt;/td&gt;&lt;td&gt;0.0.1-SNAPSHOT&lt;/td&gt;&lt;td&gt;implemented&lt;/td&gt;&lt;td&gt;Spring Boot 4.0.3 / Java 21&lt;/td&gt;&lt;td&gt;REST, gRPC→storypath-manager&lt;/td&gt;&lt;td&gt;recap-generated&lt;/td&gt;&lt;td&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;⚠ recap-manager.openapi.yaml&lt;br&gt;✓ story_path.proto&lt;br&gt;⚠ recap-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;ADR-012, ADR-013, ADR-014&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;TextToSpeechManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;planned&lt;/td&gt;&lt;td&gt;Quarkus, native binary&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;recap-generated&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;ADR-009, ADR-011&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;choose-your-fate-backend&lt;/td&gt;&lt;td&gt;0.0.1-SNAPSHOT&lt;/td&gt;&lt;td&gt;legacy&lt;/td&gt;&lt;td&gt;Spring Boot 4.0.3 / Java 21&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;ADR-008&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=10;fontSize=11;overflow=fill;" vertex="1" parent="1">
+          <mxGeometry x="60" y="50" width="1900" height="760" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ct-key" value="&lt;b&gt;Reading this table&lt;/b&gt;&lt;br&gt;✓ marks a contract file the group believes is written; ⚠ marks one that is still a gap. The verifier compares both against the filesystem and reports a mismatch, so a ✓ that is not really there shows up in CI rather than in the report.&lt;br&gt;&lt;br&gt;A dash means the service has nothing of that kind yet — not that it never will." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="840" width="620" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="ct-gaps" value="&lt;b&gt;The honest summary&lt;/b&gt;&lt;br&gt;One AsyncAPI document exists, out of four publishers. No OpenAPI document exists at all. The one .proto that exists sits in the caller's source tree rather than with the service that implements it.&lt;br&gt;&lt;br&gt;That is the state of the contracts, and the diagram says so rather than drawing a system that is further along than it is." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="720" y="840" width="620" height="160" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="Rejected alternative — separate indexer" id="alt-indexer">
+    <mxGraphModel dx="1040" dy="1504" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="alt-title" value="Rejected alternative — the projection as its own service" style="text;html=1;fontSize=22;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="-70" width="1400" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-sub" value="Kept so the choice can be compared rather than asserted. The question is not how many services there are; it is who owns the read model." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="-30" width="1400" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="alt-rejected" value="REJECTED — SceneIndexer as a service of its own" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#fdecea;strokeColor=#c0392b;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#962d22;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="620" height="520" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-r-indexer" value="&lt;b&gt;SceneIndexer&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;consumes scene-content.updated&lt;br&gt;writes only&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c0392b;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="alt-rejected">
+          <mxGeometry x="30" y="60" width="250" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-r-manager" value="&lt;b&gt;SceneManager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;serves scenes, validates choices&lt;br&gt;reads only&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c0392b;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="alt-rejected">
+          <mxGeometry x="320" y="60" width="250" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-r-store" value="&lt;b&gt;scene read model&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;MongoDB&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#90a4ae;align=center;verticalAlign=middle;fontSize=12;" vertex="1" parent="alt-rejected">
+          <mxGeometry x="175" y="250" width="250" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-r-warn" value="⚠ Two services share one datastore. Neither can change the document format without asking the other, so they are one unit of deployment in two repositories — exactly the coupling the decomposition exists to remove." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c0392b;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontColor=#962d22;" vertex="1" parent="alt-rejected">
+          <mxGeometry x="30" y="390" width="540" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="alt-chosen" value="CHOSEN — one service, two deployments (ADR-010)" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#e8f5e9;strokeColor=#66a06a;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#3f7043;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="740" y="60" width="620" height="520" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-c-service" value="SceneManager — one service, one schema, one release" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=11;fontStyle=1;" vertex="1" parent="alt-chosen">
+          <mxGeometry x="30" y="60" width="540" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-c-api" value="&lt;b&gt;query serving&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service&lt;br&gt;scales on request rate&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="alt-c-service">
+          <mxGeometry x="10" y="50" width="250" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-c-indexer" value="&lt;b&gt;scene-indexer&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment, no Service&lt;br&gt;same image, restarts without taking queries down&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="alt-c-service">
+          <mxGeometry x="280" y="50" width="250" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-c-store" value="&lt;b&gt;scene read model&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;MongoDB — owned by SceneManager&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#90a4ae;align=center;verticalAlign=middle;fontSize=12;" vertex="1" parent="alt-chosen">
+          <mxGeometry x="175" y="300" width="250" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-c-note" value="One owner. The projector can be scaled and restarted on its own, and the schema still has exactly one service answering for it." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontColor=#3f7043;" vertex="1" parent="alt-chosen">
+          <mxGeometry x="30" y="430" width="540" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="alt-e1" value="writes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#c0392b;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="alt-rejected" source="alt-r-indexer" target="alt-r-store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-e2" value="reads" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#c0392b;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="alt-rejected" source="alt-r-manager" target="alt-r-store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-e3" value="owns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#66a06a;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="alt-chosen" source="alt-c-service" target="alt-c-store">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="alt-n1" value="&lt;b&gt;The test that decides it&lt;/b&gt;&lt;br&gt;Can the indexer change the document format without asking SceneManager? If yes, they are two services and must not share a store. If no — and here the answer is no, because the shape of a read model is decided by the queries it answers — then they are one service that happens to run as two processes." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="620" width="320" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-n2" value="&lt;b&gt;Ownership follows the schema&lt;/b&gt;&lt;br&gt;A change always starts as &quot;the API needs this field&quot;. The projector is then updated to comply; it never requests a schema change of its own. Calling the indexer the owner while SceneManager only reads would put two services on one data model." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="420" y="620" width="320" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-n3" value="&lt;b&gt;When a separate indexer is right&lt;/b&gt;&lt;br&gt;When the index is shared infrastructure that several services query — a search cluster, say — rather than one service's own read model. Then it has its own consumers, its own reasons to change, and no single service answering for its schema.&lt;br&gt;&lt;br&gt;That is not this." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="780" y="620" width="320" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="alt-n4" value="&lt;b&gt;The principle&lt;/b&gt;&lt;br&gt;The goal is not the largest number of separations, but high cohesion and low coupling. Splitting a thing that changes together buys an extra deployment and pays for it with a shared database — which is the coupling the whole decomposition exists to remove.&lt;br&gt;&lt;br&gt;&lt;i&gt;Two deployments sharing a datastore is acceptable only because they are versioned and released together, and one person owns both.&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="620" width="320" height="280" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
