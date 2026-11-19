@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mxfile host="app.diagrams.net" pages="1">
+  <diagram name="Architecture" id="arch-main">
+    <mxGraphModel grid="1" page="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c1" value="Player client" style="rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="10" y="10" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-recap" value="{{service:scene-mangager:card}}" style="rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="10" width="180" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
