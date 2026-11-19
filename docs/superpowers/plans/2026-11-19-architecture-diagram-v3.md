@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - **Zero npm dependencies.** Only Node builtins. No `package.json` is added.
-- **Node 22**, already installed. Tests run with `node --test scripts/architecture/test/`.
+- **Node 22**, already installed. Tests run with `node --test "scripts/architecture/test/*.test.js"`.
 - **Never parse and re-serialise draw.io XML.** All transformation is text splicing on the raw string. Reading for inspection uses the read-only scanner in `lib/drawio.js`.
 - **The generated file is written with `\n` line endings**, and the template is normalised to `\n` on read.
 - **English only.** One template, one output file, no translation layer. (Changed after the plan was first written; Task 5 is gone and the numbering keeps its gap so cross-references still hold.)
@@ -130,7 +130,7 @@ test('rejects a legacy node that declares a context', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/manifest.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"manifest.test.js`
 Expected: FAIL, cannot find module `../lib/manifest.js`
 
 - [ ] **Step 3: Implement `validateManifest` and `loadManifest` in `scripts/architecture/lib/manifest.js`**
@@ -139,7 +139,7 @@ Validation rules, in this order: `meta.version`, `meta.updated` and `meta.broker
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `node --test scripts/architecture/test/manifest.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"manifest.test.js`
 Expected: PASS, 9 tests
 
 - [ ] **Step 5: Commit**
@@ -242,7 +242,7 @@ test('the monolith declares no bounded context and names what replaces it', () =
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/architecture-json.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"architecture-json.test.js`
 Expected: FAIL, `docs/architecture/architecture.json` does not exist
 
 - [ ] **Step 3: Write `docs/architecture/architecture.json`**
@@ -251,7 +251,7 @@ Use the tables above. Contract entries: `storycontent-manager.asyncapi.yaml` is 
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `node --test scripts/architecture/test/architecture-json.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"architecture-json.test.js`
 Expected: PASS, 7 tests
 
 - [ ] **Step 5: Commit**
@@ -345,7 +345,7 @@ test('an unknown token kind returns null', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/render.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"render.test.js`
 Expected: FAIL, cannot find module `../lib/render.js`
 
 - [ ] **Step 3: Implement `createResolver` in `scripts/architecture/lib/render.js`**
@@ -354,7 +354,7 @@ Split the token on `:` into kind, id and field. Return `null` for an unknown kin
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `node --test scripts/architecture/test/render.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"render.test.js`
 Expected: PASS, 13 tests
 
 - [ ] **Step 5: Commit**
@@ -418,7 +418,7 @@ test('replaces every occurrence of the same token', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/splice.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"splice.test.js`
 Expected: FAIL, cannot find module `../lib/splice.js`
 
 - [ ] **Step 3: Implement `escapeForAttribute` and `spliceTokens` in `scripts/architecture/lib/splice.js`**
@@ -427,7 +427,7 @@ Expected: FAIL, cannot find module `../lib/splice.js`
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `node --test scripts/architecture/test/splice.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"splice.test.js`
 Expected: PASS, 6 tests
 
 - [ ] **Step 5: Commit**
@@ -492,7 +492,7 @@ Fixtures are small template and manifest files under `scripts/architecture/test/
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/build.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"build.test.js`
 Expected: FAIL, cannot find module `../build.js`
 
 - [ ] **Step 3: Implement `build` and the CLI in `scripts/architecture/build.js`, and add `*.drawio text eol=lf` to `.gitattributes`**
@@ -501,7 +501,7 @@ Read the template, replace `\r\n` with `\n` immediately — that is Review Focus
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `node --test scripts/architecture/test/build.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"build.test.js`
 Expected: PASS, 6 tests
 
 - [ ] **Step 5: Commit**
@@ -570,7 +570,7 @@ test('check 11 warns about an event with no consumers', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/structure.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"structure.test.js`
 Expected: FAIL, cannot find module `../lib/drawio.js`
 
 - [ ] **Step 3: Implement `scan` and the structural checks**
@@ -579,7 +579,7 @@ Expected: FAIL, cannot find module `../lib/drawio.js`
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `node --test scripts/architecture/test/structure.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"structure.test.js`
 Expected: PASS, 8 tests
 
 - [ ] **Step 5: Commit**
@@ -634,7 +634,7 @@ test('check 7 is quiet when corridors differ', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/geometry.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"geometry.test.js`
 Expected: FAIL, cannot find module `../lib/checks/geometry.js`
 
 - [ ] **Step 3: Implement the geometry checks**
@@ -643,7 +643,7 @@ Overlap compares only cells sharing a `parent`, and treats shared boundaries as 
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `node --test scripts/architecture/test/geometry.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"geometry.test.js`
 Expected: PASS, 5 tests
 
 - [ ] **Step 5: Commit**
@@ -713,7 +713,7 @@ test('a missing compose file is a warning, not a crash', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/repo.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"repo.test.js`
 Expected: FAIL, cannot find module `../lib/checks/repo.js`
 
 - [ ] **Step 3: Implement the repository checks**
@@ -722,7 +722,7 @@ Check 9 greps the publishing service's source tree for the literal exchange stri
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `node --test scripts/architecture/test/repo.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"repo.test.js`
 Expected: PASS, 9 tests
 
 - [ ] **Step 5: Commit**
@@ -780,7 +780,7 @@ test('findings are sorted errors first', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/verify.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"verify.test.js`
 Expected: FAIL, cannot find module `../verify.js`
 
 - [ ] **Step 3: Implement `verify` and the CLI in `scripts/architecture/verify.js`**
@@ -789,7 +789,7 @@ Run `build` in memory, compare against the files on disk, then run the three che
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `node --test scripts/architecture/test/verify.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"verify.test.js`
 Expected: PASS, 6 tests
 
 - [ ] **Step 5: Commit**
@@ -868,7 +868,7 @@ test('tab 1 is titled in English', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/tab-architecture.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-architecture.test.js`
 Expected: FAIL, template does not exist
 
 - [ ] **Step 3: Author tab 1 in the template and build**
@@ -877,7 +877,7 @@ Lay the four context groups out on a 1169×827 landscape page, following v2's gr
 
 - [ ] **Step 4: Run the tests and the verifier**
 
-Run: `node --test scripts/architecture/test/tab-architecture.test.js && node scripts/architecture/verify.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-architecture.test.js && node scripts/architecture/verify.js`
 Expected: tests PASS; verify reports no errors
 
 - [ ] **Step 5: Commit**
@@ -936,14 +936,14 @@ test('both flow tabs exist with the expected ids', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/tab-flows.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-flows.test.js`
 Expected: FAIL, tabs do not exist
 
 - [ ] **Step 3: Author tabs 2 and 3 and build**
 
 - [ ] **Step 4: Run the tests and the verifier**
 
-Run: `node --test scripts/architecture/test/tab-flows.test.js && node scripts/architecture/verify.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-flows.test.js && node scripts/architecture/verify.js`
 Expected: tests PASS; verify reports no errors
 
 - [ ] **Step 5: Commit**
@@ -997,14 +997,14 @@ test('tab 4 is labelled as current state', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/tab-compose.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-compose.test.js`
 Expected: FAIL, tab does not exist
 
 - [ ] **Step 3: Author tab 4 and build**
 
 - [ ] **Step 4: Run the tests and the verifier**
 
-Run: `node --test scripts/architecture/test/tab-compose.test.js && node scripts/architecture/verify.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-compose.test.js && node scripts/architecture/verify.js`
 Expected: tests PASS; verify reports no errors
 
 - [ ] **Step 5: Commit**
@@ -1065,14 +1065,14 @@ test('every node on tab 5 is drawn as planned', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/tab-k8s.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-k8s.test.js`
 Expected: FAIL, tab does not exist
 
 - [ ] **Step 3: Author tab 5 and build**
 
 - [ ] **Step 4: Run the tests and the verifier**
 
-Run: `node --test scripts/architecture/test/tab-k8s.test.js && node scripts/architecture/verify.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-k8s.test.js && node scripts/architecture/verify.js`
 Expected: tests PASS; verify reports no errors
 
 - [ ] **Step 5: Commit**
@@ -1127,14 +1127,14 @@ test('all seven tabs are present', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `node --test scripts/architecture/test/tab-contracts.test.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-contracts.test.js`
 Expected: FAIL, tabs do not exist
 
 - [ ] **Step 3: Author tabs 6 and 7 and build**
 
 - [ ] **Step 4: Run the tests and the verifier**
 
-Run: `node --test scripts/architecture/test/tab-contracts.test.js && node scripts/architecture/verify.js`
+Run: `node --test "scripts/architecture/test/*.test.js"tab-contracts.test.js && node scripts/architecture/verify.js`
 Expected: tests PASS; verify reports no errors
 
 - [ ] **Step 5: Commit**
@@ -1170,7 +1170,7 @@ The CI job is new, not a step in an existing one: every job in `backend.yml` set
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test scripts/architecture/test/
+      - run: node --test "scripts/architecture/test/*.test.js"
       - run: node scripts/architecture/verify.js
 ```
 
@@ -1181,7 +1181,7 @@ Expected: exit 0, and the new job declares no `needs` and no `defaults`
 
 - [ ] **Step 3: Run the whole suite and the verifier from a clean tree**
 
-Run: `node --test scripts/architecture/test/ && node scripts/architecture/build.js && node scripts/architecture/verify.js && git diff --exit-code docs/architecture/`
+Run: `node --test "scripts/architecture/test/*.test.js" && node scripts/architecture/build.js && node scripts/architecture/verify.js && git diff --exit-code docs/architecture/`
 Expected: all PASS, and `git diff --exit-code` is silent — a rebuild changes nothing
 
 - [ ] **Step 4: Commit**
