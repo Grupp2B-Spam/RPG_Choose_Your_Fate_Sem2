@@ -46,3 +46,23 @@ jobs:
           cache: maven
       - name: Run Unit and Integration Tests
         run: mvn clean verify
+
+  # The architecture diagram is generated from docs/architecture/architecture.json and a
+  # hand-authored template. This job fails when the committed .drawio no longer matches a
+  # fresh render — that is, when someone edited the generated file by hand — and prints
+  # the manifest's disagreements with the repository as warnings.
+  #
+  # Its own job rather than a step in the ones above: those set a Maven working directory
+  # and install Java, none of which this needs, and the check should run whether or not
+  # the backend build passes.
+  architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test the diagram tooling
+        run: node --test "scripts/architecture/test/*.test.js"
+      - name: Verify the architecture diagram
+        run: node scripts/architecture/verify.js
