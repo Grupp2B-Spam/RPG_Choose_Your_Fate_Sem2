@@ -54,6 +54,47 @@ Note the last two: one event, two queues, two independent consumers. In RabbitMQ
 is point-to-point, so publish-subscribe is achieved by binding several queues to the same
 exchange and routing key — not by sharing one queue.
 
+## How a consumer queue must be declared
+
+Three properties are not a matter of taste. A queue that gets them wrong looks correct
+in development, where there is one consumer and a small backlog, and fails only under
+the conditions the cluster creates.
+
+| Property | Required value | What goes wrong otherwise |
+|---|---|---|
+| `durable` | `true` | The queue disappears on a broker restart, taking the backlog with it |
+| `auto-delete` | `false` | The queue is deleted when the last consumer disconnects — which is exactly what an autoscaler does on scale-down, so the next published events are discarded until a consumer returns |
+| `exclusive` | `false` | Only the declaring connection may consume, so a second instance cannot be started at all |
+
+**One queue per consuming service, not one per instance.** Scaling a consumer means
+running more instances against the *same* queue. They become competing consumers and
+each message is delivered to exactly one of them, which is what distributes the work. If
+every instance declared its own queue, each would be bound to the same routing key and
+every instance would process every message.
+
+**Set `prefetch` low.** Spring Boot's default is 250 unacknowledged messages per
+consumer. With that default the first instance pulls the entire backlog into memory, and
+further instances started by an autoscaler sit idle against a queue that looks empty —
+the scaling has no effect, and the cause is invisible from outside:
+
+```yaml
+spring:
+  rabbitmq:
+    listener:
+      simple:
+        prefetch: 10
+        concurrency: 3            # threads within one instance; cheaper than more pods
+        default-requeue-rejected: false   # send failures to the DLX, not back to the queue
+```
+
+`default-requeue-rejected: false` is what makes the dead-letter configuration below
+actually take effect. Left at its default, a message that cannot be processed is
+requeued and redelivered forever.
+
+**Scaling a consumer requires a commutative handler.** Competing consumers lose ordering:
+two messages for the same entity can be handled concurrently. Which consumers may
+therefore be scaled is decided per consumer — see `beslutningslog.md`, ADR-011.
+
 ## Dead-lettering
 
 Every consumer queue declares a dead-letter exchange:
