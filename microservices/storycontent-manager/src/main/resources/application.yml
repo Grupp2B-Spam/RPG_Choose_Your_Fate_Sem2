@@ -11,8 +11,17 @@ spring:
     # the connection able to receive them.
     publisher-returns: true
 
+  # Convention 3. Kubernetes sends SIGTERM on every deploy, scale-down and node drain.
+  # Without this the process dies mid-request, or mid-message once this service also
+  # consumes, and at-least-once delivery turns that into a duplicate. The pod's
+  # terminationGracePeriodSeconds must be larger than this value, or Kubernetes kills it
+  # before the timeout can expire.
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
 server:
   port: ${SERVER_PORT:8081}
+  shutdown: graceful
 
 management:
   endpoints:
@@ -22,6 +31,16 @@ management:
   endpoint:
     health:
       show-details: always
+      # Convention 2. Liveness and readiness answer different questions, so they get
+      # separate endpoints: /actuator/health/liveness and /actuator/health/readiness.
+      probes:
+        enabled: true
+      group:
+        # Readiness includes broker connectivity: a service that cannot reach RabbitMQ
+        # must not receive traffic. Liveness deliberately does not — losing the broker is
+        # not a reason to restart the process, and restarting would not fix it.
+        readiness:
+          include: readinessState,rabbit
 
 logging:
   level:
