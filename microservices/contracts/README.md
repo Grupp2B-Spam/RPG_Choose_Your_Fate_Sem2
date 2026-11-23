@@ -38,7 +38,7 @@ account.events        (topic, durable)
 ```
 
 Routing keys name the event in lowercase kebab-case: `scene-content.updated`,
-`item-definition.updated`, `player-choice.made`.
+`item-definition.updated`, `race-definition.updated`, `player-choice.made`.
 
 Consumer queues are named `<consumer-service>.<purpose>` so that it is obvious from the
 broker UI who owns what:
@@ -46,6 +46,7 @@ broker UI who owns what:
 ```
 scenemanager.scene-content        binds storycontent.events / scene-content.updated
 charactermanager.item-rules       binds storycontent.events / item-definition.updated
+charactermanager.race-cache       binds storycontent.events / race-definition.updated
 storypathmanager.player-choice    binds scenemanager.events / player-choice.made
 charactermanager.player-choice    binds scenemanager.events / player-choice.made
 ```

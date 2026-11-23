@@ -2,7 +2,7 @@ asyncapi: 3.0.0
 
 info:
   title: StoryContentManager
-  version: 1.0.0
+  version: 1.1.0
   description: |
     Owns the authored content of Choose Your Fate and is the source of truth for
     everything the writing team produces: chapters, scenes, choices, NPCs, race
@@ -13,6 +13,37 @@ info:
 
     Conventions (exchange naming, envelope, dead-lettering, schema evolution) are
     described in ./README.md and are not repeated here.
+
+    ## Changes
+
+    ### 1.1.0 — additive, no consumer change required
+
+    Every change below adds; nothing is removed, renamed or given a new meaning, so
+    `schemaVersion` stays at 1 and a consumer written against 1.0.0 keeps working
+    unchanged. Consumers that want the new fields opt in by reading them.
+
+    - **New channel `race-definition.updated`.** Races were resolved to this service
+      rather than to CharacterManager, because `race_details.starting_chapter_id` is a
+      mandatory foreign key into story content. CharacterManager needs *race → starting
+      chapter* at character creation and is expected to cache these events rather than
+      ask for a race per creation.
+    - **`Choice.effects`** — the authored effect of taking a choice, as a typed list.
+      SceneManager is specified to put "the effects" into `player-choice.made`, which it
+      can only do if it receives them. Previously only item grants were published.
+    - **`Choice.requirements`** — the authored precondition for a choice being offered,
+      as a typed list. Carried in the event so that the state side can evaluate it
+      without calling back into this service.
+    - **`Choice.grantedItemIds` is now derived** and kept only for consumers already
+      written against it. It is exactly the `itemId` values of the `GRANT_ITEM` entries
+      in `effects`. New consumers should read `effects`.
+    - **`ItemDefinitionPayload.requirements` and `.modifiers` now say which keys they
+      use** (`intelligence`, `charisma`, `fashion`). This documents what the publisher has
+      always sent rather than narrowing anything, and it was worth stating because the
+      1.0.0 example showed `attack`, which is not a statistic a character has — the same
+      class of error as the monolith's untyped `lose_hp`. The examples are corrected.
+    - **`Envelope.payload` is now declared** among the envelope's properties. It was listed
+      as required in 1.0.0 but never defined, so anyone generating a type from that schema
+      alone got an envelope with no body. Nothing on the wire changes.
   contact:
     name: StoryContentManager owner
   license:
@@ -73,6 +104,39 @@ channels:
           durable: true
           autoDelete: false
 
+  raceDefinitionUpdated:
+    address: race-definition.updated
+    description: |
+      Published when a race definition is created, changed or retired.
+
+      A race decides where a new character begins, so CharacterManager needs this at
+      every character creation. It is published as an event, and expected to be cached
+      by the consumer, rather than exposed as a synchronous call: race definitions change
+      perhaps twice in the lifetime of the project, and making character creation depend
+      on this service being reachable would trade a user-facing write against the
+      availability of an admin-only authoring service.
+
+      The payload carries `startingSceneId` as well as `startingChapterId`. The scene is a
+      property of the chapter, not of the race, but including it is what allows the
+      consumer to place a new character without a second lookup — which is the dependency
+      the cache exists to remove.
+
+      Note the consequence for publishers: because `startingSceneId` is denormalised into
+      this payload, changing a chapter's starting scene changes the correct answer for
+      every race that starts in it. This service republishes those races, with a new
+      `raceVersion`, when that happens.
+    messages:
+      raceDefinitionUpdated:
+        $ref: '#/components/messages/RaceDefinitionUpdated'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: storycontent.events
+          type: topic
+          durable: true
+          autoDelete: false
+
 operations:
   publishSceneContentUpdated:
     action: send
@@ -89,6 +153,14 @@ operations:
     summary: Publish the current state of an item definition
     messages:
       - $ref: '#/channels/itemDefinitionUpdated/messages/itemDefinitionUpdated'
+
+  publishRaceDefinitionUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/raceDefinitionUpdated'
+    summary: Publish the current state of a race definition
+    messages:
+      - $ref: '#/channels/raceDefinitionUpdated/messages/raceDefinitionUpdated'
 
 components:
 
@@ -120,12 +192,27 @@ components:
                   destinationSceneId: 58
                   weight: 2
                   grantedItemIds: [31]
+                  requirements: []
+                  effects:
+                    - kind: GRANT_ITEM
+                      itemId: 31
+                    - kind: GRANT_FLAG
+                      flag: trusted-the-innkeeper
                 - choiceId: 119
                   label: Keep your hand on your sword
                   beat: You kept your hand on your sword.
                   destinationSceneId: 59
                   weight: 1
                   grantedItemIds: []
+                  requirements:
+                    - kind: ITEM
+                      itemId: 31
+                  effects:
+                    - kind: MODIFY_STAT
+                      stat: charisma
+                      amount: -1
+                    - kind: GRANT_QUEST
+                      questId: 5
               npcIds: [12]
               questIds: [5]
 
@@ -149,11 +236,9 @@ components:
               type: EQUIPMENT
               slot: MAINHAND
               requirements:
-                intelligence: 0
-                charisma: 0
-                fashion: 0
+                fashion: 2
               modifiers:
-                attack: 2
+                charisma: 2
         - name: itemRetired
           payload:
             eventId: c0a4e2b7-3d19-4b88-91aa-7e5f0d3c1b62
@@ -168,7 +253,41 @@ components:
               slot: MAINHAND
               requirements: {}
               modifiers:
-                attack: 2
+                charisma: 2
+
+    RaceDefinitionUpdated:
+      name: RaceDefinitionUpdated
+      title: Race definition updated
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/RaceDefinitionUpdatedEnvelope'
+      examples:
+        - name: raceCreated
+          payload:
+            eventId: 8d3f1b60-2c74-4f52-9a0d-5e81c6b40f93
+            eventType: race-definition.updated
+            occurredAt: '2026-11-22T09:14:27.512Z'
+            schemaVersion: 1
+            payload:
+              raceId: 3
+              raceVersion: 1
+              status: ACTIVE
+              name: smalls
+              startingChapterId: 4
+              startingSceneId: 4
+        - name: republishedBecauseTheChapterMovedItsStartingScene
+          payload:
+            eventId: 2a77c419-9e0b-4d36-8c15-61fd0a2e7b84
+            eventType: race-definition.updated
+            occurredAt: '2026-11-22T09:31:05.908Z'
+            schemaVersion: 1
+            payload:
+              raceId: 3
+              raceVersion: 2
+              status: ACTIVE
+              name: smalls
+              startingChapterId: 4
+              startingSceneId: 104
 
   schemas:
 
@@ -192,6 +311,13 @@ components:
           type: integer
           minimum: 1
           description: Incremented only on a breaking change to payload.
+        payload:
+          type: object
+          description: |
+            The event body. Listed in `required` since 1.0.0 but, until 1.1.0, not among
+            the properties — so a reader generating code from this schema alone produced an
+            envelope with four fields and no body. Each concrete envelope below narrows
+            this to the payload of its event type.
 
     SceneContentUpdatedEnvelope:
       allOf:
@@ -212,6 +338,16 @@ components:
               const: item-definition.updated
             payload:
               $ref: '#/components/schemas/ItemDefinitionPayload'
+
+    RaceDefinitionUpdatedEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            eventType:
+              const: race-definition.updated
+            payload:
+              $ref: '#/components/schemas/RaceDefinitionPayload'
 
     ScenePayload:
       type: object
@@ -281,8 +417,128 @@ components:
           description: Authoring weight, used when summarising a path.
         grantedItemIds:
           type: array
+          description: |
+            Derived, and kept only for consumers written against 1.0.0. Exactly the
+            `itemId` values of the `GRANT_ITEM` entries in `effects`. New consumers should
+            read `effects` instead; this field will be removed once nobody reads it, which
+            is a breaking change and will be announced before it happens.
           items:
             type: integer
+        requirements:
+          type: array
+          description: |
+            What must already be true for this choice to be offered. Authored here because
+            an author writes the condition; evaluated by the state side, which is the only
+            side that knows what a character holds.
+
+            The condition travels in the event rather than being looked up, for the same
+            reason the scene does: a consumer that had to call back to evaluate a
+            requirement would reintroduce the synchronous dependency this split removes.
+            An empty or absent list means the choice is always offered.
+          items:
+            $ref: '#/components/schemas/ChoiceRequirement'
+        effects:
+          type: array
+          description: |
+            What taking this choice does, as a typed list in application order.
+
+            Typed rather than a free-form code plus an integer, because across a service
+            boundary an untyped identifier cannot be interpreted: the consumer cannot tell
+            a quest id from an item id from an amount. The publisher validates these at
+            write time, which is what makes the contract's rule — that a consumer reacts
+            to an event and never rejects it as invalid — honest.
+
+            Moving to the destination scene is **not** an effect; that is
+            `destinationSceneId`, which every choice already carries.
+          items:
+            $ref: '#/components/schemas/ChoiceEffect'
+
+    ChoiceRequirement:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [STORY_FLAG, ITEM]
+        flag:
+          type: string
+          description: |
+            Present only for STORY_FLAG. The flag's name is authored here; whether a
+            character holds it is state. The two sides share this vocabulary and neither
+            owns a table for it, so the name is carried verbatim in the event.
+        itemId:
+          type: integer
+          description: Present only for ITEM. The character must hold this item.
+
+    ChoiceEffect:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [GRANT_ITEM, GRANT_QUEST, COMPLETE_QUEST, MODIFY_STAT, GRANT_FLAG]
+        itemId:
+          type: integer
+          description: Present only for GRANT_ITEM.
+        questId:
+          type: integer
+          description: Present only for GRANT_QUEST and COMPLETE_QUEST.
+        stat:
+          type: string
+          enum: [intelligence, charisma, fashion]
+          description: |
+            Present only for MODIFY_STAT. Enumerated deliberately: the statistics a
+            character actually has are a fixed, small set, and an authored effect that
+            names one outside it is a content error that should not reach a consumer.
+
+            Lower case, unlike every other enumeration in this document. That is not an
+            oversight: statistic names were already published in lower case as the keys of
+            `ItemDefinitionPayload.requirements` and `.modifiers` in 1.0.0, and the same
+            vocabulary should not be spelled two ways. Normalising the older field to upper
+            case would have been a breaking change to a document other services are already
+            coding against, in exchange for consistency alone.
+        amount:
+          type: integer
+          description: |
+            Present only for MODIFY_STAT. A delta, which may be negative. Deltas commute,
+            which is what allows the consumer of `player-choice.made` to be scaled
+            horizontally.
+        flag:
+          type: string
+          description: Present only for GRANT_FLAG. The story flag this choice sets.
+
+    RaceDefinitionPayload:
+      type: object
+      required: [raceId, raceVersion, status, name, startingChapterId]
+      properties:
+        raceId:
+          type: integer
+        raceVersion:
+          type: integer
+          minimum: 1
+          description: |
+            Same purpose as sceneVersion and itemVersion — lets a consumer discard a stale
+            or redelivered message. Note that this version is bumped both when the race
+            itself changes and when the starting scene of its chapter changes, because the
+            second changes the payload without changing the race.
+        status:
+          type: string
+          enum: [ACTIVE, RETIRED]
+          description: |
+            RETIRED withdraws the race from character creation. Not a deletion: existing
+            characters have this race and must keep resolving.
+        name:
+          type: string
+        startingChapterId:
+          type: integer
+          description: Where a character of this race begins.
+        startingSceneId:
+          type: integer
+          description: |
+            The starting scene of `startingChapterId`, denormalised so that the consumer
+            can place a new character without a second lookup. Absent only if the chapter
+            has no starting scene yet, which is an unfinished-content state rather than a
+            normal one.
 
     ItemDefinitionPayload:
       type: object
@@ -310,11 +566,24 @@ components:
           description: Only present for EQUIPMENT.
         requirements:
           type: object
-          description: Minimum character statistics required to equip the item.
+          description: |
+            Minimum character statistics required to equip the item. Absent statistics
+            mean no requirement, so an empty object and an absent one say the same thing.
+
+            The keys are statistic names in lower case. They are the same vocabulary as
+            `ChoiceEffect.stat` and are limited to the statistics a character actually has
+            — see `propertyNames` below. Documented in 1.1.0; the publisher has never sent
+            anything else, so this records what was already true rather than narrowing it.
+          propertyNames:
+            enum: [intelligence, charisma, fashion]
           additionalProperties:
             type: integer
         modifiers:
           type: object
-          description: Effect on character statistics while equipped.
+          description: |
+            Effect on character statistics while equipped. Same key vocabulary as
+            `requirements`.
+          propertyNames:
+            enum: [intelligence, charisma, fashion]
           additionalProperties:
             type: integer
