@@ -1,6 +1,53 @@
 spring:
   application:
     name: storycontent-manager
+
+  # Convention 1: every host and credential from the environment, with a local default.
+  # The default points at the host port story-content-vault publishes in compose.yaml
+  # (3309 — 3307 and 3308 are the monolith's), so running the service from the IDE against
+  # the compose database works with no configuration at all.
+  datasource:
+    url: ${MYSQL_URI:jdbc:mysql://localhost:3309/story_content}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
+
+  jpa:
+    hibernate:
+      # Deliberately `validate`, never `update`. This service owns its schema as SQL in
+      # db-init/, which is the artifact the database is actually created from; letting
+      # Hibernate alter the schema would mean the running shape and the committed shape
+      # could differ, and the committed one is what anyone else reads. `validate` turns
+      # the two into a pair that is checked on every start: a column added to an entity
+      # and forgotten in the SQL fails the boot instead of appearing silently in dev and
+      # missing in the cluster.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        # A scene is published on every edit, and building its payload walks the choices,
+        # then each choice's requirements and effects. Without batching that is one query
+        # per choice per collection — the N+1 problem, paid on the write path, with the
+        # broker waiting. Batching turns it into a handful of queries regardless of how
+        # many choices a scene has.
+        default_batch_fetch_size: 32
+
+  jackson:
+    # The event payloads set only the fields belonging to an effect's or a requirement's
+    # kind; the rest are null and must not appear on the wire. The contract describes an
+    # absent field, and "absent" and "present but null" are not the same statement to a
+    # consumer — the second invites the question of whether the publisher meant "none" or
+    # "unknown".
+    default-property-inclusion: non_null
+
+    # occurredAt is an ISO-8601 instant in the contract, not an epoch number. That is
+    # Spring Boot's default and is deliberately NOT pinned here: Jackson 3 moved
+    # WRITE_DATES_AS_TIMESTAMPS out of SerializationFeature, so the property that used to
+    # express it no longer binds and fails the context at startup. ContractShapeTest
+    # asserts the serialised form instead, which is the better guard anyway — it checks
+    # what goes on the wire rather than a setting that is supposed to produce it.
+
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -36,11 +83,13 @@ management:
       probes:
         enabled: true
       group:
-        # Readiness includes broker connectivity: a service that cannot reach RabbitMQ
-        # must not receive traffic. Liveness deliberately does not — losing the broker is
-        # not a reason to restart the process, and restarting would not fix it.
+        # Readiness includes broker and database connectivity: a service that cannot reach
+        # RabbitMQ or its own database must not receive traffic, because every write here
+        # both persists and publishes. Liveness deliberately includes neither — losing a
+        # dependency is not a reason to restart the process, and restarting would not fix
+        # it.
         readiness:
-          include: readinessState,rabbit
+          include: readinessState,rabbit,db
 
 logging:
   level:

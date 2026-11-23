@@ -27,6 +27,19 @@ public class RabbitConfig {
     public static final String ROUTING_SCENE_CONTENT_UPDATED = "scene-content.updated";
     public static final String ROUTING_ITEM_DEFINITION_UPDATED = "item-definition.updated";
 
+    /**
+     * Added in version 1.1.0 of the contract. Races were resolved to this service rather
+     * than to CharacterManager, which still needs a race's starting chapter at character
+     * creation — so it gets one as an event to cache rather than a call to make. See
+     * ADR-017.
+     *
+     * <p>Nothing else changes here: a topic exchange routes a new key without being
+     * redeclared, and the consumer declares the queue and the binding (ADR-004). Adding a
+     * third event is therefore a change to this service and to the contract, and to
+     * nothing else.
+     */
+    public static final String ROUTING_RACE_DEFINITION_UPDATED = "race-definition.updated";
+
     @Bean
     public TopicExchange storyContentEventsExchange() {
         return ExchangeBuilder.topicExchange(EXCHANGE)
