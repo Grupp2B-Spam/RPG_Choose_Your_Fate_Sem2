@@ -1,0 +1,15 @@
+services:
+  account-manager:
+    build: .
+    ports:
+      - "127.0.0.1:8092:8092"
+    environment:
+      JWT_ISSUER: "${JWT_ISSUER:-http://localhost:8092}"
+      JWT_AUDIENCE: "${JWT_AUDIENCE:-choose-your-fate}"
+    volumes:
+      - type: bind
+        source: "${JWT_PUBLIC_KEY_FILE:-./.local/account-jwt-public.pem}"
+        target: /app/config/account-jwt-public.pem
+        read_only: true
+        bind:
+          create_host_path: false

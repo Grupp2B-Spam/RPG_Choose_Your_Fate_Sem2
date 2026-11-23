@@ -31,16 +31,16 @@ mvn spring-boot:run
 
 The tests generate their own key and exercise the contract over HTTP. The service loads the configured public key at startup and exits if it cannot read or validate it.
 
-## Run in Docker
+## Run with Docker Compose
 
-Build the JAR first, then build and run the image from this directory. The container runs as a non-root user and needs read access to the mounted public key. The example publishes the port on the host's loopback interface.
+With Docker Desktop running, build the JAR and start Compose from this directory. Compose publishes port `8092` on the host's loopback interface and mounts the public key read-only. Place the key at `.local/account-jwt-public.pem` or set `JWT_PUBLIC_KEY_FILE` to another host path. The file must be readable by the container's non-root user.
 
 ```powershell
 mvn package
-docker build -t account-manager .
-$publicKey = (Resolve-Path -LiteralPath .local/account-jwt-public.pem).Path
-docker run --rm -p 127.0.0.1:8092:8092 --mount "type=bind,source=$publicKey,target=/app/config/account-jwt-public.pem,readonly" account-manager
+docker compose up --build
 ```
+
+The root `docker-compose.yml` also includes AccountManager. After building its JAR and provisioning the key, run `docker compose up --build` from the repository root to start it with the default stack. Use `--profile prod` to also enable the profiled applications after preparing their build artifacts and settings. If AccountManager and RecapManager use the same public-key file, set `JWT_PUBLIC_KEY_FILE` to its absolute host path so both mounts resolve to the same file.
 
 ## SOAP v1
 
