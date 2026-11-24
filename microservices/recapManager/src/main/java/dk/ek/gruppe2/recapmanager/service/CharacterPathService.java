@@ -8,6 +8,7 @@ import dk.ek.gruppe2.recapmanager.exception.RecapConflictException;
 import dk.ek.gruppe2.recapmanager.model.CharacterPath;
 import dk.ek.gruppe2.recapmanager.model.SummarySnapshot;
 import dk.ek.gruppe2.recapmanager.repository.CharacterPathRepository;
+import dk.ek.gruppe2.recapmanager.messaging.RecapEventOutbox;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -17,8 +18,12 @@ import java.util.List;
 @Service
 public class CharacterPathService {
     private final CharacterPathRepository repository;
+    private final RecapEventOutbox events;
 
-    public CharacterPathService(CharacterPathRepository repository) { this.repository = repository; }
+    public CharacterPathService(CharacterPathRepository repository, RecapEventOutbox events) {
+        this.repository = repository;
+        this.events = events;
+    }
 
     @Transactional(readOnly = true)
     public List<CharacterPathResponseDTO> getAllCharacterPaths() {
@@ -68,7 +73,9 @@ public class CharacterPathService {
         // Audio for the old text must not be served as if it matches the new narrative.
         path.setAudioBlob(null);
         path.setAudioBlobUpdatedAt(null);
-        return snapshot(repository.saveAndFlush(path));
+        var saved = snapshot(repository.saveAndFlush(path));
+        events.enqueue(saved);
+        return saved;
     }
 
     private SummarySnapshot snapshot(CharacterPath path) {

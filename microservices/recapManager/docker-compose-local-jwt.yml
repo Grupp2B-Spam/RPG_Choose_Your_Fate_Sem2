@@ -1,0 +1,17 @@
+# Optional override, used from this directory with:
+# docker compose -f docker-compose-recap-manager.yml -f docker-compose-local-jwt.yml --profile prod up -d
+services:
+  recap-manager:
+    environment:
+      JWT_MODE: pem
+      SPRING_PROFILES_ACTIVE: local
+      JWT_PUBLIC_KEY_LOCATION: file:/app/config/recap-jwt-public.pem
+      KEYCLOAK_ISSUER_URI: ${JWT_ISSUER:-http://localhost:8092}
+      KEYCLOAK_AUDIENCE: ${JWT_AUDIENCE:-choose-your-fate}
+    volumes:
+      - type: bind
+        source: ${JWT_PUBLIC_KEY_FILE:-./.local/recap-jwt-public.pem}
+        target: /app/config/recap-jwt-public.pem
+        read_only: true
+        bind:
+          create_host_path: false
