@@ -1,0 +1,320 @@
+asyncapi: 3.0.0
+
+info:
+  title: StoryContentManager
+  version: 1.0.0
+  description: |
+    Owns the authored content of Choose Your Fate and is the source of truth for
+    everything the writing team produces: chapters, scenes, choices, NPCs, race
+    details, item definitions and quest definitions.
+
+    This document describes what the service **publishes**. StoryContentManager
+    consumes nothing — it is the head of the content pipeline.
+
+    Conventions (exchange naming, envelope, dead-lettering, schema evolution) are
+    described in ./README.md and are not repeated here.
+  contact:
+    name: StoryContentManager owner
+  license:
+    name: Course project
+
+defaultContentType: application/json
+
+servers:
+  local:
+    host: localhost:5672
+    protocol: amqp
+    description: RabbitMQ from docker-compose, development environment
+  cluster:
+    host: rabbitmq.default.svc.cluster.local:5672
+    protocol: amqp
+    description: RabbitMQ inside the local Kubernetes cluster
+
+channels:
+  sceneContentUpdated:
+    address: scene-content.updated
+    description: |
+      Published whenever anything inside a scene's aggregate changes: the scene
+      itself, one of its choices, an NPC placed in it, or a quest attached to it.
+
+      The message carries the **complete scene as the read side needs it**, not a
+      notification to go and fetch it. This keeps SceneManager's projector free of any
+      call back into StoryContentManager, which would otherwise reintroduce a
+      synchronous dependency and a race between the event and the read.
+    messages:
+      sceneContentUpdated:
+        $ref: '#/components/messages/SceneContentUpdated'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: storycontent.events
+          type: topic
+          durable: true
+          autoDelete: false
+
+  itemDefinitionUpdated:
+    address: item-definition.updated
+    description: |
+      Published when an item definition is created, changed or retired.
+
+      Carries only the fields a consumer needs to enforce rules — slot, requirements
+      and modifiers — not the presentation fields. Clients fetch names and descriptions
+      from the content read side, which is static and cacheable.
+    messages:
+      itemDefinitionUpdated:
+        $ref: '#/components/messages/ItemDefinitionUpdated'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: storycontent.events
+          type: topic
+          durable: true
+          autoDelete: false
+
+operations:
+  publishSceneContentUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/sceneContentUpdated'
+    summary: Publish the current state of a scene aggregate
+    messages:
+      - $ref: '#/channels/sceneContentUpdated/messages/sceneContentUpdated'
+
+  publishItemDefinitionUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/itemDefinitionUpdated'
+    summary: Publish the current state of an item definition
+    messages:
+      - $ref: '#/channels/itemDefinitionUpdated/messages/itemDefinitionUpdated'
+
+components:
+
+  messages:
+    SceneContentUpdated:
+      name: SceneContentUpdated
+      title: Scene content updated
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SceneContentUpdatedEnvelope'
+      examples:
+        - name: sceneWithChoiceAndQuest
+          payload:
+            eventId: 0f9c2d1e-7a41-4f0c-9d8e-3b2a1c5e6f70
+            eventType: scene-content.updated
+            occurredAt: '2026-11-17T13:42:01.284Z'
+            schemaVersion: 1
+            payload:
+              sceneId: 42
+              sceneVersion: 7
+              status: PUBLISHED
+              chapterId: 3
+              name: The innkeeper
+              description: A low fire burns in the hearth. The innkeeper watches you.
+              choices:
+                - choiceId: 118
+                  label: Trust him
+                  beat: You chose to trust the innkeeper.
+                  destinationSceneId: 58
+                  weight: 2
+                  grantedItemIds: [31]
+                - choiceId: 119
+                  label: Keep your hand on your sword
+                  beat: You kept your hand on your sword.
+                  destinationSceneId: 59
+                  weight: 1
+                  grantedItemIds: []
+              npcIds: [12]
+              questIds: [5]
+
+    ItemDefinitionUpdated:
+      name: ItemDefinitionUpdated
+      title: Item definition updated
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ItemDefinitionUpdatedEnvelope'
+      examples:
+        - name: swordRebalanced
+          payload:
+            eventId: 6b1f0a93-55de-4a1c-bb20-9f7e4d2c8a11
+            eventType: item-definition.updated
+            occurredAt: '2026-11-17T14:05:33.001Z'
+            schemaVersion: 1
+            payload:
+              itemId: 31
+              itemVersion: 4
+              status: ACTIVE
+              type: EQUIPMENT
+              slot: MAINHAND
+              requirements:
+                intelligence: 0
+                charisma: 0
+                fashion: 0
+              modifiers:
+                attack: 2
+        - name: itemRetired
+          payload:
+            eventId: c0a4e2b7-3d19-4b88-91aa-7e5f0d3c1b62
+            eventType: item-definition.updated
+            occurredAt: '2026-11-17T14:11:02.447Z'
+            schemaVersion: 1
+            payload:
+              itemId: 31
+              itemVersion: 5
+              status: RETIRED
+              type: EQUIPMENT
+              slot: MAINHAND
+              requirements: {}
+              modifiers:
+                attack: 2
+
+  schemas:
+
+    Envelope:
+      type: object
+      description: Outer shape shared by every message in the system. See ./README.md.
+      required: [eventId, eventType, occurredAt, schemaVersion, payload]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique per publication. Consumers deduplicate on this.
+        eventType:
+          type: string
+          description: Identical to the routing key.
+        occurredAt:
+          type: string
+          format: date-time
+          description: When the fact happened, not when it was published.
+        schemaVersion:
+          type: integer
+          minimum: 1
+          description: Incremented only on a breaking change to payload.
+
+    SceneContentUpdatedEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            eventType:
+              const: scene-content.updated
+            payload:
+              $ref: '#/components/schemas/ScenePayload'
+
+    ItemDefinitionUpdatedEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            eventType:
+              const: item-definition.updated
+            payload:
+              $ref: '#/components/schemas/ItemDefinitionPayload'
+
+    ScenePayload:
+      type: object
+      required: [sceneId, sceneVersion, status, chapterId, name, choices]
+      properties:
+        sceneId:
+          type: integer
+          description: Stable identifier, carried over from the relational model.
+        sceneVersion:
+          type: integer
+          minimum: 1
+          description: |
+            Incremented on every publication of this scene. A consumer must ignore a
+            message whose version is not newer than what it already holds. RabbitMQ
+            guarantees order within a queue but not across redeliveries, so this is what
+            makes the projection safe rather than the broker.
+        status:
+          type: string
+          enum: [PUBLISHED, RETIRED]
+          description: |
+            RETIRED withdraws the scene from delivery. It is not a deletion: existing
+            paths reference this scene and must keep resolving. The read side stops
+            serving it; it does not forget it.
+        chapterId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          description: The prose shown to the player.
+        choices:
+          type: array
+          description: Every choice available in this scene, in presentation order.
+          items:
+            $ref: '#/components/schemas/Choice'
+        npcIds:
+          type: array
+          description: NPCs placed in this scene.
+          items:
+            type: integer
+        questIds:
+          type: array
+          description: Quests offered in this scene.
+          items:
+            type: integer
+
+    Choice:
+      type: object
+      required: [choiceId, label, beat, destinationSceneId]
+      properties:
+        choiceId:
+          type: integer
+        label:
+          type: string
+          description: The text on the choice, as shown to the player.
+        beat:
+          type: string
+          description: |
+            One sentence describing what happens if this choice is taken, written by the
+            author. SceneManager copies it into PlayerChoice.made so that the path can
+            record what happened rather than a reference to content that may change.
+            This is the field that makes the history self-contained.
+        destinationSceneId:
+          type: integer
+        weight:
+          type: integer
+          description: Authoring weight, used when summarising a path.
+        grantedItemIds:
+          type: array
+          items:
+            type: integer
+
+    ItemDefinitionPayload:
+      type: object
+      required: [itemId, itemVersion, status, type]
+      properties:
+        itemId:
+          type: integer
+        itemVersion:
+          type: integer
+          minimum: 1
+          description: Same purpose as sceneVersion — lets a consumer discard stale messages.
+        status:
+          type: string
+          enum: [ACTIVE, RETIRED]
+          description: |
+            RETIRED withdraws the item from being granted or acquired. It is deliberately
+            not a deletion: a player who owns a retired item must still be able to see
+            and use it, so existing references keep resolving.
+        type:
+          type: string
+          enum: [EQUIPMENT, CONSUMABLE, QUEST]
+        slot:
+          type: string
+          enum: [HEAD, CHEST, LEGS, MAINHAND]
+          description: Only present for EQUIPMENT.
+        requirements:
+          type: object
+          description: Minimum character statistics required to equip the item.
+          additionalProperties:
+            type: integer
+        modifiers:
+          type: object
+          description: Effect on character statistics while equipped.
+          additionalProperties:
+            type: integer
