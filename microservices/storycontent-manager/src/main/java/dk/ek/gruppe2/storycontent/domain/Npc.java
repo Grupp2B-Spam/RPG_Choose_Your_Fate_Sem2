@@ -17,10 +17,9 @@ import jakarta.persistence.Table;
  * reason races belong to this service: with no players in the system at all, content
  * already cannot be authored without them.
  *
- * <p>Only {@code npcIds} travels in the scene payload, so renaming an NPC changes nothing
- * a consumer can observe and must <em>not</em> bump the scene version. Placing an NPC in a
- * scene, or removing it, does change the payload and must. ADR-006 says "every change
- * consumers can observe", and this is where that phrasing earns its keep.
+ * <p>Only NPC <em>ids</em> go out in the scene message, so renaming one changes nothing a
+ * consumer can see and must <em>not</em> bump the scene version. Putting an NPC into a
+ * scene, or taking it out, does change the message and must.
  */
 @Entity
 @Table(name = "npc")

@@ -23,19 +23,15 @@ import jakarta.validation.Valid;
 /**
  * Authoring endpoints for scenes.
  *
- * <p>Under {@code /admin} because every route here writes content, and content is written
- * by the writing team rather than by players. The role check that enforces that is not
- * wired up yet — it waits on the JWT claim shape, which AccountManager owns
- * ({@code OPEN-DESIGN-ISSUES.md} 1.3). Said plainly here rather than left to be assumed:
- * these routes are currently open.
+ * <p>Under {@code /admin} because every route writes content, which the writing team does
+ * and players do not. <b>The role check is not wired up yet, so these routes are open</b>
+ * — it waits on the JWT claim shape, which AccountManager owns and we have not agreed.
  *
- * <p>Versioned at {@code /v1} from the start. It costs nothing now and keeps the decision
- * open; adding a version to a published API later is the expensive direction.
+ * <p>Versioned at {@code /v1} from the start: free now, expensive to add later.
  *
- * <p>Choices are sub-resources of a scene rather than a collection of their own. That is a
- * statement about the aggregate, not a URL preference: a choice cannot change without
- * changing the scene's published event, so there is no such thing as editing one on its
- * own.
+ * <p>Choices are a sub-resource of a scene, not a collection of their own. That is about
+ * the aggregate rather than the URL: a choice cannot change without changing what the
+ * scene publishes, so editing one on its own is not a thing.
  */
 @RestController
 @RequestMapping("/admin/v1/scenes")

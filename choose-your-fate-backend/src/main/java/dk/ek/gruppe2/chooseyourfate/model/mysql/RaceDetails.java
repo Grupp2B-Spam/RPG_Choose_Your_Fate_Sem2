@@ -7,24 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * MIGRATED to StoryContentManager: {@code race_details} is owned by
- * {@code microservices/storycontent-manager}.
+ * MOVED: {@code race_details} now belongs to StoryContentManager, in {@code
+ * microservices/storycontent-manager}.
  *
- * <p>It is called {@code race} there, and is published as
- * {@code race-definition.updated}. It went to StoryContentManager rather than
- * CharacterManager because {@code starting_chapter_id} is a mandatory reference into
- * story content: the other way round, CharacterManager would hold a foreign key into
- * another service's database. CharacterManager is expected to cache the event
- * instead, and {@code character_avatar.race_detail_id} becomes a plain integer.
+ * <p>Called {@code race} there and published as {@code race-definition.updated}. It went
+ * with the content because its starting chapter is a mandatory reference into story
+ * content.
  *
- * <p><b>This code is deliberately left in place and still works.</b> The monolith is
- * what runs the game today, and nothing consumes StoryContentManager's events yet, so
- * this content exists in two places for now. Where the two disagree,
- * StoryContentManager holds the truth, and new content belongs there —
- * {@code /admin/v1/races} — rather than here.
- *
- * <p>The whole list of what moved, and how the new schema differs from this one, is in
- * the header of {@code microservices/storycontent-manager/db-init/01_schema.sql}.
+ * <p>This code is left here deliberately and still works: the monolith runs the game, and
+ * nothing consumes the new events yet. Where the two disagree StoryContentManager is the
+ * one that is right, and new content belongs there — {@code /admin/v1/races}.
  */
 @Entity
 @Table(name = "race_details")

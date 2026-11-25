@@ -53,9 +53,9 @@ public class ChapterController {
      * Sets the scene this chapter begins at.
      *
      * <p>Its own endpoint rather than a field on the chapter, because it is not an
-     * ordinary edit: this scene id is denormalised into every race that starts here, so
-     * changing it republishes those races with new versions (ADR-017). Naming the
-     * operation is what keeps that from being a surprising side effect of a rename.
+     * ordinary edit: this scene id is copied into every race that starts here, so changing
+     * it republishes those races with new versions. Giving the operation its own name
+     * keeps that from being a surprising side effect of renaming a chapter.
      */
     @PutMapping("/{id}/starting-scene")
     public ChapterResponse setStartingScene(

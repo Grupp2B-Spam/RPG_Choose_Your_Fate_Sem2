@@ -1,31 +1,26 @@
--- Schema for the story-content bounded context.
+-- Schema for story content: everything the writing team authors before anyone plays.
 --
--- This is NOT a copy of the monolith's `choose_your_fate` schema. It holds the ten tables
--- that the content/state boundary assigned to this service, re-expressed for what this
--- service is for: authoring content and publishing it. See beslutningslog.md ADR-015.
+-- NOT a copy of the monolith's `choose_your_fate` schema. It holds the ten tables that
+-- belong to this service, rewritten for what this service does. Three differences are
+-- decisions rather than transcription errors:
 --
--- Three differences from the monolith are worth pointing out, because they are decisions
--- rather than transcription errors:
+--   1. Names follow the published event contract, not the old schema. `race_details` is
+--      `race`, `scene_has_npc` is `scene_npc`. The contract is the vocabulary other teams
+--      code against; a different name here would only add a translation step.
 --
---   1. Names follow the published contract rather than the old schema. `race_details`
---      is `race`, `scene_has_npc` is `scene_npc`. The AsyncAPI document says `raceId`
---      and is the vocabulary other teams are building against; having the table called
---      something else only adds a translation step inside this service.
---
---   2. `choice_has_item` is gone. A granted item is one kind of authored effect among
---      five, so it lives in `choice_effect` with the others instead of in a table that
---      can only express one of them. See ADR-016.
+--   2. `choice_has_item` is gone. Granting an item is one of five kinds of authored
+--      effect, so it lives in `choice_effect` with the rest instead of in a table that
+--      can only express one of them.
 --
 --   3. `consequence` / `target_id` / `value_int` are gone, replaced by typed effects, and
---      `requirements` is no longer free JSON. An untyped integer cannot be interpreted by
---      a consumer in another service, and the monolith's own data shows it was not
---      reliably interpreted inside one either. See ADR-016.
+--      requirements are no longer free JSON. A bare integer cannot be interpreted by a
+--      consumer in another service — and the monolith's own data shows it was not
+--      interpreted reliably inside one either.
 --
--- Everything a consumer can observe carries a version column (ADR-006). The aggregate
--- roots that are published are `scene`, `item` and `race`, so those are the three tables
--- that have one.
+-- `scene`, `item` and `race` are the three things published as events, so those three
+-- carry a version column that consumers compare against to discard stale messages.
 --
--- The container runs the files in db-init/ in filename order on an empty data directory.
+-- The container runs the files in db-init/ in filename order, on an empty data directory.
 
 CREATE DATABASE IF NOT EXISTS `story_content`
   DEFAULT CHARACTER SET utf8mb4
@@ -95,11 +90,11 @@ CREATE TABLE `scene` (
 --
 -- `race_details` in the monolith. Placed here rather than in CharacterManager because
 -- `starting_chapter_id` is a mandatory reference into story content, and moving races out
--- would give CharacterManager a foreign key into this database (ADR-015).
+-- would give CharacterManager a foreign key into this database.
 --
 -- `version` is bumped both when the race changes and when the starting scene of its
--- chapter changes, because `startingSceneId` is denormalised into the published payload
--- and the second changes the payload without changing the race (ADR-017).
+-- chapter changes, because the published message carries that scene id — so the second
+-- changes what consumers receive without changing the race itself.
 -- ---------------------------------------------------------------------------
 CREATE TABLE `race` (
   `id`                  INT          NOT NULL AUTO_INCREMENT,
@@ -160,7 +155,7 @@ CREATE TABLE `item` (
 
 -- The contract publishes `requirements` and `modifiers` as objects of statistic -> integer.
 -- Stored as rows rather than JSON so that the statistic name is constrained: an authored
--- effect naming a statistic that does not exist is exactly the failure ADR-016 is about.
+-- effect naming a statistic that does not exist is the exact failure this prevents.
 CREATE TABLE `item_requirement` (
   `item_id` INT         NOT NULL,
   `stat`    VARCHAR(16) NOT NULL,
@@ -256,7 +251,7 @@ CREATE TABLE `scene_npc` (
 -- Part of the scene aggregate: a choice is never published on its own, only inside its
 -- scene, and editing one bumps that scene's version.
 --
--- `beat` is NOT NULL, which is the whole point of ADR-007. It is one authored sentence
+-- `beat` is NOT NULL on purpose. It is one authored sentence
 -- describing what happens if the choice is taken, copied into the player's path so that
 -- the path records a fact rather than a pointer into content that can change underneath
 -- it. Made mandatory at the schema level because it cannot be backfilled: reconstructing

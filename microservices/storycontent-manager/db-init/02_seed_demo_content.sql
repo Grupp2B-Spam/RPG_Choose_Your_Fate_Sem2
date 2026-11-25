@@ -14,12 +14,12 @@
 -- The content is carried over from the monolith's 05_seed_data.sql, with three
 -- differences that are the point of the exercise:
 --
---   * Every choice has a `beat` (ADR-007). The monolith has none, and they could not be
+--   * Every choice has a `beat`. The monolith has none, and they could not be
 --     generated — each one here was written by reading what the choice does.
---   * `consequence` / `target_id` / `value_int` are expressed as typed effects (ADR-016).
+--   * `consequence` / `target_id` / `value_int` are expressed as typed effects.
 --     Note what happened to choice 4: the monolith says `lose_hp`, and there is no hp in
 --     either schema. It is seeded as a charisma penalty, which is a guess — the original
---     intent is not recoverable, which is precisely the cost that entry describes.
+--     intent cannot be recovered — which is the cost of leaving it untyped this long.
 --   * `requirements` is no longer a JSON blob mixing story flags with "item:6" strings.
 
 USE `story_content`;
@@ -103,7 +103,7 @@ INSERT INTO `quest_reward_item` (`quest_id`, `item_id`) VALUES
   (3, 5);
 
 -- Every beat below was written for this seed. There was nothing to copy: the monolith
--- stores what a choice *is*, never what taking it *did*, which is the gap ADR-007 closes.
+-- stores what a choice *is*, never what taking it *did*.
 INSERT INTO `choice` (`id`, `scene_id`, `destination_scene_id`, `label`, `beat`, `weight`, `ordinal`) VALUES
   (1, 1, 2, 'Show the guard your invitation and step into the festival crowd.',
       'You showed your invitation and were waved into the festival.', 8, 0),

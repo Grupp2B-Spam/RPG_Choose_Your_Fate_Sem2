@@ -25,9 +25,9 @@ import org.testcontainers.utility.MountableFile;
  *       other fails the build here instead of appearing in the cluster.</li>
  * </ul>
  *
- * <p>It also exercises the claim ADR-015 makes about the boundary: this schema has to
- * create on an empty database with no reference to any other service's tables. If the
- * decomposition had left a dangling foreign key, this is where it would show.
+ * <p>It also proves the boundary holds: this schema has to create on an empty database
+ * with no reference to any other service's tables. A foreign key left dangling by the
+ * split would show up here.
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class StoryContentContainers {

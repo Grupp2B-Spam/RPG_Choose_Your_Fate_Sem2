@@ -9,20 +9,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * MIGRATED to StoryContentManager: {@code npc} is owned by
- * {@code microservices/storycontent-manager}.
+ * MOVED: {@code npc} now belongs to StoryContentManager, in {@code
+ * microservices/storycontent-manager}.
  *
- * <p>Only {@code npcIds} travels in the scene payload there, so an NPC's name is not
- * something any consumer receives.
+ * <p>Only NPC ids reach consumers, inside the scene message — a name is not published at
+ * all.
  *
- * <p><b>This code is deliberately left in place and still works.</b> The monolith is
- * what runs the game today, and nothing consumes StoryContentManager's events yet, so
- * this content exists in two places for now. Where the two disagree,
- * StoryContentManager holds the truth, and new content belongs there —
- * {@code /admin/v1/npcs} — rather than here.
- *
- * <p>The whole list of what moved, and how the new schema differs from this one, is in
- * the header of {@code microservices/storycontent-manager/db-init/01_schema.sql}.
+ * <p>This code is left here deliberately and still works: the monolith runs the game, and
+ * nothing consumes the new events yet. Where the two disagree StoryContentManager is the
+ * one that is right, and new content belongs there — {@code /admin/v1/npcs}.
  */
 @RestController
 @RequestMapping("/choose-your-fate/npcs")

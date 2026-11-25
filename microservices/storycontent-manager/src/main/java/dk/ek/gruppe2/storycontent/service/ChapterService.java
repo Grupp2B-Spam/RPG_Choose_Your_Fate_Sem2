@@ -70,10 +70,10 @@ public class ChapterService {
     /**
      * Sets the scene a chapter begins at.
      *
-     * <p>Unlike a rename, this <em>is</em> observable — not through any scene, but through
-     * every race that starts in this chapter, because the race payload denormalises this
-     * scene id so that CharacterManager can place a new character without a second lookup.
-     * So the races are republished with new versions. See ADR-017.
+     * <p>Unlike a rename, this one is visible to consumers — not through any scene, but
+     * through every race starting in this chapter, because a race message carries this
+     * scene id so a new character can be placed without a second lookup. Those races are
+     * therefore republished with new versions.
      */
     @Transactional
     public ChapterResponse setStartingScene(Integer chapterId, Integer sceneId) {

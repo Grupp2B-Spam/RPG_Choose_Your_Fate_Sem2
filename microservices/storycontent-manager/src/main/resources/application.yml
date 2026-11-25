@@ -2,10 +2,10 @@ spring:
   application:
     name: storycontent-manager
 
-  # Convention 1: every host and credential from the environment, with a local default.
-  # The default points at the host port story-content-vault publishes in compose.yaml
-  # (3309 — 3307 and 3308 are the monolith's), so running the service from the IDE against
-  # the compose database works with no configuration at all.
+  # Every host and credential comes from the environment with a local default, so the
+  # same image runs unchanged everywhere and only the configuration differs. The default
+  # points at the port compose publishes (3309 — 3307 and 3308 are the monolith's), so
+  # running this from the IDE against the compose database needs no setup.
   datasource:
     url: ${MYSQL_URI:jdbc:mysql://localhost:3309/story_content}
     username: ${MYSQL_USERNAME:root}
@@ -13,13 +13,11 @@ spring:
 
   jpa:
     hibernate:
-      # Deliberately `validate`, never `update`. This service owns its schema as SQL in
-      # db-init/, which is the artifact the database is actually created from; letting
-      # Hibernate alter the schema would mean the running shape and the committed shape
-      # could differ, and the committed one is what anyone else reads. `validate` turns
-      # the two into a pair that is checked on every start: a column added to an entity
-      # and forgotten in the SQL fails the boot instead of appearing silently in dev and
-      # missing in the cluster.
+      # `validate`, never `update`. The schema lives as SQL in db-init/ and that is what
+      # the database is built from; letting Hibernate alter it would mean the running
+      # shape and the committed shape could drift apart, and the committed one is what
+      # everyone else reads. This way startup checks the two against each other: a column
+      # added to an entity but forgotten in the SQL fails the boot.
       ddl-auto: validate
     open-in-view: false
     properties:
@@ -58,10 +56,10 @@ spring:
     # the connection able to receive them.
     publisher-returns: true
 
-  # Convention 3. Kubernetes sends SIGTERM on every deploy, scale-down and node drain.
-  # Without this the process dies mid-request, or mid-message once this service also
-  # consumes, and at-least-once delivery turns that into a duplicate. The pod's
-  # terminationGracePeriodSeconds must be larger than this value, or Kubernetes kills it
+  # Kubernetes sends SIGTERM on every deploy, scale-down and node drain. Without this
+  # the process dies mid-request, and once we also consume, mid-message — which
+  # at-least-once delivery then turns into a duplicate. The pod's
+  # terminationGracePeriodSeconds must exceed this value, or Kubernetes kills the pod
   # before the timeout can expire.
   lifecycle:
     timeout-per-shutdown-phase: 30s
@@ -78,8 +76,8 @@ management:
   endpoint:
     health:
       show-details: always
-      # Convention 2. Liveness and readiness answer different questions, so they get
-      # separate endpoints: /actuator/health/liveness and /actuator/health/readiness.
+      # Liveness and readiness answer different questions, so they get separate
+      # endpoints: /actuator/health/liveness and /actuator/health/readiness.
       probes:
         enabled: true
       group:

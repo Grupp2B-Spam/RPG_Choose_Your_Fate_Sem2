@@ -21,17 +21,15 @@ import jakarta.persistence.Table;
  *
  * <p>Part of the scene aggregate: never published on its own, always inside its scene.
  *
- * <p>{@link #beat} is the field ADR-007 exists for. It is one authored sentence saying
- * what happens if this choice is taken, and it is copied into the player's path when the
- * choice is made, so that the recorded history states a fact instead of pointing at
- * content that an author can later rewrite or retire. It is mandatory here and in the
- * database, because it cannot be backfilled: writing it later would require knowing what
- * the scene said at the time, and that information is gone.
+ * <p>{@link #beat} is one authored sentence saying what happens if this choice is taken.
+ * It is copied into the player's history when the choice is made, so that history records
+ * a fact rather than a pointer to content an author can later rewrite or delete.
+ * Mandatory, here and in the database, because it cannot be filled in afterwards: that
+ * would mean knowing what the scene said at the time, and nobody does.
  *
- * <p>It is also what makes the service boundary safe. {@code character_path_choice} keeps
- * a reference to a choice, and after the decomposition that reference is a plain integer
- * with nothing enforcing it. The path can afford that only because it no longer needs to
- * resolve the choice in order to be read.
+ * <p>It is also what makes the service split safe. A player's history keeps a choice id
+ * with nothing enforcing it any more, and that is only affordable because reading the
+ * history no longer requires looking the choice up.
  */
 @Entity
 @Table(name = "choice")

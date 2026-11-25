@@ -14,23 +14,15 @@ import dk.ek.gruppe2.chooseyourfate.repository.mysql.ChoiceRepository;
 import dk.ek.gruppe2.chooseyourfate.repository.mysql.SceneRepository;
 
 /**
- * MIGRATED to StoryContentManager: {@code choice} is owned by
- * {@code microservices/storycontent-manager}.
+ * MOVED: {@code choice} now belongs to StoryContentManager, in {@code
+ * microservices/storycontent-manager}.
  *
- * <p>A choice is part of the scene aggregate there and is never published on its own, so
- * it is edited through its scene. Two columns have no counterpart here:
- * {@code beat}, the authored sentence copied into a player's history, and the typed
- * effects that replaced {@code consequence}, {@code target_id} and
- * {@code value_int}.
+ * <p>Published as part of its scene, never on its own. Over there a choice also has a
+ * {@code beat} and typed effects, which have no counterpart here.
  *
- * <p><b>This code is deliberately left in place and still works.</b> The monolith is
- * what runs the game today, and nothing consumes StoryContentManager's events yet, so
- * this content exists in two places for now. Where the two disagree,
- * StoryContentManager holds the truth, and new content belongs there —
- * {@code /admin/v1/scenes/{id}/choices} — rather than here.
- *
- * <p>The whole list of what moved, and how the new schema differs from this one, is in
- * the header of {@code microservices/storycontent-manager/db-init/01_schema.sql}.
+ * <p>This code is left here deliberately and still works: the monolith runs the game, and
+ * nothing consumes the new events yet. Where the two disagree StoryContentManager is the
+ * one that is right, and new content belongs there — {@code /admin/v1/scenes/{id}/choices}.
  */
 @Service
 public class ChoiceService {

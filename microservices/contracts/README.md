@@ -29,8 +29,7 @@ they are one unit in two repositories.
 >
 > **This is not what the code does today.** While the services are being built in
 > parallel, **the publishing service declares the consumer queues and bindings for its own
-> events**, as well as its exchange. See `beslutningslog.md` **ADR-021**, which amends
-> ADR-004.
+> events**, as well as its exchange.
 >
 > **Why.** An exchange stores nothing. A topic exchange routes to the queues bound at the
 > moment of publication and discards the message if there are none — and the publish call
@@ -55,7 +54,7 @@ they are one unit in two repositories.
 > an init job in the pipeline. Each queue definition stays in its consumer's repository,
 > so ownership is unchanged, but it is applied whether or not that consumer's pod has ever
 > run. That is the right answer once there is a cluster to apply it to, and it is what
-> returns us to ADR-004.
+> restores the rule above.
 
 ## Topology
 
@@ -82,7 +81,7 @@ storypathmanager.player-choice      binds scenemanager.events / player-choice.ma
 charactermanager.player-choice      binds scenemanager.events / player-choice.made
 ```
 
-The first three already exist: StoryContentManager declares them on startup (ADR-021), so
+The first three already exist: StoryContentManager declares them on startup, so
 they are a commitment to the consuming teams rather than a suggestion. Each has a
 dead-letter queue beside it, `<queue-name>.dlq`, bound to `dlx`.
 
@@ -98,7 +97,7 @@ exchange and routing key — not by sharing one queue.
 
 ## How a consumer queue must be declared
 
-**Who does this today:** the publishing service, per ADR-021 above. The requirements have
+**Who does this today:** the publishing service, as described above. The requirements have
 not changed — they are written here as the rule the declaration must satisfy, whoever
 performs it — but if you are writing a consumer right now, your queue already exists and
 your job is to bind a listener to it, not to declare it.
@@ -140,7 +139,7 @@ requeued and redelivered forever.
 
 **Scaling a consumer requires a commutative handler.** Competing consumers lose ordering:
 two messages for the same entity can be handled concurrently. Which consumers may
-therefore be scaled is decided per consumer — see `beslutningslog.md`, ADR-011.
+therefore be scaled is decided per consumer, and written down with that consumer.
 
 ## Dead-lettering
 
@@ -153,7 +152,7 @@ x-dead-letter-routing-key: <queue-name>.dlq
 
 A message that cannot be processed must end up somewhere inspectable rather than being
 lost or redelivered forever. Retry counts and backoff are not yet decided (see
-`../OPEN-DESIGN-ISSUES.md`, 3.2), but the dead-letter destination can be declared from
+still open), but the dead-letter destination can be declared from
 the start.
 
 ## Message envelope

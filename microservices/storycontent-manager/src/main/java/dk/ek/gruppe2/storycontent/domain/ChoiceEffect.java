@@ -17,23 +17,19 @@ import jakarta.persistence.Table;
 /**
  * One thing that happens when a choice is taken.
  *
- * <p>This replaces the monolith's {@code consequence} / {@code target_id} /
- * {@code value_int} triple. Inside a single process that triple was merely sloppy — the
- * code that wrote the integer was the code that read it. Across a service boundary it is
- * unusable: a consumer receiving {@code 5} cannot tell a quest from an item from an
- * amount, and the monolith's own data shows the convention was not followed anyway, with
- * {@code travel} rows carrying a {@code target_id} that is neither the destination nor the
- * source scene.
+ * <p>Replaces the monolith's {@code consequence} / {@code target_id} / {@code value_int}
+ * triple. Inside one process that was merely sloppy: whoever wrote the integer also read
+ * it. Across a service boundary it is unusable — a consumer receiving {@code 5} cannot
+ * tell a quest id from an item id from an amount. The monolith's own data does not follow
+ * its own convention either.
  *
- * <p>Typing it is what lets this service validate an effect before publishing it. That
- * matters beyond tidiness: the messaging convention is that a consumer reacts to an event
- * and never rejects it as invalid, which is only honest if the publisher was in a position
- * to check. See ADR-016.
+ * <p>Typing it lets us reject a malformed effect before it is published, which matters
+ * because our rule is that a consumer reacts to a message and never refuses it as
+ * invalid. That rule is only honest if the publisher could actually check.
  *
- * <p>Constructed through the factory methods, never field by field, so that an instance
- * with a kind and the wrong fields set cannot be built. The database carries the same rule
- * as a check constraint, because this entity is not the only thing that will ever write
- * the table.
+ * <p>Built through the factory methods, never field by field, so an effect with the wrong
+ * fields for its kind cannot be constructed. The database repeats the rule as a check
+ * constraint, since this class will not always be the only writer.
  */
 @Entity
 @Table(name = "choice_effect")
@@ -65,8 +61,8 @@ public class ChoiceEffect {
     private CharacterStat stat;
 
     /**
-     * A delta, which may be negative. Deltas commute, which is what allows the consumer of
-     * {@code player-choice.made} to run as competing consumers (ADR-011).
+     * A delta, which may be negative. Deltas can be applied in any order and give the same
+     * result, which is what lets the consumer run as several competing instances.
      */
     @Column
     private Integer amount;

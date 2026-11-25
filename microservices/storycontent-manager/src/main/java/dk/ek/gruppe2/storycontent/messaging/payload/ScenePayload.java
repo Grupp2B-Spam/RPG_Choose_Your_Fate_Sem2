@@ -11,14 +11,13 @@ import java.util.List;
  * which is why these are records separate from the entities rather than the entities
  * serialised directly. An entity is ours to reshape; this is not.
  *
- * <p>It carries the complete scene as the read side needs it rather than a notification
- * to go and fetch it (ADR-005). A thin event would force SceneManager's projector to call
- * back into this service, reintroducing the synchronous dependency the split removes, and
- * would create a race in which the projector fetches a version other than the one the
- * event described.
+ * <p>It carries the whole scene, not a notification to come and fetch it. A thin message
+ * would force the consumer to call back into this service — the synchronous dependency
+ * the split removed — and would race: the consumer could fetch a different version from
+ * the one the message described.
  *
  * @param sceneVersion incremented on every publication; a consumer must discard a message
- *                     whose version is not newer than what it already holds (ADR-006)
+ *                     whose version is not newer than what it already holds
  */
 public record ScenePayload(
         Integer sceneId,

@@ -16,7 +16,7 @@ info:
 
     ## The queues already exist — bind, do not declare
 
-    **Interim arrangement, see `beslutningslog.md` ADR-021.** Normally a consumer declares
+    **This is an interim arrangement.** Normally a consumer declares
     its own queue and binding. For now StoryContentManager declares them on startup,
     because an exchange stores nothing: until a consumer has started for the first time
     its queue does not exist, and every event published in that window is discarded with
@@ -43,8 +43,8 @@ info:
     message remain yours.
 
     If you need a queue with different arguments, or a second consumer on one of these
-    events, that is a change in this service's repository — which is the coupling ADR-021
-    accepted knowingly, and the reason it is an interim arrangement rather than the target
+    events, that is a change in this service's repository — which is the coupling we
+    accepted knowingly, and the reason this is interim rather than the intended
     state.
 
     ## Changes
@@ -53,7 +53,7 @@ info:
 
     The messages are identical. What changed is who creates the queues: this service now
     declares them, so a consumer binds to an existing queue instead of declaring its own,
-    and cannot choose its own queue arguments. See the section above and ADR-021.
+    and cannot choose its own queue arguments. See the section above.
 
     Also renames the queue for `race-definition.updated` from `charactermanager.race-cache`
     to `charactermanager.race-definitions`, since a queue the publisher owns should be

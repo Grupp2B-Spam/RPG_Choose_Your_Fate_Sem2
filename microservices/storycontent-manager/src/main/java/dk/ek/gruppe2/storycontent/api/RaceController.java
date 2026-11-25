@@ -21,11 +21,11 @@ import jakarta.validation.Valid;
 /**
  * Authoring endpoints for races.
  *
- * <p>Note what is <em>not</em> here: a read endpoint for CharacterManager to call at
- * character creation. That is deliberate. CharacterManager caches
- * {@code race-definition.updated} instead, so that creating a character does not depend on
- * this service being reachable — see ADR-017. Adding a convenient lookup here would make
- * the cache optional in practice and the dependency would quietly come back.
+ * <p>Note what is <em>not</em> here: a lookup for CharacterManager to call at character
+ * creation. That is deliberate — it caches {@code race-definition.updated} instead, so
+ * creating a character does not depend on this service being up. Adding a convenient
+ * endpoint here would make the cache optional in practice, and the dependency would
+ * quietly come back.
  */
 @RestController
 @RequestMapping("/admin/v1/races")

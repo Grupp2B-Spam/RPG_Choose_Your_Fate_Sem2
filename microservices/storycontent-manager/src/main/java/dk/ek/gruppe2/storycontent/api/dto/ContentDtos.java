@@ -33,10 +33,8 @@ public final class ContentDtos {
      * Sets a chapter's starting scene.
      *
      * <p>Its own endpoint rather than a field on {@link ChapterRequest}, because it is not
-     * an ordinary edit. The starting scene is denormalised into every race that begins in
-     * this chapter, so changing it republishes those races with a new {@code raceVersion}
-     * (ADR-017). Having it as a separate, named operation is what stops that becoming a
-     * side effect nobody expects from "rename a chapter".
+     * an ordinary edit: the starting scene is copied into every race that begins in this
+     * chapter, so changing it republishes those races with new versions.
      */
     public record StartingSceneRequest(
             @NotNull(message = "sceneId is required") Integer sceneId) {

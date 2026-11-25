@@ -6,12 +6,12 @@ import java.util.List;
  * One choice inside {@link ScenePayload}.
  *
  * @param beat           the authored sentence describing what happens if this choice is
- *                       taken. SceneManager copies it into {@code player-choice.made}, so
- *                       that the player's path records what happened rather than a
- *                       pointer to content that may later change (ADR-007)
- * @param grantedItemIds derived from the {@code GRANT_ITEM} entries in {@code effects} and
- *                       kept only for consumers written against version 1.0.0 of the
- *                       contract. It is published from one source, not stored twice
+ *                       taken. The consumer copies it into the player's history, so that
+ *                       history records what happened rather than pointing at content
+ *                       that may later change
+ * @param grantedItemIds derived from the {@code GRANT_ITEM} entries in {@code effects},
+ *                       kept only for consumers written before {@code effects} existed.
+ *                       Computed from one source, never stored twice
  */
 public record ChoicePayload(
         Integer choiceId,

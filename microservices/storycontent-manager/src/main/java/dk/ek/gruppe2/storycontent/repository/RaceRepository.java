@@ -16,9 +16,8 @@ public interface RaceRepository extends JpaRepository<Race, Integer> {
     /**
      * The races affected when a chapter's starting scene changes.
      *
-     * <p>They have to be republished even though nothing about the races themselves was
-     * edited, because the published payload denormalises {@code startingSceneId}. See
-     * ADR-017.
+     * <p>They need republishing even though nothing about the races was edited: the race
+     * message carries the chapter's starting scene, so changing it changes their contents.
      */
     List<Race> findAllByStartingChapterId(Integer chapterId);
 

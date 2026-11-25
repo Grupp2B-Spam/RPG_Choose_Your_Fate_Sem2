@@ -27,19 +27,17 @@ import jakarta.persistence.Table;
  * A scene: one moment of the story, the choices available in it, the NPCs standing in it
  * and the quests it offers.
  *
- * <p>This is the aggregate root that {@code scene-content.updated} publishes. Everything
- * reachable from here is part of one published message (ADR-005), which is why choices are
- * edited through the scene rather than as a resource of their own: a choice cannot change
- * without the scene's event changing, and routing every edit through the root is what
- * makes that impossible to forget.
+ * <p>The aggregate root that {@code scene-content.updated} publishes: everything reachable
+ * from here goes out in one message. That is why choices are edited through the scene
+ * rather than on their own — a choice cannot change without changing the scene's message,
+ * and routing every edit through the root makes that impossible to forget.
  *
- * <p>{@link #version} is the contract's {@code sceneVersion} and the consumers' only
- * defence against stale and out-of-order messages (ADR-006). It is a plain column, not a
- * JPA {@code @Version}: optimistic locking increments when <em>this row</em> changes,
- * whereas this has to increment when anything inside the published payload changes,
- * including a child row or a quest attached from elsewhere. It is incremented with a
- * {@code version = version + 1} statement rather than by reading and writing it, so it
- * stays monotonic even if two authors save at once.
+ * <p>{@link #version} is the {@code sceneVersion} consumers compare against to throw away
+ * stale or redelivered messages. It is a plain column rather than a JPA {@code @Version}:
+ * optimistic locking counts changes to <em>this row</em>, while this has to count changes
+ * to anything in the published message, including child rows. It is incremented with a
+ * {@code version = version + 1} statement, not read-then-write, so two authors saving at
+ * once cannot be handed the same number.
  */
 @Entity
 @Table(name = "scene")

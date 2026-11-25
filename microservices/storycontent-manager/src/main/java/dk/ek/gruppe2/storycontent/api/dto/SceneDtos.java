@@ -57,12 +57,9 @@ public final class SceneDtos {
             @NotNull(message = "destinationSceneId is required") Integer destinationSceneId,
             @NotBlank(message = "label is required") @Size(max = 255) String label,
 
-            // Mandatory, and the API is the right place to insist on it. ADR-007 calls the
-            // beat a workflow requirement on the writing team rather than a schema detail:
-            // it cannot be backfilled, because reconstructing it later would need to know
-            // what the scene said at the time. A beat that is optional at the point of
-            // authoring is a beat that is null for everything written before someone
-            // remembered to fill it in.
+            // Mandatory, and the API is the right place to insist. A beat cannot be
+            // filled in later — that would mean knowing what the scene said at the time.
+            // Optional here means null for everything written before someone remembered.
             @NotBlank(message = "beat is required: one sentence describing what happens if "
                     + "this choice is taken. It is copied into the player's history and "
                     + "cannot be added afterwards")

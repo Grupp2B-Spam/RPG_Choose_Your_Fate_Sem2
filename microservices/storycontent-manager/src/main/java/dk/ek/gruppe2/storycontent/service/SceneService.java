@@ -35,15 +35,14 @@ import dk.ek.gruppe2.storycontent.repository.SceneRepository;
 /**
  * Authoring operations on the scene aggregate.
  *
- * <p>Every write here ends with the same two steps, and the order matters: increment the
- * scene's version, then say that the scene changed. The version is what a consumer uses to
- * discard a stale or redelivered message (ADR-006), and it is also what makes the
- * consumers of this event safe to run as competing consumers, which is what makes them
- * scalable (ADR-011). A write that mutates the payload without incrementing the version
- * does not merely lose an update — it produces a message that looks older than it is and
- * is therefore thrown away.
+ * <p>Every write here ends the same way: increment the scene's version, then say the
+ * scene changed. Consumers use that version to throw away stale or redelivered messages,
+ * which is also what makes them safe to run as several instances at once. Changing the
+ * scene without incrementing it does not just lose an update — it sends a message that
+ * looks older than what the consumer already has, so the consumer discards it and nothing
+ * is logged anywhere.
  *
- * <p>The counterpart is just as important and easier to get wrong in the other direction:
+ * <p>The opposite mistake matters just as much:
  * a change a consumer cannot observe must <em>not</em> increment it. Renaming an NPC is
  * the example. Only {@code npcIds} travels in the payload, so a rename changes nothing on
  * the wire, and bumping the version for it would mean republishing a byte-identical
@@ -278,10 +277,10 @@ public class SceneService {
                     choice.addEffect(ChoiceEffect.completeQuest(effect.questId(), ordinal));
                 }
                 case MODIFY_STAT -> {
-                    // The statistic is an enum, so a value outside the three a character
-                    // actually has never reaches this point — it fails deserialisation.
-                    // That is the whole argument of ADR-016 in one line: the monolith's
-                    // authored data contains `lose_hp`, and its schema has no hp.
+                    // The statistic is an enum, so a name outside the three a character
+                    // actually has never gets this far — it fails to deserialise. Worth
+                    // having: the monolith's content contains `lose_hp`, and there is no
+                    // hp anywhere in its schema. Nothing ever caught that.
                     requirePresent(effect.stat(), "A MODIFY_STAT effect needs a stat");
                     requirePresent(effect.amount(), "A MODIFY_STAT effect needs an amount");
                     choice.addEffect(ChoiceEffect.modifyStat(effect.stat(), effect.amount(), ordinal));

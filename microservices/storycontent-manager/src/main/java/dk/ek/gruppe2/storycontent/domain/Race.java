@@ -16,17 +16,15 @@ import jakarta.persistence.Table;
 /**
  * A playable race, and the chapter its characters start in.
  *
- * <p>{@code race_details} in the monolith. It sits between three claimants: it points
- * into {@link Chapter} (content), {@code npc} points at it (content), and
- * {@code character_avatar} points at it (state). It belongs here because
- * {@link #startingChapter} is a mandatory reference into story content — putting races in
- * CharacterManager would give CharacterManager a foreign key into this service's database,
- * which is the shared-database coupling the decomposition exists to remove. The reference
- * pointing the other way becomes a plain integer over there, which costs nothing because
- * CharacterManager already treats content as external. See ADR-015.
+ * <p>Called {@code race_details} in the monolith. Three services could have claimed it,
+ * and it lives here because {@link #startingChapter} is a mandatory reference into story
+ * content: owning races anywhere else would mean owning a foreign key into this database,
+ * which is exactly the coupling we split the system up to remove. The reverse reference —
+ * a character pointing at its race — is just an integer on the other side, which costs
+ * nothing.
  *
- * <p>Published as {@code race-definition.updated}, which CharacterManager is expected to
- * cache rather than query per character creation (ADR-017).
+ * <p>Published as {@code race-definition.updated}, which CharacterManager caches instead
+ * of asking us per character creation.
  */
 @Entity
 @Table(name = "race")
@@ -48,10 +46,12 @@ public class Race {
     private DefinitionStatus status = DefinitionStatus.ACTIVE;
 
     /**
-     * Bumped when the race changes <em>and</em> when the starting scene of its chapter
-     * changes, because the published payload denormalises that scene id. See ADR-017 —
-     * this is the part of the design that is easy to forget and puts new characters in the
-     * wrong scene when it is forgotten.
+     * Bumped when the race changes, and also when its chapter's starting scene changes —
+     * because the published message carries that scene id, so editing the chapter changes
+     * the right answer for every race starting there.
+     *
+     * <p>Easy to forget, and forgetting it puts new characters in a scene the author moved
+     * away from.
      */
     @Column(nullable = false)
     private int version = 1;

@@ -34,7 +34,7 @@ Two cases that are asked about often:
   character is the state, not the quest.
 
 The full reasoning, and a register of every case that was genuinely ambiguous, is in
-`beslutningslog.md` (ADR-015 and ADR-015a), which is kept outside the repository.
+the project's decision log, which is kept outside the repository.
 
 ## What it publishes
 
@@ -49,7 +49,7 @@ Three events, all on the topic exchange `storycontent.events`. The contract is
 | `race-definition.updated` | a race, its starting chapter **and that chapter's starting scene** | CharacterManager |
 
 **This service declares the consumer queues as well as the exchange** — an interim
-arrangement that amends ADR-004; see ADR-021.
+arrangement, and a departure from the rule that a consumer owns its own queue.
 
 The rule used to be that a consumer declares its own queue, which is what keeps publisher
 and consumer independently deployable. It was suspended because an exchange stores
@@ -71,7 +71,7 @@ rejected messages were being dropped by a dead-letter path that looked configure
 
 **The cost, stated plainly:** this service now knows its consumer list. A fourth consumer
 means a change *here*, made by someone who does not own that consumer. That is what
-ADR-021 traded away, and it is why the arrangement is interim rather than the target.
+we traded away, and it is why this is interim rather than the intended end state.
 
 Consumers still own prefetch, concurrency, acknowledgement and what they do with a
 dead-lettered message — see `../contracts/README.md`. They do **not** own the queue
@@ -106,7 +106,7 @@ entity as stale. One rollback would freeze that scene in the read model permanen
 
 The remaining gap: if the process dies between the commit and the publish, the change is
 saved and nobody is told. The correct fix is a transactional outbox. It is not
-implemented — see `OPEN-DESIGN-ISSUES.md` 4.5.
+implemented; it is a known gap rather than an oversight.
 
 ## Running it
 
@@ -199,10 +199,10 @@ Two things that look like omissions and are not:
 - **There is no read endpoint for other services.** CharacterManager caches
   `race-definition.updated` instead of asking for a race per character creation. A
   convenient lookup here would make the cache optional in practice and the dependency
-  would quietly come back (ADR-017).
+  would quietly come back.
 
 > **Authorization is not wired up.** These routes are currently open. The role claim they
-> need is AccountManager's to define (`OPEN-DESIGN-ISSUES.md` 1.3).
+> need is AccountManager's to define, and that has not been agreed yet.
 
 ## Tests
 

@@ -21,27 +21,24 @@ import dk.ek.gruppe2.storycontent.repository.SceneRepository;
 /**
  * Authoring operations on quests.
  *
- * <p>A quest is authored against the scene that offers it — {@code scene_id} is mandatory,
- * which is what settles a quest as content rather than as the authored half of
- * {@code character_has_quest} (ADR-015a, case 1).
+ * <p>A quest is written against the scene that offers it, and cannot exist without one.
+ * That is what makes a quest content, rather than the authored half of a player's quest
+ * progress — the progress is state and lives in CharacterManager.
  *
- * <p>Which changes are published follows the same rule as everywhere else, and lands in an
- * awkward place that is worth being explicit about. The scene payload carries
- * {@code questIds} and nothing else about a quest, so:
+ * <p>The scene message carries quest <em>ids</em> and nothing else about a quest, so:
  *
  * <ul>
- *   <li>Creating or deleting a quest changes its scene's {@code questIds}, which is
- *       observable, so the scene is republished.</li>
- *   <li>Editing a quest's description or its reward items changes nothing any consumer
- *       receives, so nothing is published — <em>even though CharacterManager needs the
- *       rewards</em> in order to grant them, which it did by reading
- *       {@code quest_has_item} directly while everything was one database.</li>
+ *   <li>Creating or deleting one changes the scene's quest ids, so the scene is
+ *       republished.</li>
+ *   <li>Editing its text or reward items changes nothing any consumer receives, so
+ *       nothing is published.</li>
  * </ul>
  *
- * <p>That second point is a real hole in the contract rather than a quirk of this class,
- * and it is recorded as an open issue rather than patched over here: adding a channel is a
- * change to a document other teams build against, and that is a conversation, not a
- * commit.
+ * <p>The second point is a known hole, not a quirk of this class: CharacterManager needs
+ * a quest's reward items in order to grant them and currently has no way to get them. It
+ * read the table directly when everything was one database. Fixing it means adding to the
+ * published contract, which other teams build against, so it needs agreeing rather than
+ * committing.
  */
 @Service
 public class QuestService {

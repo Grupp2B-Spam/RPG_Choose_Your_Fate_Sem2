@@ -21,11 +21,10 @@ import dk.ek.gruppe2.storycontent.repository.RaceRepository;
 /**
  * Authoring operations on race definitions.
  *
- * <p>Races are the service's clearest illustration of why the boundary was drawn where it
- * was. They are referenced from content ({@code npc}) and from state
- * ({@code character_avatar}), but they <em>point into</em> content — a race's starting
- * chapter is a mandatory reference — so they belong here, and the reference from the state
- * side degrades to a plain integer. See ADR-015.
+ * <p>Races show most clearly why the boundary sits where it does. Both content and player
+ * state refer to a race, but a race itself <em>points into</em> content — its starting
+ * chapter is mandatory — so it belongs here, and the reference from the player side
+ * becomes a plain integer.
  */
 @Service
 public class RaceService {
@@ -92,15 +91,13 @@ public class RaceService {
      * Republishes every race that starts in a chapter whose starting scene has changed.
      *
      * <p>Called from {@code ChapterService}, not from the API. Nothing about the races was
-     * edited — but the published payload carries {@code startingSceneId}, denormalised out
-     * of the chapter so that CharacterManager can place a new character without a second
-     * lookup. Changing the chapter therefore changes the correct answer for every race
-     * that begins there, and a consumer caching those races would go on placing new
-     * characters in a scene the author has moved away from.
+     * edited — but a race message carries the chapter's starting scene, copied in so a new
+     * character can be placed without a second lookup. Changing the chapter therefore
+     * changes the right answer for every race beginning there, and a consumer caching them
+     * would keep putting new characters in a scene the author moved away from.
      *
-     * <p>This is the running cost of denormalising into an event, and it is exactly the
-     * kind of thing that is obvious while writing it and invisible six weeks later — hence
-     * ADR-017, this comment, and the test that covers it.
+     * <p>This is the running cost of copying data into a message: obvious while writing
+     * it, invisible six weeks later. Hence this comment and the test that covers it.
      */
     @Transactional
     public void republishRacesStartingIn(Integer chapterId) {

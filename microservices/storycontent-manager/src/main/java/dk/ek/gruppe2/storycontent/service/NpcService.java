@@ -19,9 +19,8 @@ import dk.ek.gruppe2.storycontent.repository.SceneRepository;
 /**
  * Authoring operations on NPCs.
  *
- * <p>This service is where ADR-006's phrasing — "every change <em>consumers can
- * observe</em>" — stops being a detail. Only {@code npcIds} travels in the scene payload,
- * so:
+ * <p>This is where "publish every change a consumer can see" stops being a slogan. Only
+ * NPC ids go out in the scene message, so:
  *
  * <ul>
  *   <li>Renaming an NPC changes nothing on the wire and publishes nothing.</li>

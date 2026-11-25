@@ -60,15 +60,15 @@ import tools.jackson.databind.ObjectMapper;
  * <p>What is being tested is not "does it publish" — the skeleton established that against
  * a real broker before any of this existed. It is the discipline around
  * {@code sceneVersion}, {@code itemVersion} and {@code raceVersion}, because those are
- * what the consumers' correctness rests on (ADR-006) and what makes them safe to scale
- * (ADR-011). A version that fails to increment does not merely lose an update: it produces
+ * what consumer correctness rests on, and what makes consumers safe to run as several
+ * instances. A version that fails to increment does not merely lose an update: it sends
  * a message that looks older than what the consumer already holds, so the consumer
  * discards it and the read model stays wrong with nothing logged anywhere.
  *
- * <p>The test declares its own queue and binding rather than the service declaring one.
- * That is the ownership rule from {@code contracts/README.md} being exercised rather than
- * described: a publisher owns its exchange and knows nothing about who listens, so adding
- * a consumer — including this one — requires no change on the publishing side.
+ * <p>The test binds its own extra queues to the exchange, so that reading a message here
+ * does not take it away from the queue a real consumer would read. Two tests deliberately
+ * use the real queues instead, to check that the service created them and bound them to
+ * the right routing keys.
  */
 @SpringBootTest
 @Import({StoryContentContainers.class, ContentPublishingIT.TestQueues.class})
@@ -149,10 +149,10 @@ class ContentPublishingIT {
     @Test
     @DisplayName("the consumer queues and the dead-letter path exist before any consumer has run")
     void thePublisherDeclaresTheConsumerTopology() {
-        // The whole point of ADR-021. No consumer has ever started against this broker —
-        // these containers were created seconds ago — so if the queues are here, this
-        // service put them here. Without them an event published now would be routed to
-        // nothing and discarded, with the publish call still succeeding.
+        // No consumer has ever started against this broker — these containers were
+        // created seconds ago — so if the queues are here, this service created them.
+        // Without them, a message published now would be routed nowhere and dropped,
+        // with the publish call still reporting success.
         //
         // The other tests in this class cannot show this: they declare their own queues,
         // so they would pass just as happily against the old arrangement.
@@ -261,8 +261,8 @@ class ContentPublishingIT {
 
         // Only npcIds travels in the scene payload, so a rename changes nothing on the
         // wire. Republishing it would inflate the number consumers compare against for no
-        // information at all — ADR-006 says "every change consumers can observe", and this
-        // is the other half of that sentence.
+        // information at all. We publish every change a consumer can see — and only
+        // those.
         assertNothingPublished(SCENE_QUEUE);
     }
 
@@ -352,7 +352,7 @@ class ContentPublishingIT {
         // starting scene so that CharacterManager can place a new character without a
         // second lookup, so this edit changes the correct answer for every race that
         // begins here. Missing it would put new characters in a scene the author moved
-        // away from — see ADR-017.
+        // away from.
         Map<String, Object> payload = payloadOf(nextMessage(RACE_QUEUE));
         assertThat(payload.get("raceId")).isEqualTo(fixture.raceId);
         assertThat(payload.get("startingSceneId")).isEqualTo(fixture.destinationSceneId);
@@ -371,7 +371,7 @@ class ContentPublishingIT {
                 // MODIFY_STAT with no stat. The monolith's equivalent was a bare integer
                 // that meant something different per consequence value, so there was
                 // nothing to check it against — and its own seed data does not follow the
-                // convention. ADR-016.
+                // convention itself.
                 List.of(new EffectRequest(EffectKind.MODIFY_STAT, null, null, null, 1, null)));
 
         assertThatThrownBy(() -> scenes.addChoice(fixture.sceneId, malformed))
