@@ -65,7 +65,7 @@
         <mxCell id="apis-storycontent-manager" value="&lt;b&gt;APIs&lt;/b&gt;&lt;br&gt;REST · authoring API, admin only &lt;i&gt;(not decided)&lt;/i&gt;" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
           <mxGeometry x="0" y="100" width="280" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="events-storycontent-manager" value="&lt;b&gt;Events&lt;/b&gt;&lt;br&gt;▲ scene-content.updated&lt;br&gt;▲ item-definition.updated" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
+        <mxCell id="events-storycontent-manager" value="&lt;b&gt;Events&lt;/b&gt;&lt;br&gt;▲ scene-content.updated&lt;br&gt;▲ item-definition.updated&lt;br&gt;▲ race-definition.updated" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
           <mxGeometry x="0" y="160" width="280" height="70" as="geometry" />
         </mxCell>
         <mxCell id="contracts-storycontent-manager" value="&lt;b&gt;Contracts&lt;/b&gt;&lt;br&gt;⚠ storycontent-manager.openapi.yaml&lt;br&gt;✓ storycontent-manager.asyncapi.yaml" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-storycontent-manager">
@@ -109,7 +109,7 @@
         <mxCell id="apis-character-manager" value="&lt;b&gt;APIs&lt;/b&gt;&lt;br&gt;REST · character sheet, inventory, equipment &lt;i&gt;(not decided)&lt;/i&gt;" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-character-manager">
           <mxGeometry x="0" y="100" width="280" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="events-character-manager" value="&lt;b&gt;Events&lt;/b&gt;&lt;br&gt;▼ item-definition.updated&lt;br&gt;▼ player-choice.made&lt;br&gt;▼ account-deletion-requested" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-character-manager">
+        <mxCell id="events-character-manager" value="&lt;b&gt;Events&lt;/b&gt;&lt;br&gt;▼ item-definition.updated&lt;br&gt;▼ player-choice.made&lt;br&gt;▼ race-definition.updated&lt;br&gt;▼ account-deletion-requested" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-character-manager">
           <mxGeometry x="0" y="160" width="280" height="70" as="geometry" />
         </mxCell>
         <mxCell id="contracts-character-manager" value="&lt;b&gt;Contracts&lt;/b&gt;&lt;br&gt;⚠ character-manager.openapi.yaml" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-character-manager">
@@ -179,26 +179,29 @@
           <mxGeometry x="330" y="130" width="80" height="80" as="geometry" />
         </mxCell>
 
-        <mxCell id="broker" value="one topic exchange per publishing service; consumers own their queues and bindings (ADR-004)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2e0;strokeColor=#d79b00;strokeWidth=2;verticalAlign=top;align=center;spacingTop=8;fontSize=13;arcSize=4;" vertex="1" parent="1">
+        <mxCell id="broker" value="one topic exchange per publishing service&amp;#10;consumers own their queues and bindings — the target, but see the broker tab: today the publisher declares them" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2e0;strokeColor=#d79b00;strokeWidth=2;verticalAlign=top;align=center;spacingTop=8;fontSize=13;arcSize=4;" vertex="1" parent="1">
           <mxGeometry x="800" y="860" width="640" height="600" as="geometry" />
         </mxCell>
-        <mxCell id="broker-infra" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br&gt;broker&lt;br&gt;rabbitmq:4-management-alpine&lt;br&gt;container: choose-your-fate-rabbitmq&lt;br&gt;ports: 5672 · 15672&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;One topic exchange per publishing service. Consumers own their queues and bindings.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;strokeWidth=2;fontSize=11;align=center;verticalAlign=middle;" vertex="1" parent="broker">
-          <mxGeometry x="30" y="40" width="580" height="110" as="geometry" />
+        <mxCell id="broker-infra" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br&gt;broker&lt;br&gt;rabbitmq:4-management-alpine&lt;br&gt;container: choose-your-fate-rabbitmq&lt;br&gt;ports: 5672 · 15672&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;One topic exchange per publishing service. Consumers owning their queues and bindings is the target; today StoryContentManager declares its consumers queues as well, because a topic exchange stores nothing before a consumer first starts.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;strokeWidth=2;fontSize=11;align=center;verticalAlign=middle;" vertex="1" parent="broker">
+          <mxGeometry x="30" y="40" width="580" height="104" as="geometry" />
         </mxCell>
         <mxCell id="ev-scene-content-updated" value="&lt;b&gt;scene-content.updated&lt;/b&gt;&lt;br&gt;storycontent.events&lt;br&gt;1 queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
-          <mxGeometry x="30" y="160" width="580" height="70" as="geometry" />
+          <mxGeometry x="30" y="148" width="580" height="62" as="geometry" />
         </mxCell>
         <mxCell id="ev-item-definition-updated" value="&lt;b&gt;item-definition.updated&lt;/b&gt;&lt;br&gt;storycontent.events&lt;br&gt;1 queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
-          <mxGeometry x="30" y="250" width="580" height="70" as="geometry" />
+          <mxGeometry x="30" y="216" width="580" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="ev-race-definition-updated" value="&lt;b&gt;race-definition.updated&lt;/b&gt;&lt;br&gt;storycontent.events&lt;br&gt;1 queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
+          <mxGeometry x="30" y="488" width="580" height="62" as="geometry" />
         </mxCell>
         <mxCell id="ev-player-choice-made" value="&lt;b&gt;player-choice.made&lt;/b&gt;&lt;br&gt;scenemanager.events&lt;br&gt;2 queues" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
-          <mxGeometry x="30" y="340" width="580" height="70" as="geometry" />
+          <mxGeometry x="30" y="284" width="580" height="62" as="geometry" />
         </mxCell>
         <mxCell id="ev-recap-generated" value="&lt;b&gt;recap-generated&lt;/b&gt;&lt;br&gt;recap.events&lt;br&gt;1 queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
-          <mxGeometry x="30" y="430" width="580" height="70" as="geometry" />
+          <mxGeometry x="30" y="352" width="580" height="62" as="geometry" />
         </mxCell>
         <mxCell id="ev-account-deletion-requested" value="&lt;b&gt;account-deletion-requested&lt;/b&gt;&lt;br&gt;account.events&lt;br&gt;3 queues" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
-          <mxGeometry x="30" y="520" width="580" height="70" as="geometry" />
+          <mxGeometry x="30" y="420" width="580" height="62" as="geometry" />
         </mxCell>
 
         <mxCell id="panel-choose-your-fate-backend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eceff1;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1">
@@ -304,6 +307,16 @@
         <mxCell id="e-storycontent-item-def" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="panel-storycontent-manager" target="ev-item-definition-updated">
           <mxGeometry relative="1" as="geometry">
             <Array as="points"><mxPoint x="620" y="1100" /><mxPoint x="620" y="1125" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-storycontent-race-def" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="panel-storycontent-manager" target="ev-race-definition-updated">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="460" y="1160" /><mxPoint x="460" y="1380" /></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-race-def-character" value="consumes · where a race starts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-race-definition-updated" target="panel-character-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1260" y="1380" /><mxPoint x="1260" y="470" /></Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="e-scene-content-scene" value="consumes · builds the read model" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-scene-content-updated" target="panel-scene-manager">
@@ -581,7 +594,7 @@
         <mxCell id="dc-rabbit" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2e0;strokeColor=#d79b00;verticalAlign=top;" vertex="1" parent="dc-project">
           <mxGeometry x="420" y="50" width="380" height="190" as="geometry" />
         </mxCell>
-        <mxCell id="dc-rabbit-infra" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br&gt;broker&lt;br&gt;rabbitmq:4-management-alpine&lt;br&gt;container: choose-your-fate-rabbitmq&lt;br&gt;ports: 5672 · 15672&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;One topic exchange per publishing service. Consumers own their queues and bindings.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="dc-rabbit">
+        <mxCell id="dc-rabbit-infra" value="&lt;b&gt;RabbitMQ&lt;/b&gt;&lt;br&gt;broker&lt;br&gt;rabbitmq:4-management-alpine&lt;br&gt;container: choose-your-fate-rabbitmq&lt;br&gt;ports: 5672 · 15672&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;One topic exchange per publishing service. Consumers owning their queues and bindings is the target; today StoryContentManager declares its consumers queues as well, because a topic exchange stores nothing before a consumer first starts.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="dc-rabbit">
           <mxGeometry x="0" y="0" width="380" height="110" as="geometry" />
         </mxCell>
         <mxCell id="dc-rabbit-compose" value="&lt;font style=&quot;font-size: 10px&quot;&gt;hostname: rabbitmq&lt;br&gt;volume: rabbitmq-data&lt;br&gt;healthcheck: rabbitmq-diagnostics ping&lt;br&gt;restart: unless-stopped&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#fffaf2;whiteSpace=wrap;" vertex="1" parent="dc-rabbit">
@@ -910,7 +923,7 @@
           <mxGeometry x="230" y="4" width="200" height="22" as="geometry" />
         </mxCell>
 
-        <mxCell id="ct-table" value="&lt;table&gt;&lt;tr&gt;&lt;th&gt;Service&lt;/th&gt;&lt;th&gt;Version&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;th&gt;Stack&lt;/th&gt;&lt;th&gt;Exposes&lt;/th&gt;&lt;th&gt;Publishes&lt;/th&gt;&lt;th&gt;Consumes&lt;/th&gt;&lt;th&gt;Contracts&lt;/th&gt;&lt;th&gt;ADRs&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;AccountManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;planned&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;⚠ account-manager.openapi.yaml&lt;br&gt;⚠ account-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;StoryContentManager&lt;/td&gt;&lt;td&gt;0.0.1-SNAPSHOT&lt;/td&gt;&lt;td&gt;skeleton&lt;/td&gt;&lt;td&gt;Spring Boot 4.0.3 / Java 21&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;scene-content.updated&lt;br&gt;item-definition.updated&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;⚠ storycontent-manager.openapi.yaml&lt;br&gt;✓ storycontent-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;ADR-003, ADR-004, ADR-005, ADR-006, ADR-008&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;SceneManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;skeleton&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;player-choice.made&lt;/td&gt;&lt;td&gt;scene-content.updated&lt;/td&gt;&lt;td&gt;⚠ scene-manager.openapi.yaml&lt;br&gt;⚠ scene-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;ADR-005, ADR-010, ADR-011&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;CharacterManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;skeleton&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;item-definition.updated&lt;br&gt;player-choice.made&lt;br&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;⚠ character-manager.openapi.yaml&lt;/td&gt;&lt;td&gt;ADR-011&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;StoryPathManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;planned&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;gRPC&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;player-choice.made&lt;br&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;✓ story_path.proto&lt;/td&gt;&lt;td&gt;ADR-011, ADR-012, ADR-013, ADR-014&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;RecapManager&lt;/td&gt;&lt;td&gt;0.0.1-SNAPSHOT&lt;/td&gt;&lt;td&gt;implemented&lt;/td&gt;&lt;td&gt;Spring Boot 4.0.3 / Java 21&lt;/td&gt;&lt;td&gt;REST, gRPC→storypath-manager&lt;/td&gt;&lt;td&gt;recap-generated&lt;/td&gt;&lt;td&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;⚠ recap-manager.openapi.yaml&lt;br&gt;✓ story_path.proto&lt;br&gt;⚠ recap-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;ADR-012, ADR-013, ADR-014&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;TextToSpeechManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;planned&lt;/td&gt;&lt;td&gt;Quarkus, native binary&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;recap-generated&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;ADR-009, ADR-011&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;choose-your-fate-backend&lt;/td&gt;&lt;td&gt;0.0.1-SNAPSHOT&lt;/td&gt;&lt;td&gt;legacy&lt;/td&gt;&lt;td&gt;Spring Boot 4.0.3 / Java 21&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;ADR-008&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=10;fontSize=11;overflow=fill;" vertex="1" parent="1">
+        <mxCell id="ct-table" value="&lt;table&gt;&lt;tr&gt;&lt;th&gt;Service&lt;/th&gt;&lt;th&gt;Version&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;th&gt;Stack&lt;/th&gt;&lt;th&gt;Exposes&lt;/th&gt;&lt;th&gt;Publishes&lt;/th&gt;&lt;th&gt;Consumes&lt;/th&gt;&lt;th&gt;Contracts&lt;/th&gt;&lt;th&gt;ADRs&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;AccountManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;planned&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;⚠ account-manager.openapi.yaml&lt;br&gt;⚠ account-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;StoryContentManager&lt;/td&gt;&lt;td&gt;0.0.1-SNAPSHOT&lt;/td&gt;&lt;td&gt;skeleton&lt;/td&gt;&lt;td&gt;Spring Boot 4.0.3 / Java 21&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;scene-content.updated&lt;br&gt;item-definition.updated&lt;br&gt;race-definition.updated&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;⚠ storycontent-manager.openapi.yaml&lt;br&gt;✓ storycontent-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;ADR-003, ADR-004, ADR-005, ADR-006, ADR-008&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;SceneManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;skeleton&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;player-choice.made&lt;/td&gt;&lt;td&gt;scene-content.updated&lt;/td&gt;&lt;td&gt;⚠ scene-manager.openapi.yaml&lt;br&gt;⚠ scene-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;ADR-005, ADR-010, ADR-011&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;CharacterManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;skeleton&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;REST&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;item-definition.updated&lt;br&gt;player-choice.made&lt;br&gt;race-definition.updated&lt;br&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;⚠ character-manager.openapi.yaml&lt;/td&gt;&lt;td&gt;ADR-011&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;StoryPathManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;planned&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;gRPC&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;player-choice.made&lt;br&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;✓ story_path.proto&lt;/td&gt;&lt;td&gt;ADR-011, ADR-012, ADR-013, ADR-014&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;RecapManager&lt;/td&gt;&lt;td&gt;0.0.1-SNAPSHOT&lt;/td&gt;&lt;td&gt;implemented&lt;/td&gt;&lt;td&gt;Spring Boot 4.0.3 / Java 21&lt;/td&gt;&lt;td&gt;REST, gRPC→storypath-manager&lt;/td&gt;&lt;td&gt;recap-generated&lt;/td&gt;&lt;td&gt;account-deletion-requested&lt;/td&gt;&lt;td&gt;⚠ recap-manager.openapi.yaml&lt;br&gt;✓ story_path.proto&lt;br&gt;⚠ recap-manager.asyncapi.yaml&lt;/td&gt;&lt;td&gt;ADR-012, ADR-013, ADR-014&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;TextToSpeechManager&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;planned&lt;/td&gt;&lt;td&gt;Quarkus, native binary&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;recap-generated&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;ADR-009, ADR-011&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;choose-your-fate-backend&lt;/td&gt;&lt;td&gt;0.0.1-SNAPSHOT&lt;/td&gt;&lt;td&gt;legacy&lt;/td&gt;&lt;td&gt;Spring Boot 4.0.3 / Java 21&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;ADR-008&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=10;fontSize=11;overflow=fill;" vertex="1" parent="1">
           <mxGeometry x="60" y="50" width="1900" height="760" as="geometry" />
         </mxCell>
 
@@ -1012,10 +1025,10 @@
         </mxCell>
 
         <mxCell id="pe-g1" value="storycontent.events" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#fff8e1;strokeColor=#d6a860;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#8d6e28;arcSize=4;" vertex="1" parent="1">
-          <mxGeometry x="60" y="140" width="720" height="830" as="geometry" />
+          <mxGeometry x="60" y="140" width="1060" height="830" as="geometry" />
         </mxCell>
         <mxCell id="pe-pub-storycontent" value="&lt;b&gt;StoryContentManager&lt;/b&gt;&lt;br&gt;The write side of authored content: chapters, scenes, choices, NPCs, item and quest definitions.&lt;br&gt;◐ skeleton · v0.0.1-SNAPSHOT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6a860;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="pe-g1">
-          <mxGeometry x="230" y="20" width="260" height="110" as="geometry" />
+          <mxGeometry x="400" y="20" width="260" height="110" as="geometry" />
         </mxCell>
         <mxCell id="pe-ev-scene-content" value="&lt;b&gt;scene-content.updated&lt;/b&gt;&lt;br&gt;storycontent.events&lt;br&gt;1 queue" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6a860;strokeWidth=2;align=center;verticalAlign=middle;fontSize=11;" vertex="1" parent="pe-g1">
           <mxGeometry x="30" y="160" width="320" height="70" as="geometry" />
@@ -1023,15 +1036,27 @@
         <mxCell id="pe-ev-item-def" value="&lt;b&gt;item-definition.updated&lt;/b&gt;&lt;br&gt;storycontent.events&lt;br&gt;1 queue" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6a860;strokeWidth=2;align=center;verticalAlign=middle;fontSize=11;" vertex="1" parent="pe-g1">
           <mxGeometry x="370" y="160" width="320" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="pe-pl-scene-content" value="&lt;b&gt;scene-content.updated&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;from the AsyncAPI contract&lt;/font&gt;&lt;br&gt;&lt;br&gt;{&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;sceneId&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;sceneVersion&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot; color=&quot;#78909c&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Discard anything not newer than what you hold.&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;status&quot;: &lt;font color=&quot;#b07d00&quot;&gt;PUBLISHED | RETIRED&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;chapterId&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;name&quot;: &lt;font color=&quot;#b07d00&quot;&gt;string&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;description&quot;: &lt;font color=&quot;#b07d00&quot;&gt;string&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;choices&quot;: &lt;font color=&quot;#b07d00&quot;&gt;Choice[]&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot; color=&quot;#78909c&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;choiceId, label, beat, destinationSceneId, weight, grantedItemIds&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;npcIds&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer[]&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;questIds&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer[]&lt;/font&gt;&lt;br&gt;}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffdf5;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontFamily=Courier New;" vertex="1" parent="pe-g1">
+        <mxCell id="pe-pl-scene-content" value="&lt;b&gt;scene-content.updated&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;from the AsyncAPI contract&lt;/font&gt;&lt;br&gt;&lt;br&gt;{&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;sceneId&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;sceneVersion&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot; color=&quot;#78909c&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Discard anything not newer than what you hold.&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;status&quot;: &lt;font color=&quot;#b07d00&quot;&gt;PUBLISHED | RETIRED&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;chapterId&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;name&quot;: &lt;font color=&quot;#b07d00&quot;&gt;string&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;description&quot;: &lt;font color=&quot;#b07d00&quot;&gt;string&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;choices&quot;: &lt;font color=&quot;#b07d00&quot;&gt;Choice[]&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot; color=&quot;#78909c&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;choiceId, label, beat, destinationSceneId, weight, requirements[], effects[]. An effect is a kind plus its argument: GRANT_ITEM, GRANT_QUEST, COMPLETE_QUEST, MODIFY_STAT or GRANT_FLAG. A requirement is STORY_FLAG or ITEM.&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;npcIds&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer[]&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;questIds&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer[]&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;grantedItemIds&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer[] — derived&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot; color=&quot;#78909c&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;On a choice. Exactly the itemId values of the GRANT_ITEM effects. Kept only for consumers written against 1.0.0; new ones read effects instead. Removing it is a breaking change and will be announced first.&lt;/font&gt;&lt;br&gt;}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffdf5;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontFamily=Courier New;" vertex="1" parent="pe-g1">
           <mxGeometry x="30" y="250" width="320" height="560" as="geometry" />
         </mxCell>
         <mxCell id="pe-pl-item-def" value="&lt;b&gt;item-definition.updated&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;from the AsyncAPI contract&lt;/font&gt;&lt;br&gt;&lt;br&gt;{&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;itemId&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;itemVersion&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;status&quot;: &lt;font color=&quot;#b07d00&quot;&gt;ACTIVE | RETIRED&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;type&quot;: &lt;font color=&quot;#b07d00&quot;&gt;EQUIPMENT | CONSUMABLE | QUEST&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;slot&quot;: &lt;font color=&quot;#b07d00&quot;&gt;HEAD | CHEST | LEGS | MAINHAND&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot; color=&quot;#78909c&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Only for EQUIPMENT.&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;requirements&quot;: &lt;font color=&quot;#b07d00&quot;&gt;map&lt;string,int&gt;&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;modifiers&quot;: &lt;font color=&quot;#b07d00&quot;&gt;map&lt;string,int&gt;&lt;/font&gt;&lt;br&gt;}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffdf5;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontFamily=Courier New;" vertex="1" parent="pe-g1">
           <mxGeometry x="370" y="250" width="320" height="560" as="geometry" />
         </mxCell>
 
+        <mxCell id="pe-ev-race-def" value="&lt;b&gt;race-definition.updated&lt;/b&gt;&lt;br&gt;storycontent.events&lt;br&gt;1 queue" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6a860;strokeWidth=2;align=center;verticalAlign=middle;fontSize=11;" vertex="1" parent="pe-g1">
+          <mxGeometry x="710" y="160" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="pe-pl-race-def" value="&lt;b&gt;race-definition.updated&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;from the AsyncAPI contract&lt;/font&gt;&lt;br&gt;&lt;br&gt;{&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;raceId&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;raceVersion&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot; color=&quot;#78909c&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Discard anything not newer than what you hold.&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;status&quot;: &lt;font color=&quot;#b07d00&quot;&gt;ACTIVE | RETIRED&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;name&quot;: &lt;font color=&quot;#b07d00&quot;&gt;string&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;startingChapterId&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;,&lt;br&gt;&amp;nbsp;&amp;nbsp;&quot;startingSceneId&quot;: &lt;font color=&quot;#b07d00&quot;&gt;integer&lt;/font&gt;&lt;br&gt;}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffdf5;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;fontFamily=Courier New;" vertex="1" parent="pe-g1">
+          <mxGeometry x="710" y="250" width="320" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="pe-e11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#8d6e28;strokeWidth=2;dashed=1;dashPattern=8 4 1 4;endArrow=none;" edge="1" parent="pe-g1" source="pe-pub-storycontent" target="pe-ev-race-def">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pe-e12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#8d6e28;strokeWidth=2;endArrow=block;endFill=1;" edge="1" parent="pe-g1" source="pe-ev-race-def" target="pe-pl-race-def">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="pe-g2" value="scenemanager.events" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#fff8e1;strokeColor=#d6a860;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#8d6e28;arcSize=4;" vertex="1" parent="1">
-          <mxGeometry x="820" y="140" width="380" height="830" as="geometry" />
+          <mxGeometry x="1160" y="140" width="380" height="830" as="geometry" />
         </mxCell>
         <mxCell id="pe-pub-scene" value="&lt;b&gt;SceneManager&lt;/b&gt;&lt;br&gt;The read side of content. Serves scenes to the player and validates the choice they submit.&lt;br&gt;◐ skeleton&lt;br&gt;&lt;i&gt;branch: SceneManager&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6a860;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="pe-g2">
           <mxGeometry x="60" y="20" width="260" height="110" as="geometry" />
@@ -1044,7 +1069,7 @@
         </mxCell>
 
         <mxCell id="pe-g3" value="recap.events" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#f3edf7;strokeColor=#9673a6;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#6a4f7a;arcSize=4;" vertex="1" parent="1">
-          <mxGeometry x="1240" y="140" width="380" height="830" as="geometry" />
+          <mxGeometry x="1580" y="140" width="380" height="830" as="geometry" />
         </mxCell>
         <mxCell id="pe-pub-recap" value="&lt;b&gt;RecapManager&lt;/b&gt;&lt;br&gt;Generates a recap of a character's story so far with an LLM, built incrementally from a stored checkpoint.&lt;br&gt;● v0.0.1-SNAPSHOT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="pe-g3">
           <mxGeometry x="60" y="20" width="260" height="110" as="geometry" />
@@ -1057,7 +1082,7 @@
         </mxCell>
 
         <mxCell id="pe-g4" value="account.events" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#eceff1;strokeColor=#90a4ae;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#546e7a;arcSize=4;" vertex="1" parent="1">
-          <mxGeometry x="1660" y="140" width="380" height="830" as="geometry" />
+          <mxGeometry x="2000" y="140" width="380" height="830" as="geometry" />
         </mxCell>
         <mxCell id="pe-pub-account" value="&lt;b&gt;AccountManager&lt;/b&gt;&lt;br&gt;Owns identity. Signs RS256 JWTs that every other service validates locally with the public key.&lt;br&gt;○ planned" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#90a4ae;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="pe-g4">
           <mxGeometry x="60" y="20" width="260" height="110" as="geometry" />
@@ -1108,6 +1133,151 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="pe-e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#546e7a;strokeWidth=2;dashed=1;endArrow=block;endFill=1;" edge="1" parent="pe-g4" source="pe-ev-account-deletion" target="pe-pl-account-deletion">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram name="Broker topology" id="broker-topology">
+    <mxGraphModel dx="1040" dy="1504" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="bt-title" value="Broker topology" style="text;html=1;fontSize=24;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="-130" width="1400" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-sub" value="Exchanges, the routing key on each binding, the queue each one feeds and who drains it — and where a message goes when a consumer rejects it. Solid is declared and verified against a running broker; dashed does not exist yet." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="-85" width="1800" height="24" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-pub-storycontent" value="&lt;b&gt;StoryContentManager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;declares the exchange, the three consumer queues, their bindings and the whole dead-letter path&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="180" width="280" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-pub-scenemanager" value="&lt;b&gt;SceneManager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;not written yet&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="540" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-pub-recap" value="&lt;b&gt;RecapManager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;running, but does not publish yet&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="760" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-pub-account" value="&lt;b&gt;AccountManager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;not written yet&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="900" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-broker" value="RabbitMQ — choose-your-fate-rabbitmq" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#fff9f0;strokeColor=#d79b00;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#b07d00;arcSize=3;" vertex="1" parent="1">
+          <mxGeometry x="360" y="120" width="1560" height="1080" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-ex-storycontent" value="&lt;b&gt;storycontent.events&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;topic · durable&lt;br&gt;&lt;br&gt;scene-content.updated&lt;br&gt;item-definition.updated&lt;br&gt;race-definition.updated&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2e0;strokeColor=#d79b00;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="bt-broker">
+          <mxGeometry x="60" y="60" width="340" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-q-scene-content" value="&lt;b&gt;scenemanager.scene-content&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;drained by SceneManager · durable, not auto-delete, not exclusive&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="500" y="60" width="440" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-q-item-rules" value="&lt;b&gt;charactermanager.item-rules&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;drained by CharacterManager · durable, not auto-delete, not exclusive&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="500" y="160" width="440" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-q-race-definitions" value="&lt;b&gt;charactermanager.race-definitions&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;drained by CharacterManager · renamed from race-cache: the publisher owns the queue now, so naming it after what the consumer does with the data would be wrong&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="500" y="260" width="440" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-dlq-scene-content" value="scenemanager.scene-content.dlq" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdecea;strokeColor=#c0392b;align=center;verticalAlign=middle;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="1020" y="60" width="440" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-dlq-item-rules" value="charactermanager.item-rules.dlq" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdecea;strokeColor=#c0392b;align=center;verticalAlign=middle;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="1020" y="160" width="440" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-dlq-race-definitions" value="charactermanager.race-definitions.dlq" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdecea;strokeColor=#c0392b;align=center;verticalAlign=middle;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="1020" y="260" width="440" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-ex-scenemanager" value="&lt;b&gt;scenemanager.events&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;topic · planned&lt;br&gt;player-choice.made&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="bt-broker">
+          <mxGeometry x="60" y="400" width="340" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-q-storypath-pc" value="&lt;b&gt;storypathmanager.player-choice&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;drained by StoryPathManager · one instance only, because the path is an ordered log&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="500" y="400" width="440" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-q-character-pc" value="&lt;b&gt;charactermanager.player-choice&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;drained by CharacterManager · effects are deltas, so several instances are safe&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="500" y="500" width="440" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-ex-recap" value="&lt;b&gt;recap.events&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;topic · planned&lt;br&gt;recap-generated&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="bt-broker">
+          <mxGeometry x="60" y="620" width="340" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-q-tts-recap" value="&lt;b&gt;texttospeechmanager.recap&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;drained by TextToSpeechManager · keyed on a content hash, so several instances are safe&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="500" y="620" width="440" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-ex-account" value="&lt;b&gt;account.events&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;topic · planned&lt;br&gt;account-deletion-requested&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#d79b00;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="bt-broker">
+          <mxGeometry x="60" y="760" width="340" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-q-account-del" value="&lt;b&gt;charactermanager.account-deletion&lt;br&gt;storypathmanager.account-deletion&lt;br&gt;recapmanager.account-deletion&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;one queue per service holding player state — the saga&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=#ffffff;strokeColor=#90a4ae;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="500" y="760" width="440" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-ex-dlx" value="&lt;b&gt;dlx&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;direct · durable&lt;br&gt;&lt;br&gt;Direct, because each queue dead-letters to its own exact name. A topic exchange would work too, but nothing here needs a pattern.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdecea;strokeColor=#c0392b;strokeWidth=2;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;" vertex="1" parent="bt-broker">
+          <mxGeometry x="60" y="900" width="340" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-dlq-note" value="&lt;b&gt;Nothing consumes the three .dlq queues&lt;/b&gt;&lt;br&gt;They exist so a rejected message is somewhere a person can look, rather than redelivered forever or dropped.&lt;br&gt;&lt;br&gt;Declaring dlx on its own would not have made dead-lettering work: RabbitMQ does not check x-dead-letter-exchange when a queue is declared, and an exchange with nothing bound to it discards what it receives. The queues are what make the path real.&lt;br&gt;&lt;br&gt;Retry counts and backoff are still undecided." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffdf5;strokeColor=#c0392b;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="bt-broker">
+          <mxGeometry x="1020" y="400" width="440" height="280" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-note-interim" value="&lt;b&gt;The publisher declares its consumers' queues — for now&lt;/b&gt;&lt;br&gt;A topic exchange stores nothing. Until a consumer has started once, its queue does not exist, and every event published in that window is discarded while the publish call still returns success. Nobody gets an error on either side.&lt;br&gt;&lt;br&gt;So StoryContentManager declares the queues and bindings too. That is interim, and it costs something: a consumer can no longer choose its own queue arguments, and one that redeclares a queue differently gets PRECONDITION_FAILED and will not start.&lt;br&gt;&lt;br&gt;The way back: each queue definition stays in its consumer's repository and is applied at deploy time, whether or not that consumer has ever run." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1960" y="180" width="420" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-note-pubsub" value="&lt;b&gt;Publish-subscribe here is several queues, not a shared one&lt;/b&gt;&lt;br&gt;A RabbitMQ queue is point-to-point: whatever is in it goes to exactly one consumer. Two services reading the same event therefore need two queues bound to the same exchange and routing key — which is what player-choice.made does.&lt;br&gt;&lt;br&gt;Note also that one publisher feeds two different services from one exchange: SceneManager takes scene-content.updated, CharacterManager takes the item and race definitions. The publisher knows about none of them." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1960" y="630" width="420" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-note-verified" value="&lt;b&gt;Read off a running broker&lt;/b&gt;&lt;br&gt;The solid half of this tab was checked against RabbitMQ 4.4.0 with the services started, not read out of the source. Every queue: durable, not auto-delete, not exclusive. The three consumer queues carry x-dead-letter-exchange: dlx and x-dead-letter-routing-key: &amp;lt;queue&amp;gt;.dlq.&lt;br&gt;&lt;br&gt;The dashed half is what the contracts describe and nobody has built." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#66a06a;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1960" y="1000" width="420" height="280" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-e-pub-sc" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="bt-pub-storycontent" target="bt-ex-storycontent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-e-pub-sm" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="bt-pub-scenemanager" target="bt-ex-scenemanager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-e-pub-rc" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="bt-pub-recap" target="bt-ex-recap">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-e-pub-ac" value="publishes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="bt-pub-account" target="bt-ex-account">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-b1" value="scene-content.updated" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#b07d00;" edge="1" parent="bt-broker" source="bt-ex-storycontent" target="bt-q-scene-content">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-b2" value="item-definition.updated" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#b07d00;" edge="1" parent="bt-broker" source="bt-ex-storycontent" target="bt-q-item-rules">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-b3" value="race-definition.updated" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#b07d00;" edge="1" parent="bt-broker" source="bt-ex-storycontent" target="bt-q-race-definitions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-b4" value="player-choice.made" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="bt-broker" source="bt-ex-scenemanager" target="bt-q-storypath-pc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-b5" value="player-choice.made" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="bt-broker" source="bt-ex-scenemanager" target="bt-q-character-pc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-b6" value="recap-generated" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="bt-broker" source="bt-ex-recap" target="bt-q-tts-recap">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-b7" value="account-deletion-requested" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#90a4ae;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="bt-broker" source="bt-ex-account" target="bt-q-account-del">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-d1" value="rejected" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#c0392b;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#962d22;" edge="1" parent="bt-broker" source="bt-q-scene-content" target="bt-dlq-scene-content">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-d2" value="rejected" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#c0392b;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#962d22;" edge="1" parent="bt-broker" source="bt-q-item-rules" target="bt-dlq-item-rules">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-d3" value="rejected" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#c0392b;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#962d22;" edge="1" parent="bt-broker" source="bt-q-race-definitions" target="bt-dlq-race-definitions">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-d4" value="via dlx, routing key = the queue's own name" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#c0392b;strokeWidth=2;dashed=1;endArrow=block;endFill=1;fontSize=10;fontColor=#962d22;" edge="1" parent="bt-broker" source="bt-ex-dlx" target="bt-dlq-race-definitions">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>

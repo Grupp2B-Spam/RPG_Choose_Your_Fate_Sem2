@@ -9,6 +9,7 @@
       "flow-recap",
       "env-compose",
       "env-k8s",
+      "broker-topology",
       "events",
       "contracts",
       "alt-indexer"
@@ -38,7 +39,13 @@
         "name": "payload",
         "type": "object"
       }
-    ]
+    ],
+    "topology": {
+      "declaredBy": "publisher",
+      "interim": true,
+      "why": "A topic exchange stores nothing. Until a consumer has started once, its queue does not exist, so every event published in that window is discarded while the publish call still returns success. StoryContentManager therefore declares the consumer queues and bindings as well as its own exchange.",
+      "target": "Each queue definition stays in its consumer's repository and is applied at deploy time, whether or not that consumer has ever run. Then the consumer owns its queue again without the first-start window reopening."
+    }
   },
   "services": [
     {
@@ -123,6 +130,11 @@
           "event": "item-definition.updated",
           "exchange": "storycontent.events",
           "state": "implemented"
+        },
+        {
+          "event": "race-definition.updated",
+          "exchange": "storycontent.events",
+          "state": "implemented"
         }
       ],
       "consumes": [],
@@ -135,7 +147,8 @@
       ],
       "gaps": [
         "A walking skeleton: publishes real messages, but owns no content entities yet.",
-        "Draft versus published content is not designed."
+        "Draft versus published content is not designed.",
+        "Declares its consumers' queues as well as its own exchange. Interim: see meta.topology."
       ]
     },
     {
@@ -231,6 +244,12 @@
           "queue": "charactermanager.player-choice",
           "scalable": true,
           "why": "Effects are deltas, and deltas commute (ADR-011)."
+        },
+        {
+          "event": "race-definition.updated",
+          "queue": "charactermanager.race-definitions",
+          "scalable": true,
+          "why": "Last-write-wins guarded by raceVersion, so arrival order does not change the result."
         },
         {
           "event": "account-deletion-requested",
@@ -445,7 +464,7 @@
         5672,
         15672
       ],
-      "note": "One topic exchange per publishing service. Consumers own their queues and bindings."
+      "note": "One topic exchange per publishing service. Consumers owning their queues and bindings is the target; today StoryContentManager declares its consumers queues as well, because a topic exchange stores nothing before a consumer first starts."
     },
     {
       "id": "minio",
@@ -530,7 +549,8 @@
       "ordering": "version-guarded on sceneVersion",
       "contract": {
         "path": "microservices/contracts/storycontent-manager.asyncapi.yaml",
-        "state": "written"
+        "state": "written",
+        "version": "1.2.0"
       },
       "note": "Carries the complete scene aggregate, not a notification to go and fetch it (ADR-005).",
       "payload": {
@@ -564,7 +584,7 @@
           {
             "name": "choices",
             "type": "Choice[]",
-            "note": "choiceId, label, beat, destinationSceneId, weight, grantedItemIds"
+            "note": "choiceId, label, beat, destinationSceneId, weight, requirements[], effects[]. An effect is a kind plus its argument: GRANT_ITEM, GRANT_QUEST, COMPLETE_QUEST, MODIFY_STAT or GRANT_FLAG. A requirement is STORY_FLAG or ITEM."
           },
           {
             "name": "npcIds",
@@ -573,8 +593,22 @@
           {
             "name": "questIds",
             "type": "integer[]"
+          },
+          {
+            "name": "grantedItemIds",
+            "type": "integer[] — derived",
+            "note": "On a choice. Exactly the itemId values of the GRANT_ITEM effects. Kept only for consumers written against 1.0.0; new ones read effects instead. Removing it is a breaking change and will be announced first."
           }
         ]
+      },
+      "declaredBy": "storycontent-manager",
+      "deadLetter": {
+        "exchange": "dlx",
+        "exchangeType": "direct",
+        "queues": [
+          "scenemanager.scene-content.dlq"
+        ],
+        "why": "A rejected message has to end up somewhere a human can look. Declaring the exchange alone would not have been enough: an exchange with nothing bound to it discards what it receives, so each dead-letter queue is declared and bound by its own name."
       }
     },
     {
@@ -590,7 +624,8 @@
       "ordering": "version-guarded on itemVersion",
       "contract": {
         "path": "microservices/contracts/storycontent-manager.asyncapi.yaml",
-        "state": "written"
+        "state": "written",
+        "version": "1.2.0"
       },
       "payload": {
         "state": "documented",
@@ -623,6 +658,72 @@
           {
             "name": "modifiers",
             "type": "map<string,int>"
+          }
+        ]
+      },
+      "declaredBy": "storycontent-manager",
+      "deadLetter": {
+        "exchange": "dlx",
+        "exchangeType": "direct",
+        "queues": [
+          "charactermanager.item-rules.dlq"
+        ],
+        "why": "A rejected message has to end up somewhere a human can look. Declaring the exchange alone would not have been enough: an exchange with nothing bound to it discards what it receives, so each dead-letter queue is declared and bound by its own name."
+      }
+    },
+    {
+      "name": "race-definition.updated",
+      "exchange": "storycontent.events",
+      "publisher": "storycontent-manager",
+      "consumers": [
+        "character-manager"
+      ],
+      "queues": [
+        "charactermanager.race-definitions"
+      ],
+      "declaredBy": "storycontent-manager",
+      "deadLetter": {
+        "exchange": "dlx",
+        "exchangeType": "direct",
+        "queues": [
+          "charactermanager.race-definitions.dlq"
+        ],
+        "why": "A rejected message has to end up somewhere a human can look. Declaring the exchange alone would not have been enough: an exchange with nothing bound to it discards what it receives, so each dead-letter queue is declared and bound by its own name."
+      },
+      "ordering": "version-guarded on raceVersion",
+      "contract": {
+        "path": "microservices/contracts/storycontent-manager.asyncapi.yaml",
+        "state": "written",
+        "version": "1.2.0"
+      },
+      "note": "One edit to a chapter produces one of these per affected race, because where a race starts is authored content and the character side needs it to place a new character.",
+      "payload": {
+        "state": "documented",
+        "fields": [
+          {
+            "name": "raceId",
+            "type": "integer"
+          },
+          {
+            "name": "raceVersion",
+            "type": "integer",
+            "note": "Discard anything not newer than what you hold."
+          },
+          {
+            "name": "status",
+            "type": "ACTIVE | RETIRED"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "startingChapterId",
+            "type": "integer"
+          },
+          {
+            "name": "startingSceneId",
+            "type": "integer"
           }
         ]
       }
@@ -701,7 +802,8 @@
       "payload": {
         "state": "undesigned",
         "fields": []
-      }
+      },
+      "declaredBy": "consumer"
     },
     {
       "name": "account-deletion-requested",
@@ -726,7 +828,8 @@
       "payload": {
         "state": "undesigned",
         "fields": []
-      }
+      },
+      "declaredBy": "consumer"
     }
   ],
   "openIssues": [

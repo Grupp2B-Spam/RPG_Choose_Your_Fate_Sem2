@@ -13,11 +13,10 @@ test('the published-events tab exists', () => {
 
 test('every event in the manifest has a box and a payload box', () => {
   const ids = h.cellsOf(TAB).map((c) => c.id);
-  assert.equal(h.manifest.events.length, 5);
   const boxes = ids.filter((id) => id.startsWith('pe-ev-')).length;
   const payloads = ids.filter((id) => id.startsWith('pe-pl-')).length;
-  assert.equal(boxes, 5);
-  assert.equal(payloads, 5);
+  assert.equal(boxes, h.manifest.events.length);
+  assert.equal(payloads, h.manifest.events.length);
 });
 
 test('every publisher of an event is drawn above its events', () => {
