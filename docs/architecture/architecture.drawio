@@ -98,7 +98,7 @@
         </mxCell>
 
         <mxCell id="grp-state" value="STATE&lt;br&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;the player's own, per character&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#e8f5e9;strokeColor=#66a06a;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#3f7043;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="1700" y="420" width="460" height="1000" as="geometry" />
+          <mxGeometry x="1700" y="420" width="460" height="700" as="geometry" />
         </mxCell>
         <mxCell id="panel-character-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="grp-state">
           <mxGeometry x="20" y="50" width="280" height="290" as="geometry" />
@@ -138,8 +138,8 @@
           <mxGeometry x="330" y="450" width="80" height="80" as="geometry" />
         </mxCell>
 
-        <mxCell id="panel-recap-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="grp-state">
-          <mxGeometry x="20" y="690" width="280" height="290" as="geometry" />
+        <mxCell id="panel-recap-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="grp-media">
+          <mxGeometry x="20" y="50" width="280" height="290" as="geometry" />
         </mxCell>
         <mxCell id="card-recap-manager" value="&lt;b&gt;RecapManager&lt;/b&gt;&lt;br&gt;Generates a recap of a character's story so far with an LLM, built incrementally from a stored checkpoint.&lt;br&gt;● v0.0.1-SNAPSHOT" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-recap-manager">
           <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
@@ -153,15 +153,15 @@
         <mxCell id="contracts-recap-manager" value="&lt;b&gt;Contracts&lt;/b&gt;&lt;br&gt;⚠ recap-manager.openapi.yaml&lt;br&gt;✓ story_path.proto&lt;br&gt;⚠ recap-manager.asyncapi.yaml" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-recap-manager">
           <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="db-recap-manager" value="recap-vault&lt;br&gt;MySQL 9.5" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-state">
-          <mxGeometry x="330" y="770" width="80" height="80" as="geometry" />
+        <mxCell id="db-recap-manager" value="recap-vault&lt;br&gt;MySQL 9.5" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-media">
+          <mxGeometry x="330" y="130" width="80" height="80" as="geometry" />
         </mxCell>
 
-        <mxCell id="grp-media" value="GENERATED MEDIA" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#f3edf7;strokeColor=#9673a6;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#6a4f7a;arcSize=6;" vertex="1" parent="1">
-          <mxGeometry x="1700" y="1460" width="460" height="360" as="geometry" />
+        <mxCell id="grp-media" value="GENERATED&amp;#10;&lt;font style=&quot;font-size: 11px&quot;&gt;produced, not authored and not stored per character&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#f3edf7;strokeColor=#9673a6;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=14;fontStyle=1;fontColor=#6a4f7a;arcSize=6;" vertex="1" parent="1">
+          <mxGeometry x="1700" y="1160" width="460" height="680" as="geometry" />
         </mxCell>
         <mxCell id="panel-texttospeech-manager" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#78909c;strokeWidth=2;dashed=1;verticalAlign=top;" vertex="1" parent="grp-media">
-          <mxGeometry x="20" y="50" width="280" height="290" as="geometry" />
+          <mxGeometry x="20" y="370" width="280" height="290" as="geometry" />
         </mxCell>
         <mxCell id="card-texttospeech-manager" value="&lt;b&gt;TextToSpeechManager&lt;/b&gt;&lt;br&gt;Turns a recap into audio, keyed on a content hash so the same text is never paid for twice.&lt;br&gt;○ planned" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-texttospeech-manager">
           <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
@@ -176,7 +176,7 @@
           <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
         </mxCell>
         <mxCell id="db-texttospeech-manager" value="audio store&lt;br&gt;MinIO" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-media">
-          <mxGeometry x="330" y="130" width="80" height="80" as="geometry" />
+          <mxGeometry x="330" y="450" width="80" height="80" as="geometry" />
         </mxCell>
 
         <mxCell id="broker" value="one topic exchange per publishing service&amp;#10;consumers own their queues and bindings — the target, but see the broker tab: today the publisher declares them" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2e0;strokeColor=#d79b00;strokeWidth=2;verticalAlign=top;align=center;spacingTop=8;fontSize=13;arcSize=4;" vertex="1" parent="1">
@@ -192,16 +192,16 @@
           <mxGeometry x="30" y="216" width="580" height="62" as="geometry" />
         </mxCell>
         <mxCell id="ev-race-definition-updated" value="&lt;b&gt;race-definition.updated&lt;/b&gt;&lt;br&gt;storycontent.events&lt;br&gt;1 queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
-          <mxGeometry x="30" y="488" width="580" height="62" as="geometry" />
-        </mxCell>
-        <mxCell id="ev-player-choice-made" value="&lt;b&gt;player-choice.made&lt;/b&gt;&lt;br&gt;scenemanager.events&lt;br&gt;2 queues" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
           <mxGeometry x="30" y="284" width="580" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="ev-recap-generated" value="&lt;b&gt;recap-generated&lt;/b&gt;&lt;br&gt;recap.events&lt;br&gt;1 queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
+        <mxCell id="ev-player-choice-made" value="&lt;b&gt;player-choice.made&lt;/b&gt;&lt;br&gt;scenemanager.events&lt;br&gt;2 queues" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
           <mxGeometry x="30" y="352" width="580" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="ev-account-deletion-requested" value="&lt;b&gt;account-deletion-requested&lt;/b&gt;&lt;br&gt;account.events&lt;br&gt;3 queues" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
+        <mxCell id="ev-recap-generated" value="&lt;b&gt;recap-generated&lt;/b&gt;&lt;br&gt;recap.events&lt;br&gt;1 queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
           <mxGeometry x="30" y="420" width="580" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="ev-account-deletion-requested" value="&lt;b&gt;account-deletion-requested&lt;/b&gt;&lt;br&gt;account.events&lt;br&gt;3 queues" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;dashed=1;fontSize=10;align=center;" vertex="1" parent="broker">
+          <mxGeometry x="30" y="488" width="580" height="62" as="geometry" />
         </mxCell>
 
         <mxCell id="panel-choose-your-fate-backend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eceff1;strokeColor=#78909c;strokeWidth=2;verticalAlign=top;" vertex="1" parent="1">
@@ -289,13 +289,13 @@
         </mxCell>
         <mxCell id="e-gw-recap" value="REST · /choose-your-fate/ai" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="gw" target="panel-recap-manager">
           <mxGeometry relative="1" as="geometry">
-            <Array as="points"><mxPoint x="1580" y="340" /><mxPoint x="1580" y="1155" /></Array>
+            <Array as="points"><mxPoint x="1580" y="340" /><mxPoint x="1580" y="1255" /></Array>
           </mxGeometry>
         </mxCell>
 
         <mxCell id="e-recap-storypath" value="gRPC · GetChoicesAfter" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#6c5ce7;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;fontColor=#6c5ce7;" edge="1" parent="1" source="panel-recap-manager" target="panel-storypath-manager">
           <mxGeometry relative="1" as="geometry">
-            <Array as="points"><mxPoint x="2060" y="1155" /><mxPoint x="2060" y="835" /></Array>
+            <Array as="points"><mxPoint x="2060" y="1255" /><mxPoint x="2060" y="835" /></Array>
           </mxGeometry>
         </mxCell>
 
@@ -360,12 +360,17 @@
             <Array as="points"><mxPoint x="1300" y="1305" /><mxPoint x="1300" y="1655" /></Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-account-deletion-state" value="consumes · every service holding player state (the saga)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-account-deletion-requested" target="grp-state">
+        <mxCell id="e-account-deletion-state" value="consumes · CharacterManager and StoryPathManager" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-account-deletion-requested" target="grp-state">
           <mxGeometry relative="1" as="geometry">
-            <Array as="points"><mxPoint x="1340" y="1395" /><mxPoint x="1340" y="1470" /></Array>
+            <Array as="points"><mxPoint x="1340" y="1380" /><mxPoint x="1340" y="1100" /></Array>
           </mxGeometry>
         </mxCell>
 
+        <mxCell id="e-account-deletion-recap" value="consumes · RecapManager (the saga reaches it too)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#d79b00;strokeWidth=2;dashed=1;endArrow=open;endFill=0;fontSize=10;fontColor=#b07d00;" edge="1" parent="1" source="ev-account-deletion-requested" target="panel-recap-manager">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="1380" y="1380" /><mxPoint x="1380" y="1255" /></Array>
+          </mxGeometry>
+        </mxCell>
         <mxCell id="e-db-account" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-identity" source="panel-account-manager" target="db-account-manager">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
@@ -384,7 +389,7 @@
         <mxCell id="e-db-storypath" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-state" source="panel-storypath-manager" target="db-storypath-manager">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-db-recap" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-state" source="panel-recap-manager" target="db-recap-manager">
+        <mxCell id="e-db-recap" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-media" source="panel-recap-manager" target="db-recap-manager">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e-db-tts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#b0bec5;strokeWidth=1;endArrow=none;" edge="1" parent="grp-media" source="panel-texttospeech-manager" target="db-texttospeech-manager">

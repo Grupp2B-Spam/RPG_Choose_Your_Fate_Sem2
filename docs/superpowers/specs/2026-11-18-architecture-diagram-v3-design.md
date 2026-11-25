@@ -362,6 +362,7 @@ printed and do not fail.
 | 13 | Every `parent`, `source` and `target` names a cell that exists | error |
 | 14 | No child is drawn outside its parent's bounds | error |
 | 15 | Every payload field the manifest declares still appears in the contract that describes it | warning |
+| 16 | A service is drawn inside the group its declared context names | error |
 
 Checks 12 to 14 were added after a review of the first build, which demonstrated two ways
 the diagram could ship something false with CI green. Check 12 closes the gap between the
@@ -403,7 +404,7 @@ it is clearer as its own tab, and it is the tab the report's section 2.2 is writ
 
 | # | Tab | Report section | Content |
 |---|---|---|---|
-| 1 | Architecture | 2.1 | Seven services grouped by bounded context (IDENTITY / CONTENT / STATE / GENERATED MEDIA), each box carrying name, purpose, version and a status badge, with its datastore attached. `SceneIndexer` is drawn inside `SceneManager` as its projection deployment, not as a peer (ADR-010). The monolith `choose-your-fate-backend` sits apart as a legacy node, with pale arrows to the services being lifted out of it — the decomposition is the story this tab tells. RabbitMQ shown with one exchange per publisher. Three edge styles (§7.9). |
+| 1 | Architecture | 2.1 | Seven services grouped by bounded context (IDENTITY / CONTENT / STATE / GENERATED). RecapManager sits with TextToSpeechManager under GENERATED, as it did in v2: both produce rather than store, and check 16 now holds the drawing and the manifest to the same answer, each box carrying name, purpose, version and a status badge, with its datastore attached. `SceneIndexer` is drawn inside `SceneManager` as its projection deployment, not as a peer (ADR-010). The monolith `choose-your-fate-backend` sits apart as a legacy node, with pale arrows to the services being lifted out of it — the decomposition is the story this tab tells. RabbitMQ shown with one exchange per publisher. Three edge styles (§7.9). |
 | 2 | Flow — player makes a choice | 2.3, 2.4.4 | Updated from v2: the per-character sequence number (ADR-013), two independent consumers, and ADR-013's open question marked on the diagram as open. |
 | 3 | Flow — recap with narration | 2.3, 2.4.2 | Rewritten: `RecapManager` to `StoryPathManager` over **gRPC** `GetChoicesAfter(characterId, afterSequence, pageSize, snapshotSequence)`, the stored checkpoint, pagination via `snapshotSequence`, then `recap-generated` to TTS. Content-hash idempotence retained from v2. |
 | 4 | Development environment — docker-compose | 3.1 | Containers, images, host ports, volumes, healthchecks, the `include:` structure and the `prod` profile. Drawn from the **consolidated** compose — RabbitMQ 4 and one included file per service — which is the one the group keeps, not the stale `rabbitmq:3.13` / `bar-scan-rabbitmq` version still on `main` (§5). Current state, not target state: what `docker compose up` starts. |

@@ -19,8 +19,11 @@ const SAMPLE = `<?xml version="1.0" encoding="utf-8"?>
         <mxCell id="b" value="Another box" style="rounded=1;" vertex="1" parent="1">
           <mxGeometry x="400" y="60" width="180" height="75" as="geometry" />
         </mxCell>
-        <mxCell id="panel-recap-manager" value="" style="rounded=1;strokeColor=#78909c;" vertex="1" parent="1">
-          <mxGeometry x="40" y="200" width="280" height="290" as="geometry" />
+        <mxCell id="grp-state" value="STATE" style="rounded=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="180" width="320" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="panel-recap-manager" value="" style="rounded=1;strokeColor=#78909c;" vertex="1" parent="grp-state">
+          <mxGeometry x="20" y="20" width="280" height="290" as="geometry" />
         </mxCell>
         <mxCell id="e1" style="strokeColor=#6c5ce7;" edge="1" parent="1" source="a" target="b">
           <mxGeometry relative="1" as="geometry">
@@ -47,7 +50,14 @@ function manifest(extra = {}) {
   return {
     meta: { version: 3, updated: '2026-11-18', tabs: ['arch-main', 'contracts'] },
     services: [
-      { id: 'recap-manager', kind: 'service', display: 'RecapManager', status: 'implemented', purpose: 'x' },
+      {
+        id: 'recap-manager',
+        kind: 'service',
+        display: 'RecapManager',
+        status: 'implemented',
+        context: 'state',
+        purpose: 'x',
+      },
     ],
     infrastructure: [],
     events: [
@@ -242,6 +252,27 @@ test('check 14 fails when a child escapes its parent bounds', () => {
   const found = checks({ xml }).find((f) => f.check === 14);
   assert.equal(found.severity, 'error');
   assert.match(found.message, /\bb\b/);
+});
+
+// --- check 16: the group a service is drawn in matches the one it claims -----------
+
+test('check 16 fails when a service is drawn in a different context than it claims', () => {
+  const m = manifest();
+  m.services[0].context = 'media';
+  const found = checks({ manifest: m }).find((f) => f.check === 16);
+  assert.equal(found.severity, 'error');
+  assert.match(found.message, /recap-manager/);
+  assert.match(found.message, /grp-media/);
+});
+
+test('check 16 is quiet when the drawing and the manifest agree', () => {
+  assert.equal(checks().filter((f) => f.check === 16).length, 0);
+});
+
+test('check 16 skips a node with no context of its own', () => {
+  const m = manifest();
+  delete m.services[0].context;
+  assert.equal(checks({ manifest: m }).filter((f) => f.check === 16).length, 0);
 });
 
 test('a well-formed, complete diagram produces no structural findings', () => {

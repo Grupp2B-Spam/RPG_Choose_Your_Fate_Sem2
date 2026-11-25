@@ -110,6 +110,22 @@ function run(ctx) {
     }
   }
 
+  // --- 16: the group a service is drawn in is the one it claims ---------------------
+  // The manifest says which bounded context a service belongs to; the drawing says it
+  // again by which group the box sits in. Nothing connected the two, so they could
+  // disagree in silence — which they did, until someone noticed by eye.
+  for (const s of manifest.services) {
+    if (!s.context) continue;
+    const panel = panels.get(s.id);
+    if (!panel || !panel.parent) continue;
+    const expected = `grp-${s.context}`;
+    if (panel.parent !== expected) {
+      findings.push(
+        error(16, `${s.id} claims context '${s.context}' but its box is drawn in '${panel.parent}', not '${expected}'`)
+      );
+    }
+  }
+
   // --- 13: nothing references a cell that is not there ------------------------------
   // draw.io drops a cell whose parent is missing, and an edge whose endpoint is gone,
   // without complaining. Content disappears from the diagram quietly.

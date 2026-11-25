@@ -302,7 +302,7 @@
       "branch": "main",
       "version": "0.0.1-SNAPSHOT",
       "stack": "Spring Boot 4.0.3 / Java 21",
-      "context": "state",
+      "context": "media",
       "purpose": "Generates a recap of a character's story so far with an LLM, built incrementally from a stored checkpoint.",
       "datastore": {
         "name": "recap-vault",
