@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="urn:choose-your-fate:account:v1"
+           elementFormDefault="qualified">
+    <xs:element name="GetVerificationKeyRequest">
+        <xs:complexType/>
+    </xs:element>
+    <xs:element name="GetVerificationKeyResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="issuer" type="xs:anyURI"/>
+                <xs:element name="audience" type="xs:string"/>
+                <xs:element name="algorithm" type="xs:string" fixed="RS256"/>
+                <xs:element name="publicKey" type="xs:base64Binary">
+                    <xs:annotation>
+                        <xs:documentation>DER-encoded RSA SubjectPublicKeyInfo (X.509 public key).</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
