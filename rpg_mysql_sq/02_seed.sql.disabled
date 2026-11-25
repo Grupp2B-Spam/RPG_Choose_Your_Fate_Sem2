@@ -35,7 +35,7 @@ INSERT INTO chapter (name) VALUES
 ('Chapter 3 - The Ancient Vault');
 
 -- Scenes
-INSERT INTO scene (chapter_id, name) VALUES
+INSERT INTO sceneId (chapter_id, name) VALUES
 (1, 'The Tavern'),           -- 1
 (1, 'The Town Square'),      -- 2
 (1, 'The Town Gate'),        -- 3

@@ -102,7 +102,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 &nbsp;    @ManyToOne(optional = false)
 &nbsp;    @JoinColumn(name = &quot;scene_id&quot;, nullable = false)
-&nbsp;    private Scene scene;
+&nbsp;    private Scene sceneId;
 &nbsp;
 &nbsp;    @ManyToOne
 &nbsp;    @JoinColumn(name = &quot;destination_scene_id&quot;)
@@ -131,8 +131,8 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="fc">&nbsp;    public Integer getId() { return id; }</b>
 <b class="fc">&nbsp;    public void setId(Integer id) { this.id = id; }</b>
 &nbsp;
-<b class="fc">&nbsp;    public Scene getScene() { return scene; }</b>
-<b class="fc">&nbsp;    public void setScene(Scene scene) { this.scene = scene; }</b>
+<b class="fc">&nbsp;    public Scene getScene() { return sceneId; }</b>
+<b class="fc">&nbsp;    public void setScene(Scene sceneId) { this.sceneId = sceneId; }</b>
 &nbsp;
 <b class="fc">&nbsp;    public Scene getDestinationScene() { return destinationScene; }</b>
 <b class="fc">&nbsp;    public void setDestinationScene(Scene destinationScene) { this.destinationScene = destinationScene; }</b>

@@ -76,7 +76,7 @@ WHERE n BETWEEN 6 AND 100;
 -- ---------------------------------------------------------------------------
 -- Scenes (5 existing -> add 95)
 -- ---------------------------------------------------------------------------
-INSERT INTO scene (id, chapter_id, name)
+INSERT INTO sceneId (id, chapter_id, name)
 SELECT
     n,
     n,
@@ -167,7 +167,7 @@ SELECT
     n,
     n,
     CONCAT(
-        'Support the locals in scene ',
+        'Support the locals in sceneId ',
         LPAD(n, 3, '0'),
         ' by securing a clue, completing a delivery, or exposing a nearby threat.'
     )
@@ -201,11 +201,11 @@ SELECT
     n - 2,
     n - 1,
     CASE MOD(n - 7, 5)
-        WHEN 0 THEN CONCAT('Press onward from scene ', LPAD(n - 2, 3, '0'), ' and follow the clearest road toward the next district.')
-        WHEN 1 THEN CONCAT('Speak with the local authority in scene ', LPAD(n - 2, 3, '0'), ' and accept a structured task.')
-        WHEN 2 THEN CONCAT('Search the area around scene ', LPAD(n - 2, 3, '0'), ' for tactical advantages before moving on.')
-        WHEN 3 THEN CONCAT('Take the risky shortcut out of scene ', LPAD(n - 2, 3, '0'), ' to save time at a personal cost.')
-        ELSE CONCAT('Use what you have learned in scene ', LPAD(n - 2, 3, '0'), ' to close out the current objective.')
+        WHEN 0 THEN CONCAT('Press onward from sceneId ', LPAD(n - 2, 3, '0'), ' and follow the clearest road toward the next district.')
+        WHEN 1 THEN CONCAT('Speak with the local authority in sceneId ', LPAD(n - 2, 3, '0'), ' and accept a structured task.')
+        WHEN 2 THEN CONCAT('Search the area around sceneId ', LPAD(n - 2, 3, '0'), ' for tactical advantages before moving on.')
+        WHEN 3 THEN CONCAT('Take the risky shortcut out of sceneId ', LPAD(n - 2, 3, '0'), ' to save time at a personal cost.')
+        ELSE CONCAT('Use what you have learned in sceneId ', LPAD(n - 2, 3, '0'), ' to close out the current objective.')
     END,
     CASE MOD(n - 7, 5)
         WHEN 0 THEN 'travel'
@@ -255,7 +255,7 @@ FROM (
 -- ---------------------------------------------------------------------------
 -- Characters (3 existing -> add 97)
 -- Trigger auto-creates inventory, equipment, character_details and character_path.
--- Every generated character starts in a scene that has at least one choice.
+-- Every generated character starts in a sceneId that has at least one choice.
 -- ---------------------------------------------------------------------------
 INSERT INTO character_avatar (
     id,
@@ -362,7 +362,7 @@ JOIN character_path_choice cpc
     ON cpc.character_path_id = cp.id
 JOIN choice ch
     ON ch.id = cpc.choice_id
-JOIN scene dest
+JOIN sceneId dest
     ON dest.id = ch.destination_scene_id
 SET
     ca.scene_id = dest.id,
@@ -374,7 +374,7 @@ JOIN character_avatar ca
     ON ca.id = cp.character_id
 SET cp.summary = CONCAT(
     ca.name,
-    ' has already moved beyond their starting point and is currently navigating scene ',
+    ' has already moved beyond their starting point and is currently navigating sceneId ',
     LPAD(ca.scene_id, 3, '0'),
     ' while balancing faction ties and personal survival.'
 )

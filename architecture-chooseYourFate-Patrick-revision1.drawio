@@ -593,7 +593,7 @@
             <mxPoint x="585" y="205" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ka1" value="3. validates against the read model:&lt;br&gt;does the choice exist in the scene?" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="ka1" value="3. validates against the read model:&lt;br&gt;does the choice exist in the sceneId?" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="495" y="235" width="180" height="46" as="geometry" />
         </mxCell>
         <mxCell id="k4" value="4. publishes { eventId, characterId, sceneId, sceneVersion, choiceId, beat, effects }" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;fontSize=11;" edge="1" parent="1">
@@ -602,7 +602,7 @@
             <mxPoint x="805" y="330" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="k5" value="5. next scene — immediately" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=0;fontSize=11;endSize=8;strokeColor=#82b366;fontColor=#4d7a3a;" edge="1" parent="1">
+        <mxCell id="k5" value="5. next sceneId — immediately" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;rounded=0;fontSize=11;endSize=8;strokeColor=#82b366;fontColor=#4d7a3a;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="585" y="395" as="sourcePoint" />
             <mxPoint x="365" y="395" as="targetPoint" />

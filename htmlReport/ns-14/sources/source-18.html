@@ -102,7 +102,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    @ManyToOne(fetch = FetchType.LAZY)
 &nbsp;    @MapsId(&quot;sceneId&quot;)
 &nbsp;    @JoinColumn(name = &quot;scene_id&quot;)
-&nbsp;    private Scene scene;
+&nbsp;    private Scene sceneId;
 &nbsp;
 &nbsp;    @ManyToOne(fetch = FetchType.LAZY)
 &nbsp;    @MapsId(&quot;npcId&quot;)
@@ -111,17 +111,17 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 <b class="nc">&nbsp;    public SceneHasNpc() {}</b>
 &nbsp;
-<b class="nc">&nbsp;    public SceneHasNpc(Scene scene, Npc npc) {</b>
-<b class="nc">&nbsp;        this.scene = scene;</b>
+<b class="nc">&nbsp;    public SceneHasNpc(Scene sceneId, Npc npc) {</b>
+<b class="nc">&nbsp;        this.sceneId = sceneId;</b>
 <b class="nc">&nbsp;        this.npc = npc;</b>
-<b class="nc">&nbsp;        this.id = new SceneHasNpcId(scene.getId(), npc.getId());</b>
+<b class="nc">&nbsp;        this.id = new SceneHasNpcId(sceneId.getId(), npc.getId());</b>
 &nbsp;    }
 &nbsp;
 <b class="nc">&nbsp;    public SceneHasNpcId getId() { return id; }</b>
 <b class="nc">&nbsp;    public void setId(SceneHasNpcId id) { this.id = id; }</b>
 &nbsp;
-<b class="nc">&nbsp;    public Scene getScene() { return scene; }</b>
-<b class="nc">&nbsp;    public void setScene(Scene scene) { this.scene = scene; }</b>
+<b class="nc">&nbsp;    public Scene getScene() { return sceneId; }</b>
+<b class="nc">&nbsp;    public void setScene(Scene sceneId) { this.sceneId = sceneId; }</b>
 &nbsp;
 <b class="nc">&nbsp;    public Npc getNpc() { return npc; }</b>
 <b class="nc">&nbsp;    public void setNpc(Npc npc) { this.npc = npc; }</b>

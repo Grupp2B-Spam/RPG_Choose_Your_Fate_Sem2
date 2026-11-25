@@ -60,12 +60,12 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import java.util.Optional;
 &nbsp;
 &nbsp;public interface SceneRepository extends JpaRepository&lt;Scene, Integer&gt; {
-&nbsp;    // Loads scenes with their choices and each choice&#39;s destination scene.
+&nbsp;    // Loads scenes with their choices and each choice&#39;s destination sceneId.
 &nbsp;    @EntityGraph(attributePaths = {&quot;chapter&quot;, &quot;choices&quot;, &quot;choices.destinationScene&quot;, &quot;choices.destinationScene.chapter&quot;})
 &nbsp;    @Query(&quot;select distinct s from Scene s&quot;)
 &nbsp;    List&lt;Scene&gt; findAllWithLookAhead();
 &nbsp;
-&nbsp;    // Loads one scene with its choices and each choice&#39;s destination scene.
+&nbsp;    // Loads one sceneId with its choices and each choice&#39;s destination sceneId.
 &nbsp;    @EntityGraph(attributePaths = {&quot;chapter&quot;, &quot;choices&quot;, &quot;choices.destinationScene&quot;, &quot;choices.destinationScene.chapter&quot;})
 &nbsp;    @Query(&quot;select s from Scene s where s.id = :id&quot;)
 &nbsp;    Optional&lt;Scene&gt; findByIdWithLookAhead(@Param(&quot;id&quot;) Integer id);

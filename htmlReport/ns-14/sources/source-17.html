@@ -95,7 +95,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import java.util.List;
 &nbsp;
 &nbsp;@Entity
-&nbsp;@Table(name = &quot;scene&quot;)
+&nbsp;@Table(name = &quot;sceneId&quot;)
 &nbsp;public class Scene {
 &nbsp;
 &nbsp;    @Id
@@ -109,13 +109,13 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    @Column(length = 100)
 &nbsp;    private String name;
 &nbsp;
-<b class="fc">&nbsp;    @OneToMany(mappedBy = &quot;scene&quot;)</b>
+<b class="fc">&nbsp;    @OneToMany(mappedBy = &quot;sceneId&quot;)</b>
 &nbsp;    private List&lt;CharacterAvatar&gt; characters = new ArrayList&lt;&gt;();
 &nbsp;
-<b class="fc">&nbsp;    @OneToMany(mappedBy = &quot;scene&quot;)</b>
+<b class="fc">&nbsp;    @OneToMany(mappedBy = &quot;sceneId&quot;)</b>
 &nbsp;    private List&lt;Quest&gt; quests = new ArrayList&lt;&gt;();
 &nbsp;
-<b class="fc">&nbsp;    @OneToMany(mappedBy = &quot;scene&quot;)</b>
+<b class="fc">&nbsp;    @OneToMany(mappedBy = &quot;sceneId&quot;)</b>
 &nbsp;    private List&lt;Choice&gt; choices = new ArrayList&lt;&gt;();
 &nbsp;
 <b class="fc">&nbsp;    public Scene() {}</b>
