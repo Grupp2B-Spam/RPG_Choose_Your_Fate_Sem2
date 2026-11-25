@@ -45,7 +45,7 @@ test('no tab anywhere still mentions the dropped commerce service', () => {
 test('tab 7 explains why the separate indexer was rejected', () => {
   const text = h.textOf('alt-indexer');
   assert.match(text, /share one datastore/i);
-  assert.match(text, /ADR-010/);
+  assert.match(text, /one service, two deployments/i);
 });
 
 test('tab 7 states the test that decides ownership', () => {

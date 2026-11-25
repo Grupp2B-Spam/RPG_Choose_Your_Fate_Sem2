@@ -26,7 +26,7 @@
           <mxGeometry x="1320" y="40" width="240" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="gw" value="&lt;b&gt;API Gateway&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;TLS termination · JWT validation · rate limiting · routing&lt;br&gt;REST and GraphQL only — gRPC never leaves the cluster (ADR-014)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="gw" value="&lt;b&gt;API Gateway&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;TLS termination · JWT validation · rate limiting · routing&lt;br&gt;REST and GraphQL only — gRPC never leaves the cluster&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="900" y="180" width="640" height="80" as="geometry" />
         </mxCell>
 
@@ -89,7 +89,7 @@
         <mxCell id="contracts-scene-manager" value="{{service:scene-manager:contracts}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;fontSize=10;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-scene-manager">
           <mxGeometry x="0" y="230" width="280" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="deploy-scene-indexer" value="SceneIndexer&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;projection worker — same codebase,&lt;br&gt;same release, deployed separately (ADR-010)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf6e3;strokeColor=#b0bec5;dashed=1;fontSize=10;align=center;" vertex="1" parent="panel-scene-manager">
+        <mxCell id="deploy-scene-indexer" value="SceneIndexer&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;projection worker — same codebase,&lt;br&gt;same release, deployed separately&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf6e3;strokeColor=#b0bec5;dashed=1;fontSize=10;align=center;" vertex="1" parent="panel-scene-manager">
           <mxGeometry x="0" y="290" width="280" height="70" as="geometry" />
         </mxCell>
         <mxCell id="db-scene-manager" value="scene read model&lt;br&gt;MongoDB" style="image;html=1;labelBackgroundColor=none;image=img/lib/clip_art/computers/Database_128x128.png;verticalLabelPosition=bottom;verticalAlign=top;fontSize=10;" vertex="1" parent="grp-content">
@@ -209,7 +209,7 @@
         <mxCell id="card-choose-your-fate-backend" value="{{service:choose-your-fate-backend:card}}" style="text;html=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="panel-choose-your-fate-backend">
           <mxGeometry x="0" y="0" width="640" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="note-legacy" value="The only part of the system that runs today. The seven services are being lifted out of it (ADR-008); the pale arrows say which bounded context each part becomes. No compose file starts it, and no decommissioning date has been set." style="text;html=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;fontSize=10;fontColor=#546e7a;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-choose-your-fate-backend">
+        <mxCell id="note-legacy" value="The only part of the system that runs today. The seven services are being lifted out of it; the pale arrows say which bounded context each part becomes. No compose file starts it, and no decommissioning date has been set." style="text;html=1;align=left;verticalAlign=top;spacingLeft=12;spacingTop=6;fontSize=10;fontColor=#546e7a;strokeColor=none;fillColor=#f5f7f8;whiteSpace=wrap;" vertex="1" parent="panel-choose-your-fate-backend">
           <mxGeometry x="0" y="150" width="640" height="150" as="geometry" />
         </mxCell>
 
@@ -241,16 +241,16 @@
         <mxCell id="note-graphql" value="&lt;b&gt;Open — GraphQL owner&lt;/b&gt;&lt;br&gt;At least one service must expose GraphQL. SceneManager and CharacterManager are the candidates: both answer queries where a client wants many related fields in one round trip." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="2220" y="620" width="340" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="note-adr013" value="&lt;b&gt;Open — ADR-013&lt;/b&gt;&lt;br&gt;Who assigns the per-character sequence number? If StoryPathManager assigns it on insert, ordering still depends on arrival order and nothing is gained — and until it is answered, StoryPathManager cannot be scaled horizontally (ADR-011)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+        <mxCell id="note-adr013" value="&lt;b&gt;Open — who assigns the sequence number&lt;/b&gt;&lt;br&gt;Who assigns the per-character sequence number? If StoryPathManager assigns it on insert, ordering still depends on arrival order and nothing is gained — and until it is answered, StoryPathManager cannot be scaled horizontally." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="2220" y="800" width="340" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="note-proto" value="&lt;b&gt;Open — ADR-012&lt;/b&gt;&lt;br&gt;story_path.proto describes StoryPathManager's API but lives in RecapManager's source tree, so the server's owner can have their interface changed without touching their own code." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+        <mxCell id="note-proto" value="&lt;b&gt;Open — who owns the gRPC contract&lt;/b&gt;&lt;br&gt;story_path.proto describes StoryPathManager's API but lives in RecapManager's source tree, so the server's owner can have their interface changed without touching their own code." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="2220" y="1000" width="340" height="150" as="geometry" />
         </mxCell>
         <mxCell id="note-ports" value="&lt;b&gt;Open — port allocation&lt;/b&gt;&lt;br&gt;8081 and 8090 are taken, and 8092 is implied by RecapManager's JWT_ISSUER default without anyone having written it down. Services with no agreed port show none here rather than an invented one." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="2220" y="1180" width="340" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="note-keda" value="&lt;b&gt;Open — serverless&lt;/b&gt;&lt;br&gt;TextToSpeechManager is meant to run as a KEDA ScaledJob scaled on queue depth, which is why it is on Quarkus (ADR-009). Neither the job nor the cold-start measurement exists yet." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+        <mxCell id="note-keda" value="&lt;b&gt;Open — serverless&lt;/b&gt;&lt;br&gt;TextToSpeechManager is meant to run as a KEDA ScaledJob scaled on queue depth, which is why it is on Quarkus. Neither the job nor the cold-start measurement exists yet." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="2220" y="1460" width="340" height="160" as="geometry" />
         </mxCell>
 
@@ -445,7 +445,7 @@
         <mxCell id="fc-a2" value="7a. applies the effects&lt;br&gt;−10 HP, +1 sword&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;deltas commute, so this consumer scales&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="fc-l5">
           <mxGeometry x="10" y="560" width="180" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="fc-a3" value="7b. appends the beat at its sequence number&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;an ordered log: one consumer instance until ADR-013 is answered&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="fc-l6">
+        <mxCell id="fc-a3" value="7b. appends the beat at its sequence number&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;an ordered log: one consumer instance until the sequence number has an owner&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="fc-l6">
           <mxGeometry x="10" y="640" width="180" height="80" as="geometry" />
         </mxCell>
 
@@ -474,7 +474,7 @@
         <mxCell id="fc-n2" value="&lt;b&gt;What the queue has to guarantee&lt;/b&gt;&lt;br&gt;Delivery is at-least-once, so both consumers deduplicate on eventId. Order matters only for the path, and it is carried in the data: every entry has a per-character sequence number, so entries can arrive in any order and still be read in sequence." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="1520" y="350" width="320" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="fc-n3" value="&lt;b&gt;Open — ADR-013&lt;/b&gt;&lt;br&gt;Who assigns the sequence number? If StoryPathManager assigns it on insert, ordering still depends on arrival order and nothing is gained — the number has to be assigned by the publisher. But that means SceneManager would need to know the character's current position, which today lives in StoryPathManager.&lt;br&gt;&lt;br&gt;Until this is settled, StoryPathManager runs as a single consumer instance (ADR-011)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+        <mxCell id="fc-n3" value="&lt;b&gt;Open — who assigns the sequence number&lt;/b&gt;&lt;br&gt;Who assigns the sequence number? If StoryPathManager assigns it on insert, ordering still depends on arrival order and nothing is gained — the number has to be assigned by the publisher. But that means SceneManager would need to know the character's current position, which today lives in StoryPathManager.&lt;br&gt;&lt;br&gt;Until this is settled, StoryPathManager runs as a single consumer instance." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="1520" y="580" width="320" height="260" as="geometry" />
         </mxCell>
       </root>
@@ -516,7 +516,7 @@
         <mxCell id="fr-a1" value="3. reads its checkpoint for this character&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;the sequence number of the last beat already in the recap&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="fr-l3">
           <mxGeometry x="10" y="150" width="180" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="fr-a2" value="7. generates the recap with the LLM and stores it&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;the checkpoint advances to snapshotSequence — the snapshot pattern, ADR-013&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="fr-l3">
+        <mxCell id="fr-a2" value="7. generates the recap with the LLM and stores it&lt;br&gt;&lt;font style=&quot;font-size: 9px&quot;&gt;the checkpoint advances to snapshotSequence — the snapshot pattern&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="fr-l3">
           <mxGeometry x="10" y="480" width="180" height="80" as="geometry" />
         </mxCell>
         <mxCell id="fr-a3" value="9. hash = sha256(text + voice)&lt;br&gt;looks in its own store first" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="fr-l5">
@@ -554,7 +554,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <mxCell id="fr-n1" value="&lt;b&gt;Why gRPC and not REST&lt;/b&gt;&lt;br&gt;RecapManager needs the path to answer a request already in flight, so the call is synchronous. The defensible argument is the enforced contract, not speed: story_path.proto is compiled into both sides, so calling a method that does not exist fails the build rather than the request (ADR-012, ADR-014)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+        <mxCell id="fr-n1" value="&lt;b&gt;Why gRPC and not REST&lt;/b&gt;&lt;br&gt;RecapManager needs the path to answer a request already in flight, so the call is synchronous. The defensible argument is the enforced contract, not speed: story_path.proto is compiled into both sides, so calling a method that does not exist fails the build rather than the request." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
           <mxGeometry x="1520" y="120" width="320" height="220" as="geometry" />
         </mxCell>
         <mxCell id="fr-n2" value="&lt;b&gt;Cache hit&lt;/b&gt;&lt;br&gt;Steps 10 to 12 are skipped entirely. The answer is immediate and costs nothing at ElevenLabs, because the same text and voice always hash to the same file and the store never overwrites." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f7f8;strokeColor=#b0bec5;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
@@ -765,7 +765,7 @@
         <mxCell id="k8-i-storypath" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=deploy;" vertex="1" parent="k8-n-storypath-manager">
           <mxGeometry x="10" y="20" width="50" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="k8-t-storypath" value="&lt;b&gt;storypath-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service :9091 gRPC&lt;br&gt;&lt;b&gt;replicas: 1&lt;/b&gt; — an ordered log, until ADR-013&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-storypath-manager">
+        <mxCell id="k8-t-storypath" value="&lt;b&gt;storypath-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;Deployment + Service :9091 gRPC&lt;br&gt;&lt;b&gt;replicas: 1&lt;/b&gt; — an ordered log, until the sequence number has an owner&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-storypath-manager">
           <mxGeometry x="68" y="8" width="184" height="74" as="geometry" />
         </mxCell>
 
@@ -785,7 +785,7 @@
         <mxCell id="k8-i-tts" value="" style="sketch=0;html=1;dashed=0;whiteSpace=wrap;fillColor=#2875E2;strokeColor=none;shape=mxgraph.kubernetes.icon;prIcon=job;" vertex="1" parent="k8-n-texttospeech-manager">
           <mxGeometry x="10" y="30" width="50" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="k8-t-tts" value="&lt;b&gt;texttospeech-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;KEDA &lt;b&gt;ScaledJob&lt;/b&gt;, not a Deployment&lt;br&gt;scales to zero · one pod per message&lt;br&gt;Quarkus native — milliseconds to start (ADR-009)&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-texttospeech-manager">
+        <mxCell id="k8-t-tts" value="&lt;b&gt;texttospeech-manager&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px&quot;&gt;KEDA &lt;b&gt;ScaledJob&lt;/b&gt;, not a Deployment&lt;br&gt;scales to zero · one pod per message&lt;br&gt;Quarkus native — milliseconds to start&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;strokeColor=none;fillColor=none;whiteSpace=wrap;" vertex="1" parent="k8-n-texttospeech-manager">
           <mxGeometry x="68" y="8" width="184" height="94" as="geometry" />
         </mxCell>
 
@@ -838,7 +838,7 @@
           <mxGeometry x="20" y="380" width="360" height="165" as="geometry" />
         </mxCell>
 
-        <mxCell id="k8-note-open-keda" value="&lt;b&gt;Open — how KEDA gets its metric&lt;/b&gt;&lt;br&gt;Drawn reading RabbitMQ directly, which is KEDA's own scaler and needs nothing else. The alternative is RabbitMQ Exporter → Prometheus → KEDA, which is worth it only if the scaling decision needs a derived metric rather than a queue length.&lt;br&gt;&lt;br&gt;Also open: nothing here is built, so ADR-009's claim that a Quarkus native binary makes scale-to-zero worth having is still a claim, not a measurement." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="k8-cluster">
+        <mxCell id="k8-note-open-keda" value="&lt;b&gt;Open — how KEDA gets its metric&lt;/b&gt;&lt;br&gt;Drawn reading RabbitMQ directly, which is KEDA's own scaler and needs nothing else. The alternative is RabbitMQ Exporter → Prometheus → KEDA, which is worth it only if the scaling decision needs a derived metric rather than a queue length.&lt;br&gt;&lt;br&gt;Also open: nothing here is built, so the claim that a Quarkus native binary makes scale-to-zero worth having is still a claim, not a measurement." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="k8-cluster">
           <mxGeometry x="640" y="600" width="280" height="300" as="geometry" />
         </mxCell>
         <mxCell id="k8-note-images" value="&lt;b&gt;Open — how images reach the cluster&lt;/b&gt;&lt;br&gt;kind load docker-image is simplest and needs no registry, but it is a manual step that cannot appear in a pipeline. A local registry is one more component to run, and is what the CD pipeline will have to push to anyway. Drawn as a registry; the group has not decided." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="k8-cluster">
@@ -965,7 +965,7 @@
           <mxGeometry x="30" y="390" width="540" height="100" as="geometry" />
         </mxCell>
 
-        <mxCell id="alt-chosen" value="CHOSEN — one service, two deployments (ADR-010)" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#e8f5e9;strokeColor=#66a06a;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#3f7043;arcSize=4;" vertex="1" parent="1">
+        <mxCell id="alt-chosen" value="CHOSEN — one service, two deployments" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;fillColor=#e8f5e9;strokeColor=#66a06a;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#3f7043;arcSize=4;" vertex="1" parent="1">
           <mxGeometry x="740" y="60" width="620" height="520" as="geometry" />
         </mxCell>
         <mxCell id="alt-c-service" value="SceneManager — one service, one schema, one release" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#66a06a;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontSize=11;fontStyle=1;" vertex="1" parent="alt-chosen">
@@ -1019,7 +1019,7 @@
         <mxCell id="pe-title" value="Published events v1" style="text;html=1;fontSize=24;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="60" y="-130" width="1400" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="pe-sub" value="Who publishes what, and what is in it. A publisher owns its exchange and the schema of its events; nobody else declares them and nobody else changes them (ADR-004)." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
+        <mxCell id="pe-sub" value="Who publishes what, and what is in it. A publisher owns its exchange and the schema of its events; nobody else declares them and nobody else changes them." style="text;html=1;fontSize=13;fontColor=#607d8b;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="60" y="-85" width="1600" height="24" as="geometry" />
         </mxCell>
 

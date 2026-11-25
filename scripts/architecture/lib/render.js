@@ -147,7 +147,7 @@ function envelope(meta) {
 function contractTable(manifest) {
   const head =
     '<tr><th>Service</th><th>Version</th><th>Status</th><th>Stack</th>' +
-    '<th>Exposes</th><th>Publishes</th><th>Consumes</th><th>Contracts</th><th>ADRs</th></tr>';
+    '<th>Exposes</th><th>Publishes</th><th>Consumes</th><th>Contracts</th></tr>';
 
   const rows = manifest.services.map((s) => {
     const exposes = (s.exposes || []).map((e) => e.style).concat(
@@ -164,7 +164,6 @@ function contractTable(manifest) {
       contractsOf(manifest, s)
         .map((c) => `${c.state === 'written' ? MARK_WRITTEN : MARK_TODO} ${c.path.split('/').pop()}`)
         .join('<br>') || '—',
-      (s.adr || []).join(', ') || '—',
     ];
     return `<tr>${cells.map((c) => `<td>${c}</td>`).join('')}</tr>`;
   });

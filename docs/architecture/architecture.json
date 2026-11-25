@@ -79,7 +79,6 @@
         }
       ],
       "consumes": [],
-      "adr": [],
       "gaps": [
         "Not implemented.",
         "Third-party OAuth/OIDC provider not chosen.",
@@ -138,13 +137,6 @@
         }
       ],
       "consumes": [],
-      "adr": [
-        "ADR-003",
-        "ADR-004",
-        "ADR-005",
-        "ADR-006",
-        "ADR-008"
-      ],
       "gaps": [
         "A walking skeleton: publishes real messages, but owns no content entities yet.",
         "Draft versus published content is not designed.",
@@ -167,7 +159,7 @@
         {
           "name": "scene-indexer",
           "role": "projection",
-          "note": "Same codebase, same schema, same release as SceneManager. Deployed separately so projection scales apart from query serving (ADR-010)."
+          "note": "Same codebase, same schema, same release as SceneManager. Deployed separately so projection scales apart from query serving."
         }
       ],
       "exposes": [
@@ -194,13 +186,8 @@
           "event": "scene-content.updated",
           "queue": "scenemanager.scene-content",
           "scalable": true,
-          "why": "Last-write-wins guarded by sceneVersion, so arrival order does not change the result (ADR-011)."
+          "why": "Last-write-wins guarded by sceneVersion, so arrival order does not change the result."
         }
-      ],
-      "adr": [
-        "ADR-005",
-        "ADR-010",
-        "ADR-011"
       ],
       "gaps": [
         "GraphQL is unassigned and this is a candidate.",
@@ -237,13 +224,13 @@
           "event": "item-definition.updated",
           "queue": "charactermanager.item-rules",
           "scalable": true,
-          "why": "Last-write-wins guarded by itemVersion (ADR-011)."
+          "why": "Last-write-wins guarded by itemVersion."
         },
         {
           "event": "player-choice.made",
           "queue": "charactermanager.player-choice",
           "scalable": true,
-          "why": "Effects are deltas, and deltas commute (ADR-011)."
+          "why": "Effects are deltas, and deltas commute."
         },
         {
           "event": "race-definition.updated",
@@ -256,9 +243,6 @@
           "queue": "charactermanager.account-deletion",
           "scalable": true
         }
-      ],
-      "adr": [
-        "ADR-011"
       ],
       "gaps": [
         "GraphQL is unassigned and this is a candidate."
@@ -286,7 +270,7 @@
           "contract": {
             "path": "microservices/recapManager/src/main/proto/storypath/v1/story_path.proto",
             "state": "written",
-            "note": "Lives in the caller's tree. ADR-012 says a contract belongs with the side that implements it."
+            "note": "Lives in the caller's tree. A contract belongs with the side that implements it, so that the server's owner cannot have their interface changed without touching their own code."
           }
         }
       ],
@@ -297,7 +281,7 @@
           "event": "player-choice.made",
           "queue": "storypathmanager.player-choice",
           "scalable": false,
-          "why": "The path is an ordered log, and competing consumers would produce a false history (ADR-011)."
+          "why": "The path is an ordered log, and competing consumers would produce a false history."
         },
         {
           "event": "account-deletion-requested",
@@ -305,15 +289,9 @@
           "scalable": true
         }
       ],
-      "adr": [
-        "ADR-011",
-        "ADR-012",
-        "ADR-013",
-        "ADR-014"
-      ],
       "gaps": [
         "Not implemented, although RecapManager already calls it over gRPC.",
-        "Who assigns the per-character sequence number is open (ADR-013)."
+        "Who assigns the per-character sequence number is open."
       ]
     },
     {
@@ -357,7 +335,7 @@
           "contract": {
             "path": "microservices/recapManager/src/main/proto/storypath/v1/story_path.proto",
             "state": "written",
-            "note": "Lives in the caller's tree. ADR-012 says a contract belongs with the side that implements it."
+            "note": "Lives in the caller's tree. A contract belongs with the side that implements it, so that the server's owner cannot have their interface changed without touching their own code."
           }
         }
       ],
@@ -374,11 +352,6 @@
           "queue": "recapmanager.account-deletion",
           "scalable": true
         }
-      ],
-      "adr": [
-        "ADR-012",
-        "ADR-013",
-        "ADR-014"
       ],
       "gaps": [
         "Does not publish recap-generated yet, so nothing drives TextToSpeechManager."
@@ -404,17 +377,13 @@
           "event": "recap-generated",
           "queue": "texttospeechmanager.recap",
           "scalable": true,
-          "why": "Keyed on a content hash, so the handler is both idempotent and commutative (ADR-011)."
+          "why": "Keyed on a content hash, so the handler is both idempotent and commutative."
         }
-      ],
-      "adr": [
-        "ADR-009",
-        "ADR-011"
       ],
       "gaps": [
         "Not implemented.",
         "The KEDA ScaledJob that makes this the serverless component is not built.",
-        "ADR-009's cold-start figures are quoted, not measured."
+        "The cold-start figures that justify the second stack are quoted, not measured."
       ]
     },
     {
@@ -434,9 +403,6 @@
       "calls": [],
       "publishes": [],
       "consumes": [],
-      "adr": [
-        "ADR-008"
-      ],
       "replacedBy": [
         "account-manager",
         "storycontent-manager",
@@ -552,7 +518,7 @@
         "state": "written",
         "version": "1.2.0"
       },
-      "note": "Carries the complete scene aggregate, not a notification to go and fetch it (ADR-005).",
+      "note": "Carries the complete scene aggregate, not a notification to go and fetch it.",
       "payload": {
         "state": "documented",
         "fields": [
@@ -740,7 +706,7 @@
         "storypathmanager.player-choice",
         "charactermanager.player-choice"
       ],
-      "ordering": "per-character sequence number (ADR-013)",
+      "ordering": "per-character sequence number",
       "contract": {
         "path": "microservices/contracts/scene-manager.asyncapi.yaml",
         "state": "todo"
@@ -756,7 +722,7 @@
           {
             "name": "sequence",
             "type": "integer",
-            "note": "Per character. Who assigns it is open (ADR-013)."
+            "note": "Per character. Who assigns it is open."
           },
           {
             "name": "sceneId",
@@ -774,7 +740,7 @@
           {
             "name": "beat",
             "type": "string",
-            "note": "The authored sentence, copied in so the path is self-contained (ADR-007)."
+            "note": "The authored sentence, copied in so the path is self-contained."
           },
           {
             "name": "effects",
@@ -834,7 +800,7 @@
   ],
   "openIssues": [
     {
-      "id": "ADR-013",
+      "id": "SEQUENCE-NUMBER",
       "short": "Who assigns the per-character sequence number?",
       "detail": "If StoryPathManager assigns it on insert, ordering still depends on arrival order and nothing is gained.",
       "blocks": [
@@ -842,7 +808,7 @@
       ]
     },
     {
-      "id": "ADR-012",
+      "id": "PROTO-OWNERSHIP",
       "short": "The .proto sits in the caller's tree.",
       "detail": "It describes StoryPathManager's API but lives in RecapManager's source, inverting the ownership rule.",
       "blocks": [

@@ -47,7 +47,7 @@ test('a proposed payload says it is not agreed', () => {
   const text = h.textUnder(TAB, 'pe-pl-player-choice');
   assert.match(text, /proposed/i);
   assert.match(text, /sequence/);
-  assert.match(text, /ADR-013/);
+  assert.match(text, /who assigns it is open/i);
 });
 
 test('an undesigned payload invents nothing', () => {

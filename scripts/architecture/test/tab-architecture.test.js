@@ -68,13 +68,13 @@ test('SceneIndexer is drawn inside SceneManager, not as a peer', () => {
   assert.equal(indexer.parent, 'panel-scene-manager');
 });
 
-test('ADR-013 is noted as open', () => {
-  assert.match(h.textOf(TAB), /ADR-013/);
+test('the open sequence-number question is noted', () => {
+  assert.match(h.textOf(TAB), /who assigns the sequence number/i);
 });
 
 test('every open issue in the manifest is written somewhere on the tab', () => {
   const text = h.textOf(TAB).toLowerCase();
-  const marker = { 'ADR-013': 'adr-013', 'ADR-012': 'adr-012', GRAPHQL: 'graphql', OAUTH: 'oauth', KEDA: 'keda', PORTS: 'port allocation', IMAGES: null };
+  const marker = { 'SEQUENCE-NUMBER': 'sequence number', 'PROTO-OWNERSHIP': 'story_path.proto', GRAPHQL: 'graphql', OAUTH: 'oauth', KEDA: 'keda', PORTS: 'port allocation', IMAGES: null, MONITORING: null };
   for (const issue of h.manifest.openIssues) {
     const needle = marker[issue.id];
     if (needle) assert.ok(text.includes(needle), `${issue.id} is not mentioned`);

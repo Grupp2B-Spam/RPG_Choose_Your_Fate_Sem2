@@ -15,8 +15,8 @@ test('the choice flow names the per-character sequence number', () => {
   assert.match(h.textOf('flow-choice'), /sequence/i);
 });
 
-test('the choice flow marks ADR-013 as open', () => {
-  assert.match(h.textOf('flow-choice'), /ADR-013/);
+test('the choice flow marks the sequence number as an open question', () => {
+  assert.match(h.textOf('flow-choice'), /who assigns the sequence number/i);
 });
 
 test('the choice flow shows one event reaching two independent consumers', () => {

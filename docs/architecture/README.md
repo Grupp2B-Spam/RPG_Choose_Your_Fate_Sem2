@@ -52,3 +52,10 @@ The same two commands run in CI, in the `architecture` job.
 
 A token must be the **whole** value of a cell: `value="{{service:recap-manager:card}}"`.
 Mixing prose and a token in one label is rejected by the build.
+
+## Writing the text
+
+State the reason, do not cite a decision number. A reader holding this diagram cannot
+open the decision log, so `(ADR-011)` tells them nothing they can act on, while "an
+ordered log, so competing consumers would produce a false history" tells them everything.
+The log still exists and is still the record; the diagram just has to stand on its own.

@@ -87,7 +87,7 @@ test('tab 5 shows the KEDA ScaledJob on the TTS service, not a Deployment', () =
 test('storypath-manager is pinned to one replica with the reason given', () => {
   const sp = h.textUnder(TAB, 'k8-n-storypath-manager');
   assert.match(sp, /replicas: 1/);
-  assert.match(sp, /ADR-013/);
+  assert.match(sp, /sequence number has an owner/);
 });
 
 test('image delivery is drawn as an open question', () => {

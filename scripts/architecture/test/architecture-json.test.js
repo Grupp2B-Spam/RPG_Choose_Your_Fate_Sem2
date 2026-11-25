@@ -57,7 +57,7 @@ test('the gRPC contract records that it sits in the caller tree', () => {
   const sp = m.services.find((s) => s.id === 'storypath-manager');
   const grpc = sp.exposes.find((e) => e.style === 'gRPC');
   assert.match(grpc.contract.path, /recapManager.*story_path\.proto$/);
-  assert.match(grpc.contract.note, /ADR-012/);
+  assert.match(grpc.contract.note, /belongs with the side that implements it/);
 });
 
 test('every event names the exchange its publisher owns', () => {
