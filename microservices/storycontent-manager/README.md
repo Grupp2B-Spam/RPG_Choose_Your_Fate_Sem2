@@ -48,9 +48,34 @@ Three events, all on the topic exchange `storycontent.events`. The contract is
 | `item-definition.updated` | what a consumer needs to enforce rules: type, slot, requirements, modifiers | CharacterManager |
 | `race-definition.updated` | a race, its starting chapter **and that chapter's starting scene** | CharacterManager |
 
-This service declares only the exchange. **Consumers declare their own queue and binding**
-— adding a listener requires no change here. See `../contracts/README.md` for how a queue
-must be declared; three of its properties are not a matter of taste.
+**This service declares the consumer queues as well as the exchange** — an interim
+arrangement that amends ADR-004; see ADR-021.
+
+The rule used to be that a consumer declares its own queue, which is what keeps publisher
+and consumer independently deployable. It was suspended because an exchange stores
+nothing: until a consumer has started for the first time its queue does not exist, and
+every event published in that window is discarded with the publish call still succeeding.
+With seven services being built in parallel, nobody can rely on deployment ordering to
+close that window.
+
+| Event | Queue | Dead-letter queue |
+|---|---|---|
+| `scene-content.updated` | `scenemanager.scene-content` | `scenemanager.scene-content.dlq` |
+| `item-definition.updated` | `charactermanager.item-rules` | `charactermanager.item-rules.dlq` |
+| `race-definition.updated` | `charactermanager.race-definitions` | `charactermanager.race-definitions.dlq` |
+
+The `dlx` exchange and the three dead-letter queues are declared here too. The convention
+document had required `x-dead-letter-exchange: dlx` on every consumer queue and nothing
+had ever declared `dlx` — and RabbitMQ does not check that argument at declare time, so
+rejected messages were being dropped by a dead-letter path that looked configured.
+
+**The cost, stated plainly:** this service now knows its consumer list. A fourth consumer
+means a change *here*, made by someone who does not own that consumer. That is what
+ADR-021 traded away, and it is why the arrangement is interim rather than the target.
+
+Consumers still own prefetch, concurrency, acknowledgement and what they do with a
+dead-lettered message — see `../contracts/README.md`. They do **not** own the queue
+arguments: redeclaring one of these queues differently fails with `PRECONDITION_FAILED`.
 
 ### The version field is the thing to understand
 

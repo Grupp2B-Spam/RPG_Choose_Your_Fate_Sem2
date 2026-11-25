@@ -2,7 +2,7 @@ asyncapi: 3.0.0
 
 info:
   title: StoryContentManager
-  version: 1.1.0
+  version: 1.2.0
   description: |
     Owns the authored content of Choose Your Fate and is the source of truth for
     everything the writing team produces: chapters, scenes, choices, NPCs, race
@@ -14,7 +14,51 @@ info:
     Conventions (exchange naming, envelope, dead-lettering, schema evolution) are
     described in ./README.md and are not repeated here.
 
+    ## The queues already exist — bind, do not declare
+
+    **Interim arrangement, see `beslutningslog.md` ADR-021.** Normally a consumer declares
+    its own queue and binding. For now StoryContentManager declares them on startup,
+    because an exchange stores nothing: until a consumer has started for the first time
+    its queue does not exist, and every event published in that window is discarded with
+    no error on either side.
+
+    So when you write a consumer for one of these events, **bind a listener to the queue
+    below rather than declaring your own**:
+
+    | Event | Queue the publisher declares | Dead-letter queue |
+    |---|---|---|
+    | `scene-content.updated` | `scenemanager.scene-content` | `scenemanager.scene-content.dlq` |
+    | `item-definition.updated` | `charactermanager.item-rules` | `charactermanager.item-rules.dlq` |
+    | `race-definition.updated` | `charactermanager.race-definitions` | `charactermanager.race-definitions.dlq` |
+
+    Each is durable, not auto-delete and not exclusive, and carries
+    `x-dead-letter-exchange: dlx` with `x-dead-letter-routing-key: <queue-name>.dlq`. The
+    `dlx` exchange and the dead-letter queues are declared here too — an exchange with
+    nothing bound to it discards what it receives, so declaring `dlx` alone would have left
+    the dead-letter path looking configured while still losing every message.
+
+    **Queue arguments are part of the declaration.** Redeclaring one of these queues with
+    different arguments fails with `PRECONDITION_FAILED` and your service will not start.
+    Prefetch, concurrency, acknowledgement mode and what you do with a dead-lettered
+    message remain yours.
+
+    If you need a queue with different arguments, or a second consumer on one of these
+    events, that is a change in this service's repository — which is the coupling ADR-021
+    accepted knowingly, and the reason it is an interim arrangement rather than the target
+    state.
+
     ## Changes
+
+    ### 1.2.0 — nothing on the wire changes, but consumers must act differently
+
+    The messages are identical. What changed is who creates the queues: this service now
+    declares them, so a consumer binds to an existing queue instead of declaring its own,
+    and cannot choose its own queue arguments. See the section above and ADR-021.
+
+    Also renames the queue for `race-definition.updated` from `charactermanager.race-cache`
+    to `charactermanager.race-definitions`, since a queue the publisher owns should be
+    named for what flows through it rather than for what the consumer does with it. No
+    consumer had been written against the old name.
 
     ### 1.1.0 — additive, no consumer change required
 

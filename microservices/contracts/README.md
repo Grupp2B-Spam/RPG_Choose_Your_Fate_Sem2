@@ -19,12 +19,43 @@ documentation are the same artifact rather than two things that drift apart.
 **A publisher owns its exchange and the schema of its events.** Nobody else declares
 them and nobody else changes them.
 
-**A consumer owns its queue and its binding.** The publisher does not know, and must not
-need to know, who is listening. Adding a second consumer to an existing event requires
-no change on the publishing side.
+**A consumer owns its queue and its binding** — *in the target state*. The publisher
+would not know, and would not need to know, who is listening, so adding a second consumer
+to an existing event would require no change on the publishing side. That is what keeps
+the two sides independently deployable: if adding a consumer means editing the publisher,
+they are one unit in two repositories.
 
-This is what keeps the two sides independently deployable. If adding a consumer meant
-editing the publisher, they would be one unit in two repositories.
+> ### Interim: the publisher declares the queues
+>
+> **This is not what the code does today.** While the services are being built in
+> parallel, **the publishing service declares the consumer queues and bindings for its own
+> events**, as well as its exchange. See `beslutningslog.md` **ADR-021**, which amends
+> ADR-004.
+>
+> **Why.** An exchange stores nothing. A topic exchange routes to the queues bound at the
+> moment of publication and discards the message if there are none — and the publish call
+> still succeeds. Until a consumer has started for the first time its queue does not
+> exist, so every event published in that window is lost with no error on either side.
+> That is the only genuine data-loss window in the design, and with seven services being
+> written by different people, nobody can rely on deployment ordering to close it.
+>
+> **What it costs.** The publisher now has to know its consumer list. Adding a fourth
+> consumer is a change in the publisher's repository, made by someone who does not own
+> that consumer. Retiring one is too. The coupling is real; this section says so rather
+> than presenting the interim arrangement as costless.
+>
+> **What a consumer still owns:** prefetch, concurrency, acknowledgement mode, and what it
+> does with a dead-lettered message — everything in the two sections below except the act
+> of declaring. Queue *arguments* are part of the declaration, so the dead-letter settings
+> are fixed by the publisher: **a consumer that redeclares one of these queues with
+> different arguments gets `PRECONDITION_FAILED` and will not start.** Bind to the queue
+> that is already there; do not declare your own.
+>
+> **Where this goes.** Topology as code, applied at deploy time — a `definitions.json` or
+> an init job in the pipeline. Each queue definition stays in its consumer's repository,
+> so ownership is unchanged, but it is applied whether or not that consumer's pod has ever
+> run. That is the right answer once there is a cluster to apply it to, and it is what
+> returns us to ADR-004.
 
 ## Topology
 
@@ -44,18 +75,33 @@ Consumer queues are named `<consumer-service>.<purpose>` so that it is obvious f
 broker UI who owns what:
 
 ```
-scenemanager.scene-content        binds storycontent.events / scene-content.updated
-charactermanager.item-rules       binds storycontent.events / item-definition.updated
-charactermanager.race-cache       binds storycontent.events / race-definition.updated
-storypathmanager.player-choice    binds scenemanager.events / player-choice.made
-charactermanager.player-choice    binds scenemanager.events / player-choice.made
+scenemanager.scene-content          binds storycontent.events / scene-content.updated
+charactermanager.item-rules         binds storycontent.events / item-definition.updated
+charactermanager.race-definitions   binds storycontent.events / race-definition.updated
+storypathmanager.player-choice      binds scenemanager.events / player-choice.made
+charactermanager.player-choice      binds scenemanager.events / player-choice.made
 ```
+
+The first three already exist: StoryContentManager declares them on startup (ADR-021), so
+they are a commitment to the consuming teams rather than a suggestion. Each has a
+dead-letter queue beside it, `<queue-name>.dlq`, bound to `dlx`.
+
+`charactermanager.race-definitions` was called `charactermanager.race-cache` in an earlier
+draft. Renamed when the declaration moved to the publisher: a queue the publisher owns
+should be named for what flows through it, not for what the consumer happens to do with
+it. If CharacterManager later stops caching, the old name would be a lie in someone else's
+broker.
 
 Note the last two: one event, two queues, two independent consumers. In RabbitMQ a queue
 is point-to-point, so publish-subscribe is achieved by binding several queues to the same
 exchange and routing key — not by sharing one queue.
 
 ## How a consumer queue must be declared
+
+**Who does this today:** the publishing service, per ADR-021 above. The requirements have
+not changed — they are written here as the rule the declaration must satisfy, whoever
+performs it — but if you are writing a consumer right now, your queue already exists and
+your job is to bind a listener to it, not to declare it.
 
 Three properties are not a matter of taste. A queue that gets them wrong looks correct
 in development, where there is one consumer and a small backlog, and fails only under

@@ -17,6 +17,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -135,6 +136,7 @@ class ContentPublishingIT {
     @Autowired private NpcService npcs;
     @Autowired private QuestService quests;
     @Autowired private RabbitTemplate rabbit;
+    @Autowired private RabbitAdmin rabbitAdmin;
     @Autowired private ObjectMapper json;
 
     @BeforeEach
@@ -142,6 +144,48 @@ class ContentPublishingIT {
         drain(SCENE_QUEUE);
         drain(ITEM_QUEUE);
         drain(RACE_QUEUE);
+    }
+
+    @Test
+    @DisplayName("the consumer queues and the dead-letter path exist before any consumer has run")
+    void thePublisherDeclaresTheConsumerTopology() {
+        // The whole point of ADR-021. No consumer has ever started against this broker —
+        // these containers were created seconds ago — so if the queues are here, this
+        // service put them here. Without them an event published now would be routed to
+        // nothing and discarded, with the publish call still succeeding.
+        //
+        // The other tests in this class cannot show this: they declare their own queues,
+        // so they would pass just as happily against the old arrangement.
+        assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_SCENE_CONTENT)).isNotNull();
+        assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_ITEM_RULES)).isNotNull();
+        assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_RACE_DEFINITIONS)).isNotNull();
+
+        // Declaring dlx alone would not have been enough: an exchange with nothing bound
+        // to it discards what it receives, so the dead-letter path would still have looked
+        // configured and still lost every message.
+        assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_SCENE_CONTENT + ".dlq")).isNotNull();
+        assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_ITEM_RULES + ".dlq")).isNotNull();
+        assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_RACE_DEFINITIONS + ".dlq")).isNotNull();
+    }
+
+    @Test
+    @DisplayName("a real consumer queue receives the event, not only the test's own queue")
+    void theDeclaredConsumerQueueIsBoundToTheRoutingKey() {
+        drain(RabbitConfig.QUEUE_SCENE_CONTENT);
+
+        ChapterResponse chapter = chapters.create(new ChapterRequest("Moonlit Ruins"));
+        SceneResponse scene = scenes.create(new SceneRequest(
+                chapter.id(), "The innkeeper", "A low fire burns.", null));
+
+        // Asserting on the queue SceneManager will actually consume from, rather than on
+        // the one this test declared. A queue that exists but is bound to the wrong
+        // routing key is silent in exactly the same way as no queue at all.
+        Message message = poll(RabbitConfig.QUEUE_SCENE_CONTENT, Duration.ofSeconds(10));
+        assertThat(message).as("scenemanager.scene-content should have received the event").isNotNull();
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> payload = (Map<String, Object>) readMap(message).get("payload");
+        assertThat(payload.get("sceneId")).isEqualTo(scene.id());
     }
 
     @Test
