@@ -1,0 +1,14 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: scene-manager
+  mongodb:
+    uri: ${MONGODB_URI:mongodb://manager:manager-local-only@localhost:27017/scenes?authSource=scenes}
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    username: ${RABBIT_USER:dev}
+    password: ${RABBIT_PASS:dev-local-only}
+logging:
+  level:
+    dk.chooseyourfate: INFO
