@@ -7,7 +7,7 @@ SELECT 'chapter', COUNT(*) FROM chapter
 UNION ALL
 SELECT 'race_details', COUNT(*) FROM race_details
 UNION ALL
-SELECT 'scene', COUNT(*) FROM scene
+SELECT 'sceneId', COUNT(*) FROM sceneId
 UNION ALL
 SELECT 'character_avatar', COUNT(*) FROM character_avatar
 UNION ALL
@@ -49,7 +49,7 @@ FROM (
     UNION ALL
     SELECT 'race_details', COUNT(*) FROM race_details
     UNION ALL
-    SELECT 'scene', COUNT(*) FROM scene
+    SELECT 'sceneId', COUNT(*) FROM sceneId
     UNION ALL
     SELECT 'character_avatar', COUNT(*) FROM character_avatar
     UNION ALL
@@ -94,11 +94,11 @@ SELECT
 
 SELECT COUNT(*) AS characters_with_invalid_scene_chapter
 FROM character_avatar ca
-JOIN scene s ON s.id = ca.scene_id
+JOIN sceneId s ON s.id = ca.scene_id
 WHERE ca.chapter_id <> s.chapter_id;
 
 SELECT COUNT(*) AS choices_with_missing_destination
 FROM choice c
-LEFT JOIN scene s ON s.id = c.destination_scene_id
+LEFT JOIN sceneId s ON s.id = c.destination_scene_id
 WHERE c.destination_scene_id IS NOT NULL
   AND s.id IS NULL;

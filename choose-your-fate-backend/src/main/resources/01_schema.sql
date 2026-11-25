@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `choose_your_fate_test`.`chapter` (
   INDEX `starting_scene_idx` (`starting_scene_id` ASC) VISIBLE,
   CONSTRAINT `fk_starting_scene_chapter`
     FOREIGN KEY (`starting_scene_id`)
-    REFERENCES `choose_your_fate_test`.`scene` (`id`)
+    REFERENCES `choose_your_fate_test`.`sceneId` (`id`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
@@ -84,9 +84,9 @@ DEFAULT CHARACTER SET = utf8mb3;
 
 
 -- -----------------------------------------------------
--- Table `choose_your_fate_test`.`scene`
+-- Table `choose_your_fate_test`.`sceneId`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `choose_your_fate_test`.`scene` (
+CREATE TABLE IF NOT EXISTS `choose_your_fate_test`.`sceneId` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `chapter_id` INT NOT NULL,
   `name` VARCHAR(100) NULL DEFAULT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS `choose_your_fate_test`.`character_avatar` (
     REFERENCES `choose_your_fate_test`.`race_details` (`id`),
   CONSTRAINT `fk_scene_character_avatar`
     FOREIGN KEY (`scene_id`)
-    REFERENCES `choose_your_fate_test`.`scene` (`id`)
+    REFERENCES `choose_your_fate_test`.`sceneId` (`id`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS `choose_your_fate_test`.`quest` (
   INDEX `scene_id_idx` (`scene_id` ASC) VISIBLE,
   CONSTRAINT `fk_quest_scene`
     FOREIGN KEY (`scene_id`)
-    REFERENCES `choose_your_fate_test`.`scene` (`id`)
+    REFERENCES `choose_your_fate_test`.`sceneId` (`id`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
@@ -219,10 +219,10 @@ CREATE TABLE IF NOT EXISTS `choose_your_fate_test`.`choice` (
   INDEX `fk_choice_destination_scene_idx` (`destination_scene_id` ASC) VISIBLE,
   CONSTRAINT `fk_choice_destination_scene`
     FOREIGN KEY (`destination_scene_id`)
-    REFERENCES `choose_your_fate_test`.`scene` (`id`),
+    REFERENCES `choose_your_fate_test`.`sceneId` (`id`),
   CONSTRAINT `fk_choice_scene`
     FOREIGN KEY (`scene_id`)
-    REFERENCES `choose_your_fate_test`.`scene` (`id`)
+    REFERENCES `choose_your_fate_test`.`sceneId` (`id`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
@@ -372,7 +372,7 @@ CREATE TABLE IF NOT EXISTS `choose_your_fate_test`.`scene_has_npc` (
     REFERENCES `choose_your_fate_test`.`npc` (`id`),
   CONSTRAINT `fk_scene_has_npc_scene`
     FOREIGN KEY (`scene_id`)
-    REFERENCES `choose_your_fate_test`.`scene` (`id`)
+    REFERENCES `choose_your_fate_test`.`sceneId` (`id`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
@@ -437,17 +437,17 @@ SELECT COUNT(id) INTO v_character_count
 FROM `character_avatar` WHERE account_id = p_account_id;
 
 SELECT chapter_id INTO v_scene_chapter_id
-FROM scene
+FROM sceneId
 WHERE id = p_scene_id;
 
 IF v_scene_chapter_id IS NULL THEN
 	SIGNAL SQLSTATE '45000'
-		SET MESSAGE_TEXT = 'Selected scene does not exist.';
+		SET MESSAGE_TEXT = 'Selected sceneId does not exist.';
 END IF;
 
 IF v_scene_chapter_id != p_chapter_id THEN
 	SIGNAL SQLSTATE '45000'
-		SET MESSAGE_TEXT = 'Selected scene does not belong to the selected chapter.';
+		SET MESSAGE_TEXT = 'Selected sceneId does not belong to the selected chapter.';
 END IF;
 
 IF v_character_count < v_character_limit THEN
@@ -507,7 +507,7 @@ BEGIN
     
     IF v_character_scene_id != v_choice_scene_id THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Character is not in the correct scene for this choice.';
+			SET MESSAGE_TEXT = 'Character is not in the correct sceneId for this choice.';
 	END IF;	
     
     INSERT INTO character_path_choice (character_path_id, choice_id)
@@ -521,7 +521,7 @@ BEGIN
         scene_id = (SELECT destination_scene_id FROM choice WHERE id = p_choice_id),
         chapter_id = (
             SELECT s.chapter_id
-            FROM scene s
+            FROM sceneId s
             JOIN choice c ON c.destination_scene_id = s.id
             WHERE c.id = p_choice_id
         )
@@ -772,11 +772,11 @@ VALUES (
 END;
 
 DROP TRIGGER IF EXISTS `audit_scene_after_insert`;
-CREATE TRIGGER `audit_scene_after_insert` AFTER INSERT ON `scene` FOR EACH ROW
+CREATE TRIGGER `audit_scene_after_insert` AFTER INSERT ON `sceneId` FOR EACH ROW
 BEGIN
 INSERT INTO audit_log (table_name, entity_id, action_type, database_user, new_data)
 VALUES (
-    'scene',
+    'sceneId',
     NEW.id,
     'INSERT',
     CURRENT_USER(),
@@ -789,11 +789,11 @@ VALUES (
 END;
 
 DROP TRIGGER IF EXISTS `audit_scene_after_update`;
-CREATE TRIGGER `audit_scene_after_update` AFTER UPDATE ON `scene` FOR EACH ROW
+CREATE TRIGGER `audit_scene_after_update` AFTER UPDATE ON `sceneId` FOR EACH ROW
 BEGIN
 INSERT INTO audit_log (table_name, entity_id, action_type, database_user, old_data, new_data)
 VALUES (
-    'scene',
+    'sceneId',
     NEW.id,
     'UPDATE',
     CURRENT_USER(),
@@ -811,11 +811,11 @@ VALUES (
 END;
 
 DROP TRIGGER IF EXISTS `audit_scene_after_delete`;
-CREATE TRIGGER `audit_scene_after_delete` AFTER DELETE ON `scene` FOR EACH ROW
+CREATE TRIGGER `audit_scene_after_delete` AFTER DELETE ON `sceneId` FOR EACH ROW
 BEGIN
 INSERT INTO audit_log (table_name, entity_id, action_type, database_user, old_data)
 VALUES (
-    'scene',
+    'sceneId',
     OLD.id,
     'DELETE',
     CURRENT_USER(),
@@ -861,7 +861,7 @@ DELETE FROM choice;
 DELETE FROM quest;
 DELETE FROM npc;
 DELETE FROM item;
-DELETE FROM scene;
+DELETE FROM sceneId;
 DELETE FROM chapter;
 DELETE FROM account;
 DELETE FROM race_details;
@@ -869,7 +869,7 @@ DELETE FROM race_details;
 ALTER TABLE account AUTO_INCREMENT = 1;
 ALTER TABLE chapter AUTO_INCREMENT = 1;
 ALTER TABLE race_details AUTO_INCREMENT = 1;
-ALTER TABLE scene AUTO_INCREMENT = 1;
+ALTER TABLE sceneId AUTO_INCREMENT = 1;
 ALTER TABLE character_avatar AUTO_INCREMENT = 1;
 ALTER TABLE quest AUTO_INCREMENT = 1;
 ALTER TABLE character_path AUTO_INCREMENT = 1;
@@ -900,7 +900,7 @@ INSERT INTO race_details (id, name, starting_chapter_id) VALUES
     (4, 'TALLS', 5),
     (5, 'MeDiUmS', 2);
 
-INSERT INTO scene (id, chapter_id, name) VALUES
+INSERT INTO sceneId (id, chapter_id, name) VALUES
     (1, 1, 'Town Gate'),
     (2, 2, 'Market Square'),
     (3, 3, 'Watchtower'),
@@ -1146,7 +1146,7 @@ WHERE n BETWEEN 6 AND 100;
 -- ---------------------------------------------------------------------------
 -- Scenes (5 existing -> add 95)
 -- ---------------------------------------------------------------------------
-INSERT INTO scene (id, chapter_id, name)
+INSERT INTO sceneId (id, chapter_id, name)
 SELECT
     n,
     n,
@@ -1237,7 +1237,7 @@ SELECT
     n,
     n,
     CONCAT(
-        'Support the locals in scene ',
+        'Support the locals in sceneId ',
         LPAD(n, 3, '0'),
         ' by securing a clue, completing a delivery, or exposing a nearby threat.'
     )
@@ -1271,11 +1271,11 @@ SELECT
     n - 2,
     n - 1,
     CASE MOD(n - 7, 5)
-        WHEN 0 THEN CONCAT('Press onward from scene ', LPAD(n - 2, 3, '0'), ' and follow the clearest road toward the next district.')
-        WHEN 1 THEN CONCAT('Speak with the local authority in scene ', LPAD(n - 2, 3, '0'), ' and accept a structured task.')
-        WHEN 2 THEN CONCAT('Search the area around scene ', LPAD(n - 2, 3, '0'), ' for tactical advantages before moving on.')
-        WHEN 3 THEN CONCAT('Take the risky shortcut out of scene ', LPAD(n - 2, 3, '0'), ' to save time at a personal cost.')
-        ELSE CONCAT('Use what you have learned in scene ', LPAD(n - 2, 3, '0'), ' to close out the current objective.')
+        WHEN 0 THEN CONCAT('Press onward from sceneId ', LPAD(n - 2, 3, '0'), ' and follow the clearest road toward the next district.')
+        WHEN 1 THEN CONCAT('Speak with the local authority in sceneId ', LPAD(n - 2, 3, '0'), ' and accept a structured task.')
+        WHEN 2 THEN CONCAT('Search the area around sceneId ', LPAD(n - 2, 3, '0'), ' for tactical advantages before moving on.')
+        WHEN 3 THEN CONCAT('Take the risky shortcut out of sceneId ', LPAD(n - 2, 3, '0'), ' to save time at a personal cost.')
+        ELSE CONCAT('Use what you have learned in sceneId ', LPAD(n - 2, 3, '0'), ' to close out the current objective.')
     END,
     CASE MOD(n - 7, 5)
         WHEN 0 THEN 'travel'
@@ -1325,7 +1325,7 @@ FROM (
 -- ---------------------------------------------------------------------------
 -- Characters (3 existing -> add 97)
 -- Trigger auto-creates inventory, equipment, character_details and character_path.
--- Every generated character starts in a scene that has at least one choice.
+-- Every generated character starts in a sceneId that has at least one choice.
 -- ---------------------------------------------------------------------------
 INSERT INTO character_avatar (
     id,
@@ -1432,7 +1432,7 @@ JOIN character_path_choice cpc
     ON cpc.character_path_id = cp.id
 JOIN choice ch
     ON ch.id = cpc.choice_id
-JOIN scene dest
+JOIN sceneId dest
     ON dest.id = ch.destination_scene_id
 SET
     ca.scene_id = dest.id,
@@ -1444,7 +1444,7 @@ JOIN character_avatar ca
     ON ca.id = cp.character_id
 SET cp.summary = CONCAT(
     ca.name,
-    ' has already moved beyond their starting point and is currently navigating scene ',
+    ' has already moved beyond their starting point and is currently navigating sceneId ',
     LPAD(ca.scene_id, 3, '0'),
     ' while balancing faction ties and personal survival.'
 )
@@ -1497,7 +1497,7 @@ FROM tmp_extra_scene_seq;
 -- ---------------------------------------------------------------------------
 -- Add 100 extra scenes distributed across chapters 1-25 (4 extra scenes each).
 -- ---------------------------------------------------------------------------
-INSERT INTO scene (id, chapter_id, name)
+INSERT INTO sceneId (id, chapter_id, name)
 SELECT
     scene_id,
     chapter_id,
@@ -1516,14 +1516,14 @@ SELECT
 FROM tmp_extra_scenes;
 
 -- ---------------------------------------------------------------------------
--- Add one extra quest per added scene.
+-- Add one extra quest per added sceneId.
 -- ---------------------------------------------------------------------------
 INSERT INTO quest (id, scene_id, description)
 SELECT
     100 + seq,
     scene_id,
     CONCAT(
-        'Resolve the local conflict in scene ',
+        'Resolve the local conflict in sceneId ',
         LPAD(scene_id, 3, '0'),
         ' by gathering leverage, speaking to the right people, and choosing who to support.'
     )
@@ -1536,7 +1536,7 @@ SELECT
 FROM tmp_extra_scenes;
 
 -- ---------------------------------------------------------------------------
--- Add at least one NPC relation per added scene and a second one for half of them.
+-- Add at least one NPC relation per added sceneId and a second one for half of them.
 -- ---------------------------------------------------------------------------
 INSERT INTO scene_has_npc (scene_id, npc_id)
 SELECT
@@ -1552,7 +1552,7 @@ FROM tmp_extra_scenes
 WHERE MOD(seq, 2) = 0;
 
 -- ---------------------------------------------------------------------------
--- Add 3 choices per added scene:
+-- Add 3 choices per added sceneId:
 -- 1. Continue deeper into the same chapter flow.
 -- 2. Take on a local quest.
 -- 3. Take a risky shortcut.
@@ -1579,7 +1579,7 @@ SELECT
     END AS destination_scene_id,
     CONCAT(
         'Push forward from ',
-        'scene ',
+        'sceneId ',
         LPAD(scene_id, 3, '0'),
         ' and stay on the most direct route through the district.'
     ),
@@ -1614,7 +1614,7 @@ SELECT
         ELSE chapter_id + 1
     END AS destination_scene_id,
     CONCAT(
-        'Speak with the locals in scene ',
+        'Speak with the locals in sceneId ',
         LPAD(scene_id, 3, '0'),
         ' and take responsibility for the trouble unfolding there.'
     ),
@@ -1648,7 +1648,7 @@ SELECT
         ELSE LEAST(scene_id, 200)
     END AS destination_scene_id,
     CONCAT(
-        'Take a dangerous shortcut out of scene ',
+        'Take a dangerous shortcut out of sceneId ',
         LPAD(scene_id, 3, '0'),
         ' and trade safety for speed.'
     ),

@@ -17,7 +17,7 @@ DELETE FROM choice;
 DELETE FROM quest;
 DELETE FROM npc;
 DELETE FROM item;
-DELETE FROM scene;
+DELETE FROM sceneId;
 DELETE FROM chapter;
 DELETE FROM account;
 DELETE FROM race_details;
@@ -25,7 +25,7 @@ DELETE FROM race_details;
 ALTER TABLE account AUTO_INCREMENT = 1;
 ALTER TABLE chapter AUTO_INCREMENT = 1;
 ALTER TABLE race_details AUTO_INCREMENT = 1;
-ALTER TABLE scene AUTO_INCREMENT = 1;
+ALTER TABLE sceneId AUTO_INCREMENT = 1;
 ALTER TABLE character_avatar AUTO_INCREMENT = 1;
 ALTER TABLE quest AUTO_INCREMENT = 1;
 ALTER TABLE character_path AUTO_INCREMENT = 1;
@@ -56,7 +56,7 @@ INSERT INTO race_details (id, name, starting_chapter_id) VALUES
     (4, 'TALLS', 5),
     (5, 'MeDiUmS', 2);
 
-INSERT INTO scene (id, chapter_id, name) VALUES
+INSERT INTO sceneId (id, chapter_id, name) VALUES
     (1, 1, 'Town Gate'),
     (2, 2, 'Market Square'),
     (3, 3, 'Watchtower'),

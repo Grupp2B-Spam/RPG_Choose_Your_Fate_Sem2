@@ -50,7 +50,7 @@ Out of scope for the current slice:
 
 - **Adventure**: A complete branching story consisting of chapters, scenes, and choices.
 - **Scene**: A narrative unit presented to the player.
-- **Choice**: An option that moves the player to another or the same scene and may affect progression.
+- **Choice**: An option that moves the player to another or the same sceneId and may affect progression.
 - **Character**: A player-owned game entity used to progress through an adventure.
 - **Vertical slice**: A small but complete end-to-end part of the system that demonstrates core functionality across frontend, backend, database, and testing.
 - **Failover database**: A secondary SQL database instance intended to take over if the primary database becomes unavailable.
@@ -139,16 +139,16 @@ The system shall allow an administrator to retrieve and manage character data ac
 ### 4.3 Adventure Navigation
 
 #### FR-8 Scene Retrieval
-The system shall retrieve the current scene for a character during gameplay.
+The system shall retrieve the current sceneId for a character during gameplay.
 
 #### FR-9 Choice Presentation
-The system shall present the available choices for the current scene.
+The system shall present the available choices for the current sceneId.
 
 #### FR-10 Scene Progression
-The system shall move the player to the next scene based on the selected choice.
+The system shall move the player to the next sceneId based on the selected choice.
 
 #### FR-11 Consequence Handling
-The system shall support choice consequences that affect scene progression and, where implemented, related gameplay state.
+The system shall support choice consequences that affect sceneId progression and, where implemented, related gameplay state.
 
 ### 4.4 Story Content Management
 
@@ -297,7 +297,7 @@ As a player, I want to log in so that I can access my charactes and see their cu
 As a player, I want to create a character so that I can begin an adventure.
 
 ### US-3 Continue Story
-As a player, I want to view my current scene and available choices so that I can progress through the story.
+As a player, I want to view my current sceneId and available choices so that I can progress through the story.
 
 ### US-4 Make Choice
 As a player, I want to be able to make different choices so that the story changes based on the decisions.
@@ -315,8 +315,8 @@ The current vertical slice is considered successful if the following is demonstr
 - A player can create an account or log in
 - A player can create a character
 - A player can enter at least one adventure flow
-- The system can present a scene and available choices
-- A selected choice moves the player to the next scene
+- The system can present a sceneId and available choices
+- A selected choice moves the player to the next sceneId
 - The backend persists relevant game state in the relational database
 - The frontend, backend, database, and external API integration work together end-to-end
 

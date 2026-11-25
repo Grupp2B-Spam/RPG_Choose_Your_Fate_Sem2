@@ -126,17 +126,17 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    public ResponseEntity&lt;QuestResponseDTO&gt; createQuest(QuestRequestDTO questRequestDTO) {
-<b class="nc">&nbsp;        Scene scene = sceneRepository.findById(questRequestDTO.getSceneId()).orElseThrow(()-&gt;new ResponseStatusException(HttpStatus.NOT_FOUND));</b>
-<b class="nc">&nbsp;        Quest quest = questRequestDTO.getQuestEntity(scene);</b>
+<b class="nc">&nbsp;        Scene sceneId = sceneRepository.findById(questRequestDTO.getSceneId()).orElseThrow(()-&gt;new ResponseStatusException(HttpStatus.NOT_FOUND));</b>
+<b class="nc">&nbsp;        Quest quest = questRequestDTO.getQuestEntity(sceneId);</b>
 <b class="nc">&nbsp;        Quest savedQuest = questRepository.save(quest);</b>
 <b class="nc">&nbsp;        return ResponseEntity.status(HttpStatus.CREATED).body(new QuestResponseDTO(savedQuest));</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public QuestResponseDTO updateQuest(Integer id, QuestRequestDTO questRequestDTO) {
 <b class="nc">&nbsp;        Quest quest = questRepository.findById(id).orElseThrow(()-&gt;new ResponseStatusException(HttpStatus.NOT_FOUND));</b>
-<b class="nc">&nbsp;        Scene scene = sceneRepository.findById(questRequestDTO.getSceneId()).orElseThrow(()-&gt;new ResponseStatusException(HttpStatus.NOT_FOUND));</b>
+<b class="nc">&nbsp;        Scene sceneId = sceneRepository.findById(questRequestDTO.getSceneId()).orElseThrow(()-&gt;new ResponseStatusException(HttpStatus.NOT_FOUND));</b>
 <b class="nc">&nbsp;        quest.setDescription(questRequestDTO.getDescription());</b>
-<b class="nc">&nbsp;        quest.setScene(scene);</b>
+<b class="nc">&nbsp;        quest.setScene(sceneId);</b>
 <b class="nc">&nbsp;        questRepository.save(quest);</b>
 <b class="nc">&nbsp;        return new QuestResponseDTO(quest);</b>
 &nbsp;

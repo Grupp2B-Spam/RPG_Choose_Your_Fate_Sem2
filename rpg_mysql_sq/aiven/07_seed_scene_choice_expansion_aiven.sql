@@ -41,7 +41,7 @@ SELECT
     MOD(seq - 1, 4) + 1 AS chapter_scene_no
 FROM tmp_extra_scene_seq;
 
-INSERT INTO scene (id, chapter_id, name)
+INSERT INTO sceneId (id, chapter_id, name)
 SELECT
     scene_id,
     chapter_id,
@@ -64,7 +64,7 @@ SELECT
     100 + seq,
     scene_id,
     CONCAT(
-        'Resolve the local conflict in scene ',
+        'Resolve the local conflict in sceneId ',
         LPAD(scene_id, 3, '0'),
         ' by gathering leverage, speaking to the right people, and choosing who to support.'
     )
@@ -109,7 +109,7 @@ SELECT
     END AS destination_scene_id,
     CONCAT(
         'Push forward from ',
-        'scene ',
+        'sceneId ',
         LPAD(scene_id, 3, '0'),
         ' and stay on the most direct route through the district.'
     ),
@@ -144,7 +144,7 @@ SELECT
         ELSE chapter_id + 1
     END AS destination_scene_id,
     CONCAT(
-        'Speak with the locals in scene ',
+        'Speak with the locals in sceneId ',
         LPAD(scene_id, 3, '0'),
         ' and take responsibility for the trouble unfolding there.'
     ),
@@ -178,7 +178,7 @@ SELECT
         ELSE LEAST(scene_id, 200)
     END AS destination_scene_id,
     CONCAT(
-        'Take a dangerous shortcut out of scene ',
+        'Take a dangerous shortcut out of sceneId ',
         LPAD(scene_id, 3, '0'),
         ' and trade safety for speed.'
     ),

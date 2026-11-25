@@ -195,7 +195,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 <b class="fc">&nbsp;            Scene startingScene = startingChapter.getStartingScene();</b>
 <b class="fc">&nbsp;            if (startingScene == null) {</b>
-<b class="fc">&nbsp;                throw new ResourceNotFoundException(&quot;Starting scene not configured for race details with id: &quot; + request.getRaceDetailsId());</b>
+<b class="fc">&nbsp;                throw new ResourceNotFoundException(&quot;Starting sceneId not configured for race details with id: &quot; + request.getRaceDetailsId());</b>
 &nbsp;            }
 &nbsp;
 <b class="fc">&nbsp;            request.setChapterId(startingChapter.getId());</b>
@@ -261,7 +261,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 &nbsp;    // In this SQL implementation, referenced entities are validated before insert so the service fails fast with clear errors
 &nbsp;    // and avoids database-level foreign key violations. This method also enforces domain-specific consistency, such as
-&nbsp;    // ensuring that the selected scene belongs to the selected chapter.
+&nbsp;    // ensuring that the selected sceneId belongs to the selected chapter.
 &nbsp;    private void validateCreateRequest(CreateCharacterRequestDTO request) {
 <b class="fc">&nbsp;        if (!chapterRepository.existsById(request.getChapterId())) {</b>
 <b class="fc">&nbsp;            throw new ResourceNotFoundException(&quot;Chapter not found with id: &quot; + request.getChapterId());</b>
@@ -271,11 +271,11 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="fc">&nbsp;            throw new ResourceNotFoundException(&quot;Race details not found with id: &quot; + request.getRaceDetailsId());</b>
 &nbsp;        }
 &nbsp;
-<b class="fc">&nbsp;        var scene = sceneRepository.findById(request.getSceneId())</b>
+<b class="fc">&nbsp;        var sceneId = sceneRepository.findById(request.getSceneId())</b>
 <b class="fc">&nbsp;                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Scene not found with id: &quot; + request.getSceneId()));</b>
 &nbsp;
-<b class="fc">&nbsp;        if (!scene.getChapter().getId().equals(request.getChapterId())) {</b>
-<b class="fc">&nbsp;            throw new IllegalArgumentException(&quot;Selected scene does not belong to the selected chapter.&quot;);</b>
+<b class="fc">&nbsp;        if (!sceneId.getChapter().getId().equals(request.getChapterId())) {</b>
+<b class="fc">&nbsp;            throw new IllegalArgumentException(&quot;Selected sceneId does not belong to the selected chapter.&quot;);</b>
 &nbsp;        }
 &nbsp;    }
 &nbsp;

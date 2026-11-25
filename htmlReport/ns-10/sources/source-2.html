@@ -19,10 +19,10 @@
 <div class="breadCrumbs">
 Current scope:     <a href="../../index.html">all classes</a>
     <span class="separator">|</span>
-    <a href="../index.html">dk.ek.gruppe2.chooseyourfate.dto.scene</a>
+    <a href="../index.html">dk.ek.gruppe2.chooseyourfate.dto.sceneId</a>
 </div>
 
-<h1>Coverage Summary for Class: SceneLookaheadResponseDTO (dk.ek.gruppe2.chooseyourfate.dto.scene)</h1>
+<h1>Coverage Summary for Class: SceneLookaheadResponseDTO (dk.ek.gruppe2.chooseyourfate.dto.sceneId)</h1>
 
 <table class="coverageStats">
 <tr>
@@ -75,7 +75,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 
 <pre>
-<code class="sourceCode" id="sourceCode">&nbsp;package dk.ek.gruppe2.chooseyourfate.dto.scene;
+<code class="sourceCode" id="sourceCode">&nbsp;package dk.ek.gruppe2.chooseyourfate.dto.sceneId;
 &nbsp;
 &nbsp;import dk.ek.gruppe2.chooseyourfate.dto.choice.ChoiceResponseDTO;
 &nbsp;import dk.ek.gruppe2.chooseyourfate.model.mysql.Choice;
@@ -86,7 +86,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import java.util.List;
 &nbsp;
 &nbsp;public class SceneLookaheadResponseDTO {
-&nbsp;    private SceneResponseDTO scene;
+&nbsp;    private SceneResponseDTO sceneId;
 &nbsp;    private List&lt;ChoiceResponseDTO&gt; choices;
 &nbsp;    private List&lt;SceneResponseDTO&gt; destinationScenes;
 &nbsp;
@@ -94,24 +94,24 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    public SceneLookaheadResponseDTO(
-&nbsp;            SceneResponseDTO scene,
+&nbsp;            SceneResponseDTO sceneId,
 &nbsp;            List&lt;ChoiceResponseDTO&gt; choices,
 &nbsp;            List&lt;SceneResponseDTO&gt; destinationScenes
 <b class="nc">&nbsp;    ) {</b>
-<b class="nc">&nbsp;        this.scene = scene;</b>
+<b class="nc">&nbsp;        this.sceneId = sceneId;</b>
 <b class="nc">&nbsp;        this.choices = choices;</b>
 <b class="nc">&nbsp;        this.destinationScenes = destinationScenes;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;
-<b class="fc">&nbsp;    public SceneLookaheadResponseDTO(Scene scene) {</b>
-<b class="fc">&nbsp;        this.scene = new SceneResponseDTO(scene);</b>
-<b class="fc">&nbsp;        this.choices = scene.getChoices()</b>
+<b class="fc">&nbsp;    public SceneLookaheadResponseDTO(Scene sceneId) {</b>
+<b class="fc">&nbsp;        this.sceneId = new SceneResponseDTO(sceneId);</b>
+<b class="fc">&nbsp;        this.choices = sceneId.getChoices()</b>
 <b class="fc">&nbsp;                .stream()</b>
 <b class="fc">&nbsp;                .sorted(Comparator.comparing(Choice::getId))</b>
 <b class="fc">&nbsp;                .map(ChoiceResponseDTO::new)</b>
 <b class="fc">&nbsp;                .toList();</b>
-<b class="fc">&nbsp;        this.destinationScenes = scene.getChoices()</b>
+<b class="fc">&nbsp;        this.destinationScenes = sceneId.getChoices()</b>
 <b class="fc">&nbsp;                .stream()</b>
 <b class="fc">&nbsp;                .map((choice) -&gt; {</b>
 <b class="fc">&nbsp;            return new SceneResponseDTO(choice.getDestinationScene());</b>
@@ -120,11 +120,11 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    public SceneResponseDTO getScene() {
-<b class="fc">&nbsp;        return scene;</b>
+<b class="fc">&nbsp;        return sceneId;</b>
 &nbsp;    }
 &nbsp;
-&nbsp;    public void setScene(SceneResponseDTO scene) {
-<b class="nc">&nbsp;        this.scene = scene;</b>
+&nbsp;    public void setScene(SceneResponseDTO sceneId) {
+<b class="nc">&nbsp;        this.sceneId = sceneId;</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public List&lt;ChoiceResponseDTO&gt; getChoices() {

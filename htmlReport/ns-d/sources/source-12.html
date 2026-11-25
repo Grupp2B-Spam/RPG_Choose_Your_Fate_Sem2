@@ -93,9 +93,9 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    private Integer sceneId;
 &nbsp;    private String description;
 &nbsp;
-&nbsp;    public Quest getQuestEntity(Scene scene) {
+&nbsp;    public Quest getQuestEntity(Scene sceneId) {
 <b class="nc">&nbsp;        Quest quest = new Quest();</b>
-<b class="nc">&nbsp;        quest.setScene(scene);</b>
+<b class="nc">&nbsp;        quest.setScene(sceneId);</b>
 <b class="nc">&nbsp;        quest.setDescription(this.description);</b>
 <b class="nc">&nbsp;        return quest;</b>
 &nbsp;    }

@@ -147,6 +147,53 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
 -- -----------------------------------------------------
+-- Table `character-vault`.`quest`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `character-vault`.`quest` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `scene_id` INT NOT NULL,
+    `description` MEDIUMTEXT NULL DEFAULT NULL,
+    PRIMARY KEY (`id`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+CREATE TABLE IF NOT EXISTS `character-vault`.`character_has_quest` (
+    `character_id` INT NOT NULL,
+    `quest_id` INT NOT NULL,
+    `status` TINYINT NOT NULL,
+    PRIMARY KEY (`character_id`, `quest_id`),
+    INDEX `quest_id_idx` (`quest_id` ASC) VISIBLE,
+    CONSTRAINT `fk_character_has_quest_character`
+    FOREIGN KEY (`character_id`)
+    REFERENCES `character-vault`.`character_avatar` (`id`),
+    CONSTRAINT `fk_character_has_quest_quest`
+    FOREIGN KEY (`quest_id`)
+    REFERENCES `character-vault`.`quest` (`id`)
+)
+    ENGINE = InnoDB
+    DEFAULT CHARACTER SET = utf8mb3;
+
+-- -----------------------------------------------------
+-- Table `character-vault`.`quest_has_item`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `character-vault`.`quest_has_item` (
+    `quest_id` INT NOT NULL,
+    `item_id` INT NOT NULL,
+    PRIMARY KEY (`quest_id`, `item_id`),
+    INDEX `fk_quest_has_item_item1_idx` (`item_id` ASC) VISIBLE,
+    INDEX `fk_quest_has_item_quest1_idx` (`quest_id` ASC) VISIBLE,
+    CONSTRAINT `fk_quest_has_item_item`
+    FOREIGN KEY (`item_id`)
+    REFERENCES `character-vault`.`item` (`id`),
+    CONSTRAINT `fk_quest_has_item_quest`
+    FOREIGN KEY (`quest_id`)
+    REFERENCES `character-vault`.`quest` (`id`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb3;
+
+-- -----------------------------------------------------
 -- View `character-vault`.`v_character`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `character-vault`.`v_character`;
