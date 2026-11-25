@@ -1,0 +1,62 @@
+services:
+  mongo:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root-local-only
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
+    ports:
+      - "127.0.0.1:27017:27017"
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --username root --password root-local-only --authenticationDatabase admin --eval 'db.adminCommand({ping: 1}).ok' | grep 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: dev
+      RABBITMQ_DEFAULT_PASS: dev-local-only
+    ports:
+      - "127.0.0.1:15672:15672"
+      - "127.0.0.1:5672:5672"
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  scene-indexer:
+    build: ./scene-indexer
+    environment:
+      MONGODB_URI: mongodb://indexer:indexer-local-only@mongo:27017/scenes?authSource=scenes
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: dev
+      RABBIT_PASS: dev-local-only
+    depends_on:
+      mongo: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    restart: unless-stopped
+
+  scene-manager:
+    build: ./scene-manager
+    environment:
+      MONGODB_URI: mongodb://manager:manager-local-only@mongo:27017/scenes?authSource=scenes
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: dev
+      RABBIT_PASS: dev-local-only
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      mongo: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  rabbit_data:
