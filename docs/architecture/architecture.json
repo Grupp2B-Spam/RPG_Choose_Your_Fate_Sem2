@@ -89,12 +89,12 @@
       "id": "storycontent-manager",
       "kind": "service",
       "display": "StoryContentManager",
-      "status": "skeleton",
-      "branch": "main",
+      "status": "implemented",
+      "branch": "patrick/create-storycontentmanager-microservice",
       "version": "0.0.1-SNAPSHOT",
       "stack": "Spring Boot 4.0.3 / Java 21",
       "context": "content",
-      "purpose": "The write side of authored content: chapters, scenes, choices, NPCs, item and quest definitions.",
+      "purpose": "The write side of authored content: chapters, scenes, choices, NPCs, item, quest and race definitions, and the publisher of every content event.",
       "datastore": {
         "name": "story-content-vault",
         "kind": "MySQL 9.5",
@@ -110,11 +110,12 @@
       "exposes": [
         {
           "style": "REST",
-          "detail": "authoring API, admin only",
-          "versioning": "not decided",
+          "detail": "/admin/v1 — chapters, scenes, items, npcs, quests, races",
+          "versioning": "v1 in the path",
           "contract": {
             "path": "microservices/contracts/storycontent-manager.openapi.yaml",
-            "state": "todo"
+            "state": "todo",
+            "note": "springdoc generates a Swagger page at runtime, so the API is browsable, but no contract file is committed for a consumer to code against."
           }
         }
       ],
@@ -138,9 +139,9 @@
       ],
       "consumes": [],
       "gaps": [
-        "A walking skeleton: publishes real messages, but owns no content entities yet.",
         "Draft versus published content is not designed.",
-        "Declares its consumers' queues as well as its own exchange. Interim: see meta.topology."
+        "Declares its consumers' queues as well as its own exchange. Interim: see meta.topology.",
+        "No committed OpenAPI document, only the generated Swagger page."
       ]
     },
     {
@@ -839,6 +840,12 @@
       "blocks": [
         "texttospeech-manager"
       ]
+    },
+    {
+      "id": "API-VERSIONING",
+      "short": "Two REST versioning styles are in use at once.",
+      "detail": "StoryContentManager puts the version in the path (/admin/v1/...); RecapManager reads an X-API-VERSION header. Both work. The report has to describe one strategy, and a third service will otherwise pick a third way. Worth settling before more services expose REST.",
+      "blocks": []
     },
     {
       "id": "PORTS",

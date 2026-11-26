@@ -74,7 +74,7 @@ test('the open sequence-number question is noted', () => {
 
 test('every open issue in the manifest is written somewhere on the tab', () => {
   const text = h.textOf(TAB).toLowerCase();
-  const marker = { 'SEQUENCE-NUMBER': 'sequence number', 'PROTO-OWNERSHIP': 'story_path.proto', GRAPHQL: 'graphql', OAUTH: 'oauth', KEDA: 'keda', PORTS: 'port allocation', IMAGES: null, MONITORING: null };
+  const marker = { 'SEQUENCE-NUMBER': 'sequence number', 'PROTO-OWNERSHIP': 'story_path.proto', GRAPHQL: 'graphql', OAUTH: 'oauth', KEDA: 'keda', PORTS: 'port allocation', IMAGES: null, MONITORING: null, 'API-VERSIONING': 'versioning styles' };
   for (const issue of h.manifest.openIssues) {
     const needle = marker[issue.id];
     if (needle) assert.ok(text.includes(needle), `${issue.id} is not mentioned`);

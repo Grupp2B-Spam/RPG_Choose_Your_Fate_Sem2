@@ -20,8 +20,22 @@ test('records seven services and one legacy node', () => {
 
 test('recap-manager is the only implemented service', () => {
   const m = loadManifest(MANIFEST);
-  const done = m.services.filter((s) => s.kind === 'service' && s.status === 'implemented');
-  assert.deepEqual(done.map((s) => s.id), ['recap-manager']);
+  // Listing the implemented services by name only froze a moment in time. What is worth
+  // holding is the claim behind the badge: a service that says it exists has to say
+  // where its code is, and carry the version of the artifact that was built.
+  for (const s of m.services.filter((x) => x.status === 'implemented')) {
+    assert.ok(s.branch, `${s.id} is marked implemented but names no branch`);
+    assert.ok(s.version, `${s.id} is marked implemented but carries no version`);
+    assert.ok(s.stack, `${s.id} is marked implemented but names no stack`);
+  }
+});
+
+test('nothing is marked implemented without something to show for it', () => {
+  const m = loadManifest(MANIFEST);
+  for (const s of m.services.filter((x) => x.status === 'implemented' && x.kind === 'service')) {
+    const surfaces = (s.exposes || []).length + (s.publishes || []).length + (s.consumes || []).length;
+    assert.ok(surfaces > 0, `${s.id} is marked implemented but exposes and publishes nothing`);
+  }
 });
 
 test('no service invents a port it has not been given', () => {

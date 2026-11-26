@@ -74,7 +74,10 @@ function contracts(manifest, s) {
   if (list.length === 0) return '<b>Contracts</b><br>none';
   const lines = list.map((c) => {
     const mark = c.state === 'written' ? MARK_WRITTEN : MARK_TODO;
-    return `${mark} ${c.path.split('/').pop()}`;
+    // The contract's own version, which is not the service's artifact version and moves
+    // independently of it — the thing a consumer actually codes against.
+    const version = c.version ? ` ${c.version}` : '';
+    return `${mark} ${c.path.split('/').pop()}${version}`;
   });
   return ['<b>Contracts</b>', ...lines].join('<br>');
 }

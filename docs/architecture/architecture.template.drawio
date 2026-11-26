@@ -254,6 +254,9 @@
           <mxGeometry x="2220" y="1460" width="340" height="160" as="geometry" />
         </mxCell>
 
+        <mxCell id="note-versioning" value="&lt;b&gt;Open — two REST versioning styles&lt;/b&gt;&lt;br&gt;StoryContentManager puts the version in the path (/admin/v1/...). RecapManager reads an X-API-VERSION header. Both work, but the report has to describe one strategy, and a third service will otherwise pick a third way." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#d6a860;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="1660" width="340" height="170" as="geometry" />
+        </mxCell>
         <mxCell id="e-c1-gw" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#82b366;strokeWidth=2;endArrow=block;endFill=1;fontSize=10;" edge="1" parent="1" source="c1" target="gw">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>

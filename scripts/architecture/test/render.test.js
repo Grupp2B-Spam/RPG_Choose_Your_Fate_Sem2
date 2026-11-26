@@ -144,3 +144,11 @@ test('the envelope renders the fields every message shares', () => {
 test('an unknown meta field still returns null', () => {
   assert.equal(resolve('meta:nonsense'), null);
 });
+
+test('a contract with a version shows it, so the number is visible on the diagram', () => {
+  assert.match(resolve('service:storycontent-manager:contracts'), /asyncapi\.yaml 1\.2\.0/);
+});
+
+test('a contract with no version shows just the file', () => {
+  assert.match(resolve('service:storycontent-manager:contracts'), /⚠ storycontent-manager\.openapi\.yaml(?!\s\d)/);
+});
