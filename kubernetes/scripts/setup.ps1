@@ -21,21 +21,34 @@
     installing it early means that work starts with a ScaledObject rather than
     with a cluster component.
 
+.PARAMETER WithDashboard
+    Also install the Kubernetes Dashboard, a web UI for the cluster. Purely a
+    development convenience -- nothing in this project depends on it, and it is
+    off by default because it is five more containers for a view that Lens
+    already gives anyone who has it.
+
+    It is upstream's Helm chart rendered to plain YAML inside a container, so
+    Helm is not needed on the machine and the project keeps its "kubectl and
+    Docker, nothing else" prerequisite.
+
 .EXAMPLE
     .\kubernetes\scripts\setup.ps1
 #>
 [CmdletBinding()]
 param(
-    [switch]$WithKeda
+    [switch]$WithKeda,
+    [switch]$WithDashboard
 )
 
 $ErrorActionPreference = 'Stop'
 
-$Namespace      = 'choose-your-fate'
-$IngressVersion = 'controller-v1.15.1'
-$KedaVersion    = 'v2.17.2'
-$RepoRoot       = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$LocalDir       = Join-Path $RepoRoot '.local'
+$Namespace         = 'choose-your-fate'
+$IngressVersion    = 'controller-v1.15.1'
+$KedaVersion       = 'v2.17.2'
+$DashboardVersion  = '7.14.0'
+$HelmImage         = 'alpine/helm:3.16.3'
+$RepoRoot          = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$LocalDir          = Join-Path $RepoRoot '.local'
 
 function Write-Step  { param([string]$Text) Write-Host ''; Write-Host "==> $Text" -ForegroundColor Cyan }
 function Write-Ok    { param([string]$Text) Write-Host "    [ok]   $Text" -ForegroundColor Green }
@@ -160,6 +173,63 @@ Invoke-Kubectl @('apply', '-f', (Join-Path $PSScriptRoot '..\00-namespace\namesp
 Write-Step "Installing ingress-nginx ($IngressVersion)"
 $ingressUrl = "https://raw.githubusercontent.com/kubernetes/ingress-nginx/$IngressVersion/deploy/static/provider/cloud/deploy.yaml"
 Invoke-Kubectl @('apply', '-f', $ingressUrl) 'installing ingress-nginx'
+
+# --enable-metrics is off by default in this controller version, which is easy
+# to get wrong: port 10254 answers 200 either way, but without the flag it
+# serves only the Go runtime's own numbers -- no request counts, no latencies,
+# nothing about the gateway's actual traffic. The flag turns on the collector
+# that produces nginx_ingress_controller_requests and friends, labelled by
+# ingress, path, service and status, which is what makes the two route groups
+# distinguishable once something scrapes them.
+#
+# This is done by patching rather than by editing the upstream manifest,
+# because the manifest is applied straight from a pinned URL and string surgery
+# on someone else's YAML breaks quietly the first time they reformat it.
+#
+# It happens before the readiness wait below so the controller starts once with
+# the flag, instead of starting and then being restarted into it.
+$controllerArgs = kubectl get deployment ingress-nginx-controller --namespace ingress-nginx `
+    -o jsonpath='{.spec.template.spec.containers[0].args}' 2>$null
+if ($controllerArgs -and $controllerArgs -notmatch '--enable-metrics') {
+    $patch = '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--enable-metrics=true"}]'
+    Invoke-Kubectl @('patch', 'deployment', 'ingress-nginx-controller', '--namespace', 'ingress-nginx',
+        '--type=json', '-p', $patch) 'enabling controller metrics'
+    Write-Ok 'metrics enabled on the controller'
+} else {
+    Write-Kept 'controller metrics already enabled'
+}
+
+# A Service of our own rather than a port added to the upstream one, because
+# the upstream Service is replaced wholesale every time the pinned manifest is
+# re-applied, and an added port would disappear with it. Separate object,
+# separate lifecycle, survives the next upgrade.
+$ingressMetricsService = @'
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx-controller-metrics
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/component: controller-metrics
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "10254"
+    prometheus.io/path: /metrics
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/component: controller
+  ports:
+    - name: metrics
+      port: 10254
+      targetPort: 10254
+      protocol: TCP
+'@
+$ingressMetricsService | kubectl apply -f -
+if ($LASTEXITCODE -ne 0) { throw 'could not create the ingress metrics Service' }
+Write-Ok 'ingress-nginx-controller-metrics (nothing scrapes it yet)'
 
 Write-Host '    waiting for the controller to become ready (up to 5 minutes)...'
 # rollout status, not "wait --for=condition=Ready pod". The apply returns the
@@ -395,6 +465,131 @@ if ($WithKeda) {
 } else {
     Write-Host ''
     Write-Host '    KEDA was not installed. Add -WithKeda when the first ScaledObject needs it.' -ForegroundColor DarkGray
+}
+
+# ---------------------------------------------------------------------------
+# 7. The Kubernetes Dashboard, on request
+# ---------------------------------------------------------------------------
+# Upstream stopped shipping a plain manifest after version 2.7.0; everything
+# since is a Helm chart only. Rather than make Helm a prerequisite for the
+# whole project over one optional dev tool, the chart is rendered to YAML by a
+# Helm container and the result is applied with kubectl.
+#
+# "helm template" needs no cluster access at all -- it is a local text
+# transformation -- so the container never talks to the API server and there is
+# no kubeconfig to mount or certificate to work around. kubectl, running on the
+# machine, does the applying.
+#
+# The side effect is worth having: the rendered file is ordinary YAML that can
+# be read and diffed before it is applied, and the cluster ends up with plain
+# objects rather than a Helm release that only Helm can explain.
+if ($WithDashboard) {
+    Write-Step "Installing the Kubernetes Dashboard ($DashboardVersion)"
+
+    if (-not (Invoke-Quietly { docker version --format '{{.Server.Version}}' })) {
+        throw 'Docker is needed to render the dashboard chart, and it is not running.'
+    }
+
+    $chartDir = Join-Path ([System.IO.Path]::GetTempPath()) "cyf-dashboard-$DashboardVersion"
+    New-Item -ItemType Directory -Force -Path $chartDir | Out-Null
+    $chartFile    = Join-Path $chartDir 'chart.tgz'
+    $renderedFile = Join-Path $chartDir 'rendered.yaml'
+    $helmErrFile  = Join-Path $chartDir 'helm-stderr.txt'
+
+    if (-not (Test-Path -LiteralPath $chartFile)) {
+        $chartUrl = "https://github.com/kubernetes/dashboard/releases/download/kubernetes-dashboard-$DashboardVersion/kubernetes-dashboard-$DashboardVersion.tgz"
+        Write-Host '    downloading the chart...'
+        Invoke-WebRequest -Uri $chartUrl -OutFile $chartFile
+    }
+
+    Write-Host '    rendering it to YAML...'
+    # docker writes its pull progress to stderr, and with $ErrorActionPreference
+    # set to Stop that alone is enough to end the script even when the command
+    # succeeds. Same trap as the openssl and kubectl calls further up.
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & docker run --rm -v "${chartDir}:/chart" $HelmImage `
+            template kubernetes-dashboard /chart/chart.tgz `
+            --namespace kubernetes-dashboard 1>$renderedFile 2>$helmErrFile
+    } finally {
+        $ErrorActionPreference = $previous
+    }
+    if ($LASTEXITCODE -ne 0) {
+        Get-Content -LiteralPath $helmErrFile -ErrorAction SilentlyContinue | Select-Object -First 10 | ForEach-Object { Write-Note $_ }
+        throw "rendering the dashboard chart failed (exit code $LASTEXITCODE)"
+    }
+
+    kubectl create namespace kubernetes-dashboard --dry-run=client -o yaml | kubectl apply -f -
+    if ($LASTEXITCODE -ne 0) { throw 'could not create the kubernetes-dashboard namespace' }
+
+    # --namespace on the apply, and it is not optional.
+    #
+    # "helm template --namespace X" does not write metadata.namespace into the
+    # objects it renders unless the chart itself templates it. Helm does not
+    # need it to: it remembers the namespace as part of the release. kubectl
+    # has no such memory, so every object without an explicit namespace lands
+    # in whatever the current context points at.
+    #
+    # This chart templates the namespace on its Kong subchart and nowhere else,
+    # which produces the worst version of the problem: applying without this
+    # flag puts Kong in kubernetes-dashboard and the other four deployments in
+    # default, where they start cleanly and look healthy. The only visible
+    # symptom is Kong stuck on a ConfigMap "not found" that was created a
+    # second earlier -- in the other namespace.
+    Invoke-Kubectl @('apply', '--namespace', 'kubernetes-dashboard', '-f', $renderedFile) 'installing the dashboard'
+
+    # The dashboard has no users of its own: you log in with a token belonging
+    # to a ServiceAccount, and you see exactly what that account is allowed to
+    # see. So the choice of role is the choice of what the dashboard can do.
+    #
+    # This binds the built-in "view" role, which is read-only across the
+    # cluster and deliberately cannot read Secrets. A dashboard you can only
+    # look through is the right default for a tool nobody needs in order to
+    # work: nothing is one misclick from being deleted, and a token that leaks
+    # is a much smaller problem.
+    #
+    # Most guides reach for cluster-admin here. If the group later wants to
+    # edit from the UI, change the roleRef below to cluster-admin and re-run --
+    # but it is worth being honest that this would hand anyone holding a token
+    # full control of the cluster, Secrets included.
+    $dashboardAccount = @'
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dashboard-viewer
+  namespace: kubernetes-dashboard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dashboard-viewer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: dashboard-viewer
+    namespace: kubernetes-dashboard
+'@
+    $dashboardAccount | kubectl apply -f -
+    if ($LASTEXITCODE -ne 0) { throw 'could not create the dashboard-viewer account' }
+
+    kubectl wait --namespace kubernetes-dashboard --for=condition=Available deployment --all --timeout=300s
+    if ($LASTEXITCODE -ne 0) {
+        Write-Note 'The dashboard did not become available in time. Look at:  kubectl -n kubernetes-dashboard get pods'
+    } else {
+        Write-Ok 'the dashboard is ready (read-only, as the dashboard-viewer account)'
+        Write-Host ''
+        Write-Host '    Open it with these two commands, in two terminals:' -ForegroundColor DarkGray
+        Write-Host '        kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443' -ForegroundColor DarkGray
+        Write-Host '        kubectl -n kubernetes-dashboard create token dashboard-viewer' -ForegroundColor DarkGray
+        Write-Host '    then https://localhost:8443/ and paste the token. See kubernetes/README.md.' -ForegroundColor DarkGray
+    }
+} else {
+    Write-Host ''
+    Write-Host '    The dashboard was not installed. Add -WithDashboard if you want a web UI.' -ForegroundColor DarkGray
 }
 
 Write-Host ''

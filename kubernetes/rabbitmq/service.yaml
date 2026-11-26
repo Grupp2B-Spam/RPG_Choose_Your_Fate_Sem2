@@ -10,6 +10,23 @@ metadata:
   labels:
     app.kubernetes.io/name: rabbitmq
     app.kubernetes.io/part-of: choose-your-fate
+  annotations:
+    # Nothing scrapes these yet. They are the long-standing convention a plain
+    # Prometheus install discovers targets by: scrape this endpoint, on this
+    # port, at this path. Putting them here now means whoever adds Prometheus
+    # does not have to come back and edit this file -- the broker is already
+    # advertising where its numbers are.
+    #
+    # The port is the Prometheus plugin, enabled by default in the
+    # rabbitmq:*-management image. The deployment already opens it; this just
+    # makes it reachable by service name and findable by discovery.
+    #
+    # A Prometheus Operator install would use a ServiceMonitor instead, which
+    # needs a CRD that is not in this cluster. Annotations work either way, so
+    # they are the cheaper bet until that decision is made.
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "15692"
+    prometheus.io/path: /metrics
 spec:
   type: ClusterIP
   selector:
@@ -21,3 +38,6 @@ spec:
     - name: management
       port: 15672
       targetPort: management
+    - name: metrics
+      port: 15692
+      targetPort: metrics

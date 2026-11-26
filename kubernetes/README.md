@@ -57,7 +57,8 @@ Once per machine, and safe to re-run:
 - checks that Docker is up, that the context is `docker-desktop`, and that the
   cluster answers
 - creates the `choose-your-fate` namespace
-- installs **ingress-nginx** (pinned to `controller-v1.15.1`) and waits for it
+- installs **ingress-nginx** (pinned to `controller-v1.15.1`), turns on its
+  metrics and waits for it
 - generates **secrets** — one database password per database, a broker password,
   an RSA keypair for JWT verification, and a self-signed TLS certificate for the
   gateway
@@ -69,8 +70,12 @@ bakes its root password into its data directory the first time it starts, so
 regenerating a password against an existing volume locks the service out of its
 own database, with an authentication error that looks nothing like the cause.
 
-Add `-WithKeda` to install KEDA. Nothing uses it yet; it is the autoscaler the
-serverless text-to-speech work will need.
+Two optional extras:
+
+| Switch | What it adds |
+|---|---|
+| `-WithKeda` | KEDA. Nothing uses it yet; it is the autoscaler the serverless text-to-speech work will need. |
+| `-WithDashboard` | The Kubernetes Dashboard, a read-only web UI. Five containers in their own namespace. See **Looking at the cluster** below. |
 
 ### What `deploy.ps1` does
 
@@ -123,6 +128,13 @@ destroy authored content. Use `-IncludeData` when a schema has changed, because
 MySQL and MongoDB run their init scripts **only** against an empty data
 directory and will otherwise ignore a new schema completely.
 
+Neither form touches the Kubernetes Dashboard, which lives in its own namespace
+and belongs to the machine rather than to this project. Remove it with:
+
+```powershell
+kubectl delete namespace kubernetes-dashboard; kubectl delete clusterrolebinding dashboard-viewer kubernetes-dashboard-metrics-scraper; kubectl delete clusterrole kubernetes-dashboard-metrics-scraper
+```
+
 ---
 
 ## What you get
@@ -160,6 +172,99 @@ kubectl -n choose-your-fate get secret rabbitmq-credentials -o jsonpath='{.data.
 `/choose-your-fate` is listed prefix by prefix rather than as one catch-all,
 because two services share that root and a catch-all would hand one service the
 other's traffic.
+
+To see the table as the cluster has it, with the pod addresses each route
+actually resolves to:
+
+```powershell
+kubectl describe ingress -n choose-your-fate
+```
+
+An empty backend there — `<error: endpoints "x" not found>`, or nothing in the
+parentheses — means the Service selector or the readiness probe is the problem,
+not the route. It is the first thing to look at when a path returns 503.
+
+---
+
+## Looking at the cluster
+
+There is no web UI for the gateway itself, and that is deliberate on upstream's
+part: the controller is a reconcile loop over your Ingress objects, so a UI with
+buttons would be a second source of truth that the next `kubectl apply` would
+overwrite. Three things are worth knowing about instead.
+
+### Lens
+
+A desktop app, not a website. It reads the kubeconfig you already have, so
+nothing is installed into the cluster. It shows the Ingress objects, live pod
+logs and a terminal that exec's into a pod without you typing `kubectl exec`.
+If you have it, it covers most of what follows.
+
+One warning: Lens offers to install its own bundled Prometheus ("Lens Metrics")
+into a `lens-metrics` namespace. Do not accept it on a cluster where someone
+else is setting up monitoring — you end up with two Prometheus installs
+scraping the same targets and no obvious sign of which one a graph came from.
+
+### The Kubernetes Dashboard
+
+Installed only by `setup.ps1 -WithDashboard`. Two commands, in two terminals:
+
+```powershell
+kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+```
+
+```powershell
+kubectl -n kubernetes-dashboard create token dashboard-viewer
+```
+
+Then open <https://localhost:8443/>, accept the self-signed certificate, and
+paste the token. It expires after an hour; mint another with the same command.
+
+The dashboard is **read-only**. It logs in as a ServiceAccount bound to the
+built-in `view` role, which cannot change anything and cannot read Secrets.
+Most guides bind `cluster-admin` instead; this does not, because nothing here
+depends on the dashboard and a token that reaches the whole cluster is a poor
+trade for a browser tab. The `roleRef` in `setup.ps1` is a one-line change if
+the group wants more.
+
+CPU and memory graphs will be empty. That needs `metrics-server`, which is not
+installed — see **Metrics** below for why.
+
+### The gateway's own config
+
+When you want to see what nginx is actually running rather than what you asked
+for:
+
+```powershell
+kubectl exec -it -n ingress-nginx deploy/ingress-nginx-controller -- /bin/bash
+```
+
+`/etc/nginx/nginx.conf` inside that pod is generated from `/etc/nginx/template/
+nginx.tmpl` every time an Ingress object changes. Never edit it — it is
+overwritten on the next reload. Two things in it are worth reading once:
+
+- Both Ingress objects are merged into a **single `server` block** for
+  `localhost`. The route groups are not separate servers; they are per-location
+  `limit_req` zones inside one. That is the design from the decision log, made
+  visible.
+- Each `Prefix` path becomes **two** locations, `location = "/scenes"` and
+  `location "/scenes/"`. Kubernetes defines `Prefix` as matching whole path
+  segments, so `/scenesfoo` must not match — and a bare `location /scenes` in
+  nginx would match it, because nginx matches characters.
+
+You will not find pod addresses in that file. Upstreams are resolved at request
+time by a Lua balancer, which is why replacing a pod does not reload nginx. The
+live list is:
+
+```powershell
+kubectl exec -n ingress-nginx deploy/ingress-nginx-controller -- curl -s http://127.0.0.1:10246/configuration/backends
+```
+
+And the access log, which names the upstream that served each request:
+
+```powershell
+kubectl logs -n ingress-nginx deploy/ingress-nginx-controller -f
+```
 
 ---
 
@@ -439,10 +544,113 @@ own.
 
 ---
 
+## Metrics: what is exposed, and what collects it
+
+**Nothing collects them.** There is no Prometheus, no Grafana, no Loki and no
+Promtail in this cluster, whatever the architecture diagram says. What the
+cluster does is advertise where its numbers are, so that whoever installs a
+collector does not also have to go looking for them.
+
+Two sources, both annotated with `prometheus.io/scrape`, `prometheus.io/port`
+and `prometheus.io/path` — the convention a plain Prometheus discovers targets
+by:
+
+| Source | Address | What it gives you |
+|---|---|---|
+| Gateway | `ingress-nginx-controller-metrics.ingress-nginx:10254` | requests, latencies, status codes, per ingress and per path |
+| Broker | `rabbitmq.choose-your-fate:15692` | queue depths, publish and deliver rates, connections |
+
+A Prometheus Operator install would want `ServiceMonitor` objects instead,
+which need a CRD this cluster does not have. The annotations work either way,
+so they are the cheaper bet until that choice is made.
+
+### One thing to know about the gateway's metrics
+
+`--enable-metrics` is **off by default** in this controller version, and the
+way it fails is nasty. Port 10254 answers `200` either way. Without the flag the
+body is 128 lines of the Go runtime describing itself and nothing else — a
+collector pointed at it scrapes successfully, graphs cleanly, and shows nothing
+about HTTP traffic, with no error to explain why. `setup.ps1` sets the flag. If
+you ever rebuild the controller by hand, set it too:
+
+```powershell
+kubectl -n ingress-nginx exec deploy/ingress-nginx-controller -- curl -s http://127.0.0.1:10254/metrics | Select-String nginx_ingress_controller_requests
+```
+
+An empty result means the flag is missing. A result looks like this, and the
+`ingress` label is the useful part — it makes the two route groups separable in
+a query:
+
+```
+nginx_ingress_controller_requests{ingress="choose-your-fate-public",
+  path="/scenes", service="scene-manager", status="404"} 30
+```
+
+### What is not exposed, and cannot be from here
+
+**No service produces application metrics.** `spring-boot-starter-actuator` is
+in one of six `pom.xml` files, and `micrometer-registry-prometheus` — the thing
+that turns Actuator into a Prometheus endpoint — is in none of them. So there
+are no per-service request rates, no JVM heap numbers, no consumer lag. No
+cluster configuration can produce them; it is two lines per service, and it
+belongs with each service's owner:
+
+```xml
+<dependency>
+  <groupId>io.micrometer</groupId>
+  <artifactId>micrometer-registry-prometheus</artifactId>
+</dependency>
+```
+
+plus `management.endpoints.web.exposure.include=health,prometheus`. The same
+`spring-boot-starter-actuator` that the probes section above asks for covers the
+first half of this, so the two requests are really one.
+
+### `metrics-server` is not installed, on purpose
+
+`kubectl top`, the CPU and memory graphs in Lens and the Dashboard, and any
+future HorizontalPodAutoscaler all need `metrics-server`. It is not here,
+because on Docker Desktop it cannot work without turning off a certificate
+check.
+
+The kubelet serves its metrics over TLS with a certificate issued by its own
+self-signed CA (`CN=docker-desktop-ca@…`), not by the cluster CA, and with no IP
+SANs. `metrics-server` trusts the cluster CA, so the scrape fails with:
+
+```
+x509: cannot validate certificate for 192.168.65.3 because it doesn't contain any IP SANs
+```
+
+There is no configuration that makes verification succeed — the certificate is
+simply not one the cluster can vouch for. The only working options are to skip
+verification or to do without. On a single-node cluster on one laptop the risk
+is close to nothing, but it is still a deliberate decision to disable a
+certificate check, so it is the group's to take rather than the setup script's.
+
+If you decide to take it, it is two commands:
+
+```powershell
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.9.1/components.yaml
+```
+
+```powershell
+kubectl patch deployment metrics-server -n kube-system --type=json -p '[{\"op\":\"add\",\"path\":\"/spec/template/spec/containers/0/args/-\",\"value\":\"--kubelet-insecure-tls\"}]'
+```
+
+Without the second one the pod runs but never becomes ready, and the logs fill
+with the x509 error above. To undo both, `kubectl delete -f` the same URL.
+
+---
+
 ## Known gaps
 
 Written down rather than left to be discovered.
 
+- **Nothing scrapes the metrics.** The gateway and the broker expose them; no
+  collector is installed. See above.
+- **No service exposes application metrics.** Missing Micrometer. See above.
+- **`metrics-server` is not installed**, so there are no CPU or memory numbers
+  anywhere, including in Lens and the Dashboard. See above for why and how.
 - **`scene-indexer` has no probes.** No listening port to probe. See above.
 - **Four of five services have TCP probes only.** No Actuator. See above.
 - **The two halves of the messaging system do not talk to each other.**
