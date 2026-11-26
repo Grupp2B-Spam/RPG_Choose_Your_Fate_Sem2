@@ -63,9 +63,18 @@ test('the monolith points at the contexts that replace it', () => {
   assert.deepEqual(targets, ['grp-content', 'grp-identity', 'grp-media', 'grp-state']);
 });
 
-test('SceneIndexer is drawn inside SceneManager, not as a peer', () => {
-  const indexer = h.cellById(TAB, 'deploy-scene-indexer');
-  assert.equal(indexer.parent, 'panel-scene-manager');
+test('SceneIndexer is drawn as a service of its own', () => {
+  const panel = h.cellById(TAB, 'panel-scene-indexer');
+  assert.ok(panel, 'SceneIndexer should have a box of its own');
+  assert.equal(panel.parent, 'grp-content');
+});
+
+test('the two scene services are drawn against one store', () => {
+  const edges = h.edgesOf(TAB).filter((e) => e.target === 'db-scene-manager');
+  assert.deepEqual(
+    edges.map((e) => e.source).sort(),
+    ['panel-scene-indexer', 'panel-scene-manager']
+  );
 });
 
 test('the open sequence-number question is noted', () => {
@@ -74,7 +83,7 @@ test('the open sequence-number question is noted', () => {
 
 test('every open issue in the manifest is written somewhere on the tab', () => {
   const text = h.textOf(TAB).toLowerCase();
-  const marker = { 'SEQUENCE-NUMBER': 'sequence number', 'PROTO-OWNERSHIP': 'story_path.proto', GRAPHQL: 'graphql', OAUTH: 'oauth', KEDA: 'keda', PORTS: 'port allocation', IMAGES: null, MONITORING: null, 'API-VERSIONING': 'versioning styles' };
+  const marker = { 'SEQUENCE-NUMBER': 'sequence number', 'PROTO-OWNERSHIP': 'story_path.proto', GRAPHQL: 'graphql', OAUTH: 'oauth', KEDA: 'keda', PORTS: 'port allocation', IMAGES: null, MONITORING: null, 'EVENT-VOCABULARY': null, 'API-VERSIONING': 'versioning is done, not agreed' };
   for (const issue of h.manifest.openIssues) {
     const needle = marker[issue.id];
     if (needle) assert.ok(text.includes(needle), `${issue.id} is not mentioned`);
@@ -99,8 +108,11 @@ test('each event in the manifest has a box inside the broker', () => {
 
 test('every service that owns a datastore has one drawn', () => {
   for (const s of h.servicesWhere((x) => x.datastore && x.kind === 'service')) {
+    // A shared store is drawn once, with an edge from each service that uses it.
+    if (s.datastore.shared) continue;
     assert.ok(h.cellById(TAB, `db-${s.id}`), `${s.id} has no datastore symbol`);
   }
+  assert.ok(h.cellById(TAB, 'db-scene-manager'), 'the shared scene read model is not drawn');
 });
 
 test('long edges are routed through explicit waypoints, each in its own corridor', () => {

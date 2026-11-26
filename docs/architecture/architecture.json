@@ -52,21 +52,22 @@
       "id": "account-manager",
       "kind": "service",
       "display": "AccountManager",
-      "status": "planned",
+      "status": "skeleton",
       "context": "identity",
-      "purpose": "Owns identity. Signs RS256 JWTs that every other service validates locally with the public key.",
+      "purpose": "Owns identity. Today it distributes the public key that every other service validates JWTs with; it does not issue them yet.",
       "datastore": {
         "name": "account-vault",
         "kind": "MySQL"
       },
       "exposes": [
         {
-          "style": "REST",
-          "detail": "registration, login, account deletion",
-          "versioning": "not decided",
+          "style": "SOAP",
+          "detail": "VerificationKeyEndpoint — the public key other services verify with",
+          "versioning": "account-v1.xsd",
           "contract": {
-            "path": "microservices/contracts/account-manager.openapi.yaml",
-            "state": "todo"
+            "path": "microservices/accountManager/src/main/resources/contracts/account-v1.xsd",
+            "state": "written",
+            "note": "An XSD with a contract test against it. The only schema-first API in the system."
           }
         }
       ],
@@ -80,10 +81,13 @@
       ],
       "consumes": [],
       "gaps": [
-        "Not implemented.",
+        "Nothing issues a token yet. Key distribution and token issuing are different claims, and only the first is built.",
         "Third-party OAuth/OIDC provider not chosen.",
         "The JWT claim shape every other service depends on is not agreed."
-      ]
+      ],
+      "branch": "main",
+      "version": "0.0.1-SNAPSHOT",
+      "stack": "Spring Boot / Java"
     },
     {
       "id": "storycontent-manager",
@@ -110,8 +114,8 @@
       "exposes": [
         {
           "style": "REST",
-          "detail": "/admin/v1 — chapters, scenes, items, npcs, quests, races",
-          "versioning": "v1 in the path",
+          "detail": "/admin — chapters, scenes, items, npcs, quests, races",
+          "versioning": "X-API-VERSION header",
           "contract": {
             "path": "microservices/contracts/storycontent-manager.openapi.yaml",
             "state": "todo",
@@ -148,26 +152,21 @@
       "id": "scene-manager",
       "kind": "service",
       "display": "SceneManager",
-      "status": "skeleton",
-      "branch": "SceneManager",
+      "status": "implemented",
+      "branch": "main",
       "context": "content",
-      "purpose": "The read side of content. Serves scenes to the player and validates the choice they submit.",
+      "purpose": "The read side of content. Serves scenes to the player and publishes the choice they make.",
       "datastore": {
         "name": "scene-read-model",
-        "kind": "MongoDB"
+        "kind": "MongoDB",
+        "shared": true,
+        "note": "Shared with SceneIndexer, which writes it. Separate credentials: manager reads, indexer writes."
       },
-      "deployments": [
-        {
-          "name": "scene-indexer",
-          "role": "projection",
-          "note": "Same codebase, same schema, same release as SceneManager. Deployed separately so projection scales apart from query serving."
-        }
-      ],
       "exposes": [
         {
           "style": "REST",
-          "detail": "scene delivery, choice submission",
-          "versioning": "not decided",
+          "detail": "scene delivery",
+          "versioning": "none yet",
           "contract": {
             "path": "microservices/contracts/scene-manager.openapi.yaml",
             "state": "todo"
@@ -191,16 +190,52 @@
         }
       ],
       "gaps": [
+        "Publishes choice.made on a shared game.events exchange, not player-choice.made on scenemanager.events as the contract describes.",
+        "Declares queues named demo.storypath.choice-made and demo.character.choice-made — other services' queues, under a demo prefix.",
         "GraphQL is unassigned and this is a candidate.",
         "Validates that a choice exists in the submitted scene, but not that the character is in that scene."
+      ],
+      "version": "0.1.0",
+      "stack": "Spring Boot / Java"
+    },
+    {
+      "id": "scene-indexer",
+      "kind": "service",
+      "display": "SceneIndexer",
+      "status": "implemented",
+      "branch": "main",
+      "version": "0.1.0",
+      "stack": "Spring Boot / Java",
+      "context": "content",
+      "purpose": "Builds the scene read model from content events. Writes it; never serves it.",
+      "datastore": {
+        "name": "scene-read-model",
+        "kind": "MongoDB",
+        "shared": true,
+        "note": "Shared with SceneManager, which reads it. Separate credentials: indexer writes, manager reads."
+      },
+      "exposes": [],
+      "calls": [],
+      "publishes": [],
+      "consumes": [
+        {
+          "event": "scene-content.updated",
+          "queue": "scene-indexer.scene-changed",
+          "scalable": true,
+          "why": "Last-write-wins guarded by sceneVersion, so arrival order does not change the result."
+        }
+      ],
+      "gaps": [
+        "Binds scene.changed on a shared game.events exchange, not scene-content.updated on storycontent.events as the contract describes, so nothing published by StoryContentManager reaches it.",
+        "Writes a store another service reads. The group chose this; the cost is on the scene read model tab."
       ]
     },
     {
       "id": "character-manager",
       "kind": "service",
       "display": "CharacterManager",
-      "status": "skeleton",
-      "branch": "mikolsen/create-charactermanager-microservice",
+      "status": "implemented",
+      "branch": "main",
       "context": "state",
       "purpose": "The character sheet: stats, inventory, equipment and quest progress, all keyed on characterId.",
       "datastore": {
@@ -246,8 +281,12 @@
         }
       ],
       "gaps": [
+        "No AMQP code at all: the contracts name it as a consumer of three events, and it consumes none of them yet.",
+        "Its pom still carries the monolith's artifactId, choose-your-fate-backend, rather than its own name.",
         "GraphQL is unassigned and this is a candidate."
-      ]
+      ],
+      "version": "0.0.1-SNAPSHOT",
+      "stack": "Spring Boot / Java 21"
     },
     {
       "id": "storypath-manager",
@@ -843,8 +882,8 @@
     },
     {
       "id": "API-VERSIONING",
-      "short": "Two REST versioning styles are in use at once.",
-      "detail": "StoryContentManager puts the version in the path (/admin/v1/...); RecapManager reads an X-API-VERSION header. Both work. The report has to describe one strategy, and a third service will otherwise pick a third way. Worth settling before more services expose REST.",
+      "short": "REST versioning is acted on but not agreed.",
+      "detail": "StoryContentManager and RecapManager both read an X-API-VERSION header, using the same framework feature. So there is one scheme in practice. Nobody minuted the decision, so it is written here as something being done rather than something settled.",
       "blocks": []
     },
     {
@@ -864,6 +903,15 @@
       "short": "How images reach the local cluster is undecided.",
       "detail": "kind load versus a local registry. The CI/CD pipeline has to push somewhere, which argues for the registry.",
       "blocks": []
+    },
+    {
+      "id": "EVENT-VOCABULARY",
+      "short": "The Scenes services and the contracts name the same events differently.",
+      "detail": "SceneManager and SceneIndexer use one shared game.events exchange with routing keys scene.changed and choice.made. The contracts use one exchange per publisher with scene-content.updated and player-choice.made. Both halves work alone and nothing passes between them: a message published by StoryContentManager never reaches SceneIndexer, and no error is raised on either side.",
+      "blocks": [
+        "scene-manager",
+        "scene-indexer"
+      ]
     }
   ]
 }

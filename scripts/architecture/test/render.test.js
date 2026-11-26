@@ -19,15 +19,15 @@ test('card carries display name, purpose and version badge', () => {
 });
 
 test('card of a planned service says planned and shows no version', () => {
-  const html = resolve('service:account-manager:card');
+  const html = resolve('service:storypath-manager:card');
   assert.match(html, /planned/);
   assert.doesNotMatch(html, /SNAPSHOT/);
 });
 
 test('card of a branch service names the branch', () => {
   assert.match(
-    resolve('service:character-manager:card'),
-    /mikolsen\/create-charactermanager-microservice/
+    resolve('service:storycontent-manager:card'),
+    /patrick\/create-storycontentmanager-microservice/
   );
 });
 
@@ -76,7 +76,7 @@ test('event label carries exchange and queue count', () => {
 
 test('contract table has one row per service plus a header', () => {
   const rows = resolve('table:contracts').match(/<tr/g);
-  assert.equal(rows.length, 9);
+  assert.equal(rows.length, manifest.services.length + 1);
 });
 
 test('meta:updated renders the manifest date', () => {

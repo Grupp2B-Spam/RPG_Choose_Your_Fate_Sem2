@@ -12,10 +12,12 @@ test('the real manifest is valid', () => {
   assert.deepEqual(validateManifest(loadManifest(MANIFEST)), []);
 });
 
-test('records seven services and one legacy node', () => {
+test('there is exactly one legacy node, and every service belongs to a context', () => {
   const m = loadManifest(MANIFEST);
-  assert.equal(m.services.filter((s) => s.kind === 'service').length, 7);
   assert.equal(m.services.filter((s) => s.kind === 'legacy').length, 1);
+  for (const s of m.services.filter((x) => x.kind === 'service')) {
+    assert.ok(s.context, `${s.id} belongs to no bounded context`);
+  }
 });
 
 test('recap-manager is the only implemented service', () => {
@@ -44,11 +46,23 @@ test('no service invents a port it has not been given', () => {
   assert.deepEqual(withPorts, ['recap-manager', 'storycontent-manager', 'storypath-manager']);
 });
 
-test('scene-indexer is a deployment of scene-manager, not a service', () => {
+test('scene-indexer is a service of its own, as the group decided', () => {
   const m = loadManifest(MANIFEST);
-  assert.equal(m.services.some((s) => s.id === 'scene-indexer'), false);
-  const sm = m.services.find((s) => s.id === 'scene-manager');
-  assert.deepEqual(sm.deployments.map((d) => d.name), ['scene-indexer']);
+  const indexer = m.services.find((s) => s.id === 'scene-indexer');
+  assert.ok(indexer, 'SceneIndexer should be a service in its own right');
+  assert.equal(m.services.find((s) => s.id === 'scene-manager').deployments, undefined);
+});
+
+test('the two scene services are recorded as sharing one store', () => {
+  const m = loadManifest(MANIFEST);
+  const stores = ['scene-manager', 'scene-indexer'].map(
+    (id) => m.services.find((s) => s.id === id).datastore
+  );
+  assert.equal(stores[0].name, stores[1].name, 'they read and write the same store');
+  for (const store of stores) {
+    assert.equal(store.shared, true, 'a shared store has to say so');
+    assert.match(store.note, /credentials/i, 'say how the two sides are separated');
+  }
 });
 
 test('player-choice.made is scalable for character-manager but not storypath-manager', () => {
