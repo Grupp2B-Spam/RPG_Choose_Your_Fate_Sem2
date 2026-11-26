@@ -178,18 +178,26 @@ The integration tests deliberately do **not** load it.
 ## The API
 
 Admin only — every route writes content, and content is written by the writing team.
-Versioned at `/v1` from the start.
+
+**Send `X-API-VERSION: 1` on every request.** The version is a header, not a path segment,
+matching RecapManager so the whole system is called the same way. A request to a versioned
+endpoint without the header is rejected; unversioned routes — Swagger, the actuator health
+endpoints — do not need it.
+
+```powershell
+curl.exe -s "http://localhost:8081/admin/scenes" -H "X-API-VERSION: 1"
+```
 
 | | |
 |---|---|
-| `/admin/v1/chapters` | CRUD; `PUT /{id}/starting-scene` is separate on purpose — it republishes races |
-| `/admin/v1/scenes` | CRUD; `DELETE` retires rather than deletes |
-| `/admin/v1/scenes/{id}/choices` | choices are a sub-resource, because they are part of the scene aggregate |
-| `/admin/v1/scenes/{id}/npcs` | replaces the set of NPCs placed in a scene |
-| `/admin/v1/scenes/{sceneId}/quests`, `/admin/v1/quests/{id}` | |
-| `/admin/v1/items` | `DELETE` retires |
-| `/admin/v1/npcs` | `DELETE` is a real delete; nothing a player holds refers to an NPC |
-| `/admin/v1/races` | `DELETE` retires |
+| `/admin/chapters` | CRUD; `PUT /{id}/starting-scene` is separate on purpose — it republishes races |
+| `/admin/scenes` | CRUD; `DELETE` retires rather than deletes |
+| `/admin/scenes/{id}/choices` | choices are a sub-resource, because they are part of the scene aggregate |
+| `/admin/scenes/{id}/npcs` | replaces the set of NPCs placed in a scene |
+| `/admin/scenes/{sceneId}/quests`, `/admin/quests/{id}` | |
+| `/admin/items` | `DELETE` retires |
+| `/admin/npcs` | `DELETE` is a real delete; nothing a player holds refers to an NPC |
+| `/admin/races` | `DELETE` retires |
 
 Two things that look like omissions and are not:
 

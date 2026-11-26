@@ -19,7 +19,7 @@ import dk.ek.gruppe2.storycontent.service.ChapterService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/admin/v1/chapters")
+@RequestMapping("/admin/chapters")
 public class ChapterController {
 
     private final ChapterService chapters;
@@ -28,23 +28,23 @@ public class ChapterController {
         this.chapters = chapters;
     }
 
-    @GetMapping
+    @GetMapping(version = "1")
     public List<ChapterResponse> findAll() {
         return chapters.findAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(path = "/{id}", version = "1")
     public ChapterResponse findById(@PathVariable Integer id) {
         return chapters.findById(id);
     }
 
-    @PostMapping
+    @PostMapping(version = "1")
     public ResponseEntity<ChapterResponse> create(@Valid @RequestBody ChapterRequest request) {
         ChapterResponse created = chapters.create(request);
-        return ResponseEntity.created(URI.create("/admin/v1/chapters/" + created.id())).body(created);
+        return ResponseEntity.created(URI.create("/admin/chapters/" + created.id())).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}", version = "1")
     public ChapterResponse update(@PathVariable Integer id, @Valid @RequestBody ChapterRequest request) {
         return chapters.update(id, request);
     }
@@ -57,7 +57,7 @@ public class ChapterController {
      * it republishes those races with new versions. Giving the operation its own name
      * keeps that from being a surprising side effect of renaming a chapter.
      */
-    @PutMapping("/{id}/starting-scene")
+    @PutMapping(path = "/{id}/starting-scene", version = "1")
     public ChapterResponse setStartingScene(
             @PathVariable Integer id,
             @Valid @RequestBody StartingSceneRequest request) {

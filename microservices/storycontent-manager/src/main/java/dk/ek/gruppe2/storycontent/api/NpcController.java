@@ -21,12 +21,12 @@ import jakarta.validation.Valid;
 /**
  * Authoring endpoints for NPCs.
  *
- * <p>Placing an NPC in a scene is not here — it is {@code PUT /admin/v1/scenes/{id}/npcs},
+ * <p>Placing an NPC in a scene is not here — it is {@code PUT /admin/scenes/{id}/npcs},
  * because the scene is the aggregate that gets published and the placement is part of its
  * payload. An NPC's own name is not published at all, so editing it publishes nothing.
  */
 @RestController
-@RequestMapping("/admin/v1/npcs")
+@RequestMapping("/admin/npcs")
 public class NpcController {
 
     private final NpcService npcs;
@@ -35,23 +35,23 @@ public class NpcController {
         this.npcs = npcs;
     }
 
-    @GetMapping
+    @GetMapping(version = "1")
     public List<NpcResponse> findAll() {
         return npcs.findAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(path = "/{id}", version = "1")
     public NpcResponse findById(@PathVariable Integer id) {
         return npcs.findById(id);
     }
 
-    @PostMapping
+    @PostMapping(version = "1")
     public ResponseEntity<NpcResponse> create(@Valid @RequestBody NpcRequest request) {
         NpcResponse created = npcs.create(request);
-        return ResponseEntity.created(URI.create("/admin/v1/npcs/" + created.id())).body(created);
+        return ResponseEntity.created(URI.create("/admin/npcs/" + created.id())).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}", version = "1")
     public NpcResponse update(@PathVariable Integer id, @Valid @RequestBody NpcRequest request) {
         return npcs.update(id, request);
     }
@@ -62,7 +62,7 @@ public class NpcController {
      * <p>A real delete, unlike scenes and items: nothing a player holds refers to an NPC,
      * so there is no recorded history to break.
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping(path = "/{id}", version = "1")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         npcs.delete(id);
         return ResponseEntity.noContent().build();

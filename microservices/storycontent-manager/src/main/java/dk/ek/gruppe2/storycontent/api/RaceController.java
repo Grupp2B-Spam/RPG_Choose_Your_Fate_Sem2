@@ -28,7 +28,7 @@ import jakarta.validation.Valid;
  * quietly come back.
  */
 @RestController
-@RequestMapping("/admin/v1/races")
+@RequestMapping("/admin/races")
 public class RaceController {
 
     private final RaceService races;
@@ -37,29 +37,29 @@ public class RaceController {
         this.races = races;
     }
 
-    @GetMapping
+    @GetMapping(version = "1")
     public List<RaceResponse> findAll() {
         return races.findAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(path = "/{id}", version = "1")
     public RaceResponse findById(@PathVariable Integer id) {
         return races.findById(id);
     }
 
-    @PostMapping
+    @PostMapping(version = "1")
     public ResponseEntity<RaceResponse> create(@Valid @RequestBody RaceRequest request) {
         RaceResponse created = races.create(request);
-        return ResponseEntity.created(URI.create("/admin/v1/races/" + created.id())).body(created);
+        return ResponseEntity.created(URI.create("/admin/races/" + created.id())).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}", version = "1")
     public RaceResponse update(@PathVariable Integer id, @Valid @RequestBody RaceRequest request) {
         return races.update(id, request);
     }
 
     /** Retires rather than deletes: existing characters have this race. */
-    @DeleteMapping("/{id}")
+    @DeleteMapping(path = "/{id}", version = "1")
     public RaceResponse retire(@PathVariable Integer id) {
         return races.retire(id);
     }

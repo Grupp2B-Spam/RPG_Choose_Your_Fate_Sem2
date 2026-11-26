@@ -20,7 +20,7 @@ import java.util.List;
  *
  * <p>This code is left here deliberately and still works: the monolith runs the game, and
  * nothing consumes the new events yet. Where the two disagree StoryContentManager is the
- * one that is right, and new content belongs there — {@code /admin/v1/items}.
+ * one that is right, and new content belongs there — {@code /admin/items}.
  */
 @Service
 public class ItemService {

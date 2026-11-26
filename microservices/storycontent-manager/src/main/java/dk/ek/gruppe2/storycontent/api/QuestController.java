@@ -26,7 +26,7 @@ import jakarta.validation.Valid;
  * its own id, since the scene adds nothing to those operations.
  */
 @RestController
-@RequestMapping("/admin/v1")
+@RequestMapping("/admin")
 public class QuestController {
 
     private final QuestService quests;
@@ -35,30 +35,30 @@ public class QuestController {
         this.quests = quests;
     }
 
-    @GetMapping("/scenes/{sceneId}/quests")
+    @GetMapping(path = "/scenes/{sceneId}/quests", version = "1")
     public List<QuestResponse> findAllInScene(@PathVariable Integer sceneId) {
         return quests.findAllInScene(sceneId);
     }
 
-    @PostMapping("/scenes/{sceneId}/quests")
+    @PostMapping(path = "/scenes/{sceneId}/quests", version = "1")
     public ResponseEntity<QuestResponse> create(
             @PathVariable Integer sceneId,
             @Valid @RequestBody QuestRequest request) {
         QuestResponse created = quests.create(sceneId, request);
-        return ResponseEntity.created(URI.create("/admin/v1/quests/" + created.id())).body(created);
+        return ResponseEntity.created(URI.create("/admin/quests/" + created.id())).body(created);
     }
 
-    @GetMapping("/quests/{id}")
+    @GetMapping(path = "/quests/{id}", version = "1")
     public QuestResponse findById(@PathVariable Integer id) {
         return quests.findById(id);
     }
 
-    @PutMapping("/quests/{id}")
+    @PutMapping(path = "/quests/{id}", version = "1")
     public QuestResponse update(@PathVariable Integer id, @Valid @RequestBody QuestRequest request) {
         return quests.update(id, request);
     }
 
-    @DeleteMapping("/quests/{id}")
+    @DeleteMapping(path = "/quests/{id}", version = "1")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         quests.delete(id);
         return ResponseEntity.noContent().build();

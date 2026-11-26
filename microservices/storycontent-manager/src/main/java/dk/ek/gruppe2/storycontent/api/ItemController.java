@@ -19,7 +19,7 @@ import dk.ek.gruppe2.storycontent.service.ItemService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/admin/v1/items")
+@RequestMapping("/admin/items")
 public class ItemController {
 
     private final ItemService items;
@@ -28,29 +28,29 @@ public class ItemController {
         this.items = items;
     }
 
-    @GetMapping
+    @GetMapping(version = "1")
     public List<ItemResponse> findAll() {
         return items.findAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(path = "/{id}", version = "1")
     public ItemResponse findById(@PathVariable Integer id) {
         return items.findById(id);
     }
 
-    @PostMapping
+    @PostMapping(version = "1")
     public ResponseEntity<ItemResponse> create(@Valid @RequestBody ItemRequest request) {
         ItemResponse created = items.create(request);
-        return ResponseEntity.created(URI.create("/admin/v1/items/" + created.id())).body(created);
+        return ResponseEntity.created(URI.create("/admin/items/" + created.id())).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}", version = "1")
     public ItemResponse update(@PathVariable Integer id, @Valid @RequestBody ItemRequest request) {
         return items.update(id, request);
     }
 
     /** Retires rather than deletes: a player who owns one must still be able to use it. */
-    @DeleteMapping("/{id}")
+    @DeleteMapping(path = "/{id}", version = "1")
     public ItemResponse retire(@PathVariable Integer id) {
         return items.retire(id);
     }

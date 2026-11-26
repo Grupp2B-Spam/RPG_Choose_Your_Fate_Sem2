@@ -14,7 +14,7 @@ import java.util.Objects;
  * <p>This code is left here deliberately and still works: the monolith runs the game, and
  * nothing consumes the new events yet. Where the two disagree StoryContentManager is the
  * one that is right, and new content belongs there — {@code PUT
- * /admin/v1/scenes/{id}/npcs}.
+ * /admin/scenes/{id}/npcs}.
  */
 @Embeddable
 public class SceneHasNpcId implements Serializable {

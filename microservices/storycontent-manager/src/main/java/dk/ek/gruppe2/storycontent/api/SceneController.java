@@ -27,14 +27,15 @@ import jakarta.validation.Valid;
  * and players do not. <b>The role check is not wired up yet, so these routes are open</b>
  * — it waits on the JWT claim shape, which AccountManager owns and we have not agreed.
  *
- * <p>Versioned at {@code /v1} from the start: free now, expensive to add later.
+ * <p>The API version goes in the {@code X-API-VERSION} header, not the path — send
+ * {@code X-API-VERSION: 1}.
  *
  * <p>Choices are a sub-resource of a scene, not a collection of their own. That is about
  * the aggregate rather than the URL: a choice cannot change without changing what the
  * scene publishes, so editing one on its own is not a thing.
  */
 @RestController
-@RequestMapping("/admin/v1/scenes")
+@RequestMapping("/admin/scenes")
 public class SceneController {
 
     private final SceneService scenes;
@@ -43,23 +44,23 @@ public class SceneController {
         this.scenes = scenes;
     }
 
-    @GetMapping
+    @GetMapping(version = "1")
     public List<SceneResponse> findAll() {
         return scenes.findAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(path = "/{id}", version = "1")
     public SceneResponse findById(@PathVariable Integer id) {
         return scenes.findById(id);
     }
 
-    @PostMapping
+    @PostMapping(version = "1")
     public ResponseEntity<SceneResponse> create(@Valid @RequestBody SceneRequest request) {
         SceneResponse created = scenes.create(request);
-        return ResponseEntity.created(URI.create("/admin/v1/scenes/" + created.id())).body(created);
+        return ResponseEntity.created(URI.create("/admin/scenes/" + created.id())).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}", version = "1")
     public SceneResponse update(@PathVariable Integer id, @Valid @RequestBody SceneRequest request) {
         return scenes.update(id, request);
     }
@@ -72,17 +73,17 @@ public class SceneController {
      * stops an author from removing one — so the destructive version of this operation is
      * not offered at all rather than guarded.
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping(path = "/{id}", version = "1")
     public SceneResponse retire(@PathVariable Integer id) {
         return scenes.retire(id);
     }
 
-    @PostMapping("/{id}/choices")
+    @PostMapping(path = "/{id}/choices", version = "1")
     public SceneResponse addChoice(@PathVariable Integer id, @Valid @RequestBody ChoiceRequest request) {
         return scenes.addChoice(id, request);
     }
 
-    @PutMapping("/{id}/choices/{choiceId}")
+    @PutMapping(path = "/{id}/choices/{choiceId}", version = "1")
     public SceneResponse replaceChoice(
             @PathVariable Integer id,
             @PathVariable Integer choiceId,
@@ -90,13 +91,13 @@ public class SceneController {
         return scenes.replaceChoice(id, choiceId, request);
     }
 
-    @DeleteMapping("/{id}/choices/{choiceId}")
+    @DeleteMapping(path = "/{id}/choices/{choiceId}", version = "1")
     public SceneResponse deleteChoice(@PathVariable Integer id, @PathVariable Integer choiceId) {
         return scenes.deleteChoice(id, choiceId);
     }
 
     /** Replaces the whole set of NPCs standing in this scene. */
-    @PutMapping("/{id}/npcs")
+    @PutMapping(path = "/{id}/npcs", version = "1")
     public SceneResponse replaceNpcs(
             @PathVariable Integer id,
             @Valid @RequestBody SceneNpcsRequest request) {
