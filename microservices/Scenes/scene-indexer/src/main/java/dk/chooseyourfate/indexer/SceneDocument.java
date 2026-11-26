@@ -7,9 +7,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "scenes")
 public record SceneDocument(
         @Id String id,
+        String sceneId,
         long version,
-        String title,
-        String text,
+        String chapterId,
+        String status,
+        String name,
+        String description,
         List<Choice> choices,
+        List<String> npcIds,
+        List<String> questIds,
         boolean deleted
 ) {}
