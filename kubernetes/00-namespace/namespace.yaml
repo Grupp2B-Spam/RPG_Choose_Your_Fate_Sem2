@@ -1,0 +1,11 @@
+# Every object in this tree lives in one namespace, so the whole system can be
+# listed, watched and deleted as a unit without touching anything else on the
+# cluster. The folder is named 00- so that "kubectl apply -R -f kubernetes",
+# which walks the tree in lexical order, creates the namespace before the
+# objects that go into it.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: choose-your-fate
+  labels:
+    app.kubernetes.io/part-of: choose-your-fate

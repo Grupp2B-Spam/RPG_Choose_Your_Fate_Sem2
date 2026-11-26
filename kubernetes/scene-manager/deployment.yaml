@@ -1,0 +1,92 @@
+# SceneManager -- the query side of the scene read model.
+#
+# It serves scenes from MongoDB and never touches the authoring database. It
+# connects as the "manager" user, which the database grants read only, so the
+# query side cannot write the model it reads even by mistake.
+#
+# replicas: 2 because this is the service a player hits on every scene, and it
+# is stateless: two pods behind one Service is the cheapest demonstration that
+# the read side scales independently of the projector. It is also the service an
+# HPA would be attached to later, scaling on request rate or CPU rather than on
+# queue depth -- a different signal from the indexer's, which is the point.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scene-manager
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: scene-manager
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: scene-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: scene-manager
+        app.kubernetes.io/component: service
+        app.kubernetes.io/part-of: choose-your-fate
+    spec:
+      terminationGracePeriodSeconds: 45
+      initContainers:
+        - name: wait-for-dependencies
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z scene-read-model 27017 && nc -z rabbitmq 5672; do echo waiting; sleep 2; done
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { memory: 32Mi }
+      containers:
+        - name: scene-manager
+          image: registry.invalid/scene-manager:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            # The whole URI, password included, comes from the Secret. Splitting
+            # it would mean assembling a connection string in the manifest, with
+            # the password sitting in the Deployment in plain text.
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: scene-read-model-credentials
+                  key: manager-uri
+            - name: RABBIT_HOST
+              value: rabbitmq
+            - name: RABBIT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: username
+            - name: RABBIT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: password
+            - name: SERVER_SHUTDOWN
+              value: graceful
+            - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
+              value: 30s
+          # TCP, because this service has no Actuator either. See the comment in
+          # recap-manager/deployment.yaml and the README section on probes.
+          livenessProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 10
+            failureThreshold: 3
+          startupProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 5
+            failureThreshold: 60
+          resources:
+            requests: { cpu: 200m, memory: 384Mi }
+            limits: { memory: 1Gi }

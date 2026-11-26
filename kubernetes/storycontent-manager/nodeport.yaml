@@ -1,0 +1,26 @@
+# Debugging only. The gateway is the way in; this is the way round it.
+#
+# Worth keeping for exactly one reason: when a request through the ingress
+# fails, hitting the service directly on 30081 says whether the fault is in the
+# service or in the routing. Without it the two are hard to tell apart.
+#
+# It also reaches /actuator, which the ingress deliberately does not expose.
+# Delete this file in any environment that is not a laptop.
+apiVersion: v1
+kind: Service
+metadata:
+  name: storycontent-manager-nodeport
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: storycontent-manager
+    app.kubernetes.io/part-of: choose-your-fate
+    choose-your-fate/purpose: debug
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: storycontent-manager
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+      nodePort: 30081

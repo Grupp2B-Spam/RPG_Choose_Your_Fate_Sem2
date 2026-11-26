@@ -1,0 +1,18 @@
+# In-cluster only, like every other datastore here.
+apiVersion: v1
+kind: Service
+metadata:
+  name: scene-read-model
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: scene-read-model
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: scene-read-model
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: mongo

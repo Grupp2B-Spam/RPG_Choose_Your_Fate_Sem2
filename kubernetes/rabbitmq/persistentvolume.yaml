@@ -1,0 +1,42 @@
+# The broker's durable state: exchanges, queues, bindings and the messages
+# sitting in them. Without a volume, every restart of the pod empties the
+# queues, and a consumer that was down during the restart loses the backlog it
+# was supposed to work through.
+#
+# A PersistentVolume is declared explicitly rather than left to the default
+# StorageClass, so that the storage is visible in the manifests rather than
+# implied by a cluster setting. claimRef names the claim up front, which makes
+# the binding deterministic: this volume can only ever be taken by this claim,
+# never by whichever claim happens to be created first.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rabbitmq-data
+  labels:
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: choose-your-fate-local
+  claimRef:
+    namespace: choose-your-fate
+    name: rabbitmq-data
+  hostPath:
+    path: /var/lib/choose-your-fate/rabbitmq
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbitmq-data
+  namespace: choose-your-fate
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: choose-your-fate-local
+  resources:
+    requests:
+      storage: 2Gi

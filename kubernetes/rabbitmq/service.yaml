@@ -1,0 +1,23 @@
+# The in-cluster address every publisher and consumer uses. The name "rabbitmq"
+# is what makes "rabbitmq.choose-your-fate.svc.cluster.local" resolve, and the
+# short form "rabbitmq" is enough for pods in this namespace -- which is why the
+# services need no host configuration beyond one environment variable.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: rabbitmq
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: amqp
+    - name: management
+      port: 15672
+      targetPort: management

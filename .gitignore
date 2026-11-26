@@ -48,3 +48,10 @@ database_backups/*.sql
 
 .env.bak
 ~$*.docx
+
+# Generated keys, certificates and other local secrets.
+# kubernetes/scripts/setup.ps1 writes the JWT keypair and the gateway
+# certificate here, and the two compose files bind-mount the public key from
+# a .local folder next to the service. None of it belongs in the repository.
+.local/
+**/.local/

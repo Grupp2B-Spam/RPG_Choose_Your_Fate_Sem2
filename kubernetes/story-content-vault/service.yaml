@@ -1,0 +1,21 @@
+# Reachable only inside the cluster, and only by name. There is no NodePort and
+# no ingress route for a database: the service that owns it is the only thing
+# that may talk to it, and exposing it would invite exactly the shortcut the
+# architecture is built to prevent.
+apiVersion: v1
+kind: Service
+metadata:
+  name: story-content-vault
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: story-content-vault
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: story-content-vault
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql

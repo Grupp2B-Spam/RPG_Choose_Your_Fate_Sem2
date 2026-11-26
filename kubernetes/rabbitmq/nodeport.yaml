@@ -1,0 +1,32 @@
+# Debugging only, alongside the ClusterIP Service above.
+#
+# The broker is infrastructure and is not routed through the ingress: the
+# gateway exists to expose the system's HTTP APIs, and putting an AMQP port or a
+# broker admin UI behind it would make the gateway responsible for traffic that
+# has nothing to do with the public API.
+#
+# The management UI on 31672 is how queue topology is inspected by hand, and
+# 30672 lets a local tool connect to AMQP without a pod. Delete this file to
+# close both doors; nothing in the system depends on it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-nodeport
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/part-of: choose-your-fate
+    choose-your-fate/purpose: debug
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: rabbitmq
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: amqp
+      nodePort: 30672
+    - name: management
+      port: 15672
+      targetPort: management
+      nodePort: 31672

@@ -1,0 +1,139 @@
+# StoryContentManager -- the authoring side of the content model.
+#
+# This is the only service in the system whose pom declares
+# spring-boot-starter-actuator, so it is the only one that can be probed on the
+# endpoints the conventions ask for. The other four are probed on their TCP port
+# instead; see the README for what that costs and what it would take to fix.
+#
+# Every setting below is an environment variable rather than an edit to
+# application.yml. That is deliberate and it is what lets this manifest add
+# graceful shutdown and a readiness group to a service without changing a line
+# of its source -- the same image runs under compose and here, and only the
+# configuration differs.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storycontent-manager
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: storycontent-manager
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: storycontent-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: storycontent-manager
+        app.kubernetes.io/component: service
+        app.kubernetes.io/part-of: choose-your-fate
+    spec:
+      # Must exceed the Spring shutdown timeout below, or Kubernetes kills the
+      # process in the middle of the work it was given time to finish, and the
+      # setting buys nothing.
+      terminationGracePeriodSeconds: 45
+      initContainers:
+        # Ordering without instructions. The pod does not start until the broker
+        # answers, so "apply everything at once" needs no sequence a human has
+        # to remember. Spring Boot would otherwise start, fail to connect and
+        # crash-loop until the broker happened to be up -- which also works, but
+        # looks like a fault rather than a wait.
+        - name: wait-for-rabbitmq
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z rabbitmq 5672; do echo "waiting for rabbitmq:5672"; sleep 2; done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
+      containers:
+        - name: storycontent-manager
+          image: registry.invalid/storycontent-manager:0.1.0
+          # An explicit version tag, never :latest. With IfNotPresent this makes
+          # an image built locally on Docker Desktop usable without a registry,
+          # and a pull happen exactly once per new tag when there is one.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+          env:
+            - name: SERVER_PORT
+              value: "8081"
+            - name: RABBITMQ_HOST
+              value: rabbitmq
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: username
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: password
+            # Unused by the skeleton on main, which has no datasource at all.
+            # Set now so that merging the branch that adds persistence is a
+            # change to the service and not also a change to this file.
+            - name: MYSQL_URI
+              value: jdbc:mysql://story-content-vault:3306/story_content
+            - name: MYSQL_USERNAME
+              value: root
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: story-content-vault-credentials
+                  key: root-password
+            # Readiness answers "can this pod serve a request correctly", and
+            # every write here both persists and publishes. Without the broker
+            # the service would accept a write and tell nobody, which is worse
+            # than refusing it -- so the broker belongs in readiness. It
+            # deliberately does not belong in liveness: restarting this process
+            # will not bring RabbitMQ back, and a restart loop turns one outage
+            # into two.
+            - name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED
+              value: "true"
+            - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
+              value: readinessState,rabbit
+            # Finish the in-flight request before exiting. On every deploy and
+            # every scale-down, not only on failures.
+            - name: SERVER_SHUTDOWN
+              value: graceful
+            - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
+              value: 30s
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          resources:
+            requests:
+              # A request, not just a limit: without it an HPA has no
+              # denominator and sits at <unknown>/70% forever.
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              memory: 1Gi

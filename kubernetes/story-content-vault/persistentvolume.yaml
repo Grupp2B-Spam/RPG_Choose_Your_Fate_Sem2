@@ -1,0 +1,40 @@
+# Storage for the database StoryContentManager owns. One volume per database, because one
+# database per service is the decision the whole decomposition rests on: a
+# shared volume would be a shared database wearing a different name.
+#
+# persistentVolumeReclaimPolicy: Retain means "kubectl delete -R -f kubernetes"
+# leaves the data behind. That is deliberate -- an accidental teardown should
+# not destroy content that took time to author. See the README for how to wipe
+# it on purpose.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: story-content-vault-data
+  labels:
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: choose-your-fate-local
+  claimRef:
+    namespace: choose-your-fate
+    name: story-content-vault-data
+  hostPath:
+    path: /var/lib/choose-your-fate/story-content-vault
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: story-content-vault-data
+  namespace: choose-your-fate
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: choose-your-fate-local
+  resources:
+    requests:
+      storage: 2Gi

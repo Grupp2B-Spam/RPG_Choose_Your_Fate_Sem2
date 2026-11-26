@@ -1,0 +1,84 @@
+# CharacterManager -- characters, inventory, items, quests and race details.
+#
+# The Kubernetes name is character-manager, not character-manager-service. The
+# folder in microservices/ carries the -service suffix and the Maven artifact is
+# still called choose-your-fate-backend, left over from the monolith it was cut
+# from. Convention 5 asks for one name per service across Deployment, Service,
+# image and artifact; the two that can be fixed from here are fixed, and the
+# artifact id is the service owner's to change.
+#
+# MYSQL_URI has no default in this service: application.properties reads it with
+# no fallback, so the service does not start without it. That is stricter than
+# the other services and it is the better behaviour -- a missing setting fails
+# at startup rather than silently connecting somewhere unintended.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: character-manager
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: character-manager
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: character-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: character-manager
+        app.kubernetes.io/component: service
+        app.kubernetes.io/part-of: choose-your-fate
+    spec:
+      terminationGracePeriodSeconds: 45
+      initContainers:
+        - name: wait-for-character-vault
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z character-vault 3306; do echo waiting; sleep 2; done
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { memory: 32Mi }
+      containers:
+        - name: character-manager
+          image: registry.invalid/character-manager:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8010
+          env:
+            # The database name contains a hyphen, which is why it is quoted in
+            # the schema file. It is fine in a JDBC URL.
+            - name: MYSQL_URI
+              value: jdbc:mysql://character-vault:3306/character-vault
+            - name: MYSQL_USERNAME
+              value: root
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: character-vault-credentials
+                  key: root-password
+            - name: SERVER_SHUTDOWN
+              value: graceful
+            - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
+              value: 30s
+          # TCP, no Actuator in the pom. See the README section on probes.
+          livenessProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 10
+            failureThreshold: 3
+          startupProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 5
+            failureThreshold: 60
+          resources:
+            requests: { cpu: 200m, memory: 384Mi }
+            limits: { memory: 1Gi }

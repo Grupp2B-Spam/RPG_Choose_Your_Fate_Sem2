@@ -1,0 +1,40 @@
+# Storage for the scene read model.
+#
+# This is the one datastore in the system with two writers' worth of ambiguity,
+# so it is worth being precise: scene-indexer writes it and scene-manager reads
+# it, and the database enforces that split through two users with different
+# grants rather than trusting the code to behave. The two deployments are
+# separately built and separately released, which is the cost the group
+# accepted; the grants are what keep it from being worse than that.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: scene-read-model-data
+  labels:
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: choose-your-fate-local
+  claimRef:
+    namespace: choose-your-fate
+    name: scene-read-model-data
+  hostPath:
+    path: /var/lib/choose-your-fate/scene-read-model
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scene-read-model-data
+  namespace: choose-your-fate
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: choose-your-fate-local
+  resources:
+    requests:
+      storage: 2Gi

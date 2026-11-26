@@ -1,0 +1,19 @@
+# Debugging only -- see storycontent-manager/nodeport.yaml for the reasoning.
+apiVersion: v1
+kind: Service
+metadata:
+  name: recap-manager-nodeport
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: recap-manager
+    app.kubernetes.io/part-of: choose-your-fate
+    choose-your-fate/purpose: debug
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: recap-manager
+  ports:
+    - name: http
+      port: 8090
+      targetPort: http
+      nodePort: 30090

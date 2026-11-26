@@ -1,0 +1,87 @@
+# The database StoryContentManager owns.
+#
+# On origin/main that service is still the walking skeleton: it publishes events
+# and has no persistence at all, so nothing connects here yet. The database is
+# deployed anyway, because the schema work exists on a feature branch and the
+# point of this tree is that merging it should be a code change and not also a
+# deployment change.
+#
+# db-init/ in the service folder is empty on main, so there is no schema to
+# load. MYSQL_DATABASE creates the empty database the service will expect.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: story-content-vault
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: story-content-vault
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  replicas: 1
+  strategy:
+    # ReadWriteOnce storage: the old pod has to let go of the data directory
+    # before the new one can take it, so a rolling update would wait for itself.
+    # Two MySQL processes on one data directory would also corrupt it.
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: story-content-vault
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: story-content-vault
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: choose-your-fate
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: mysql
+          image: mysql:9.5.0
+          ports:
+            - name: mysql
+              containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: story-content-vault-credentials
+                  key: root-password
+            - name: MYSQL_DATABASE
+              value: story_content
+          # The server answers "mysqladmin ping" before it has finished recovery
+          # and before it will accept a real query, so a startupProbe absorbs the
+          # first start and the other two stay strict. Liveness restarts only a
+          # process that has genuinely stopped answering; readiness is what takes
+          # it out of the Service while it is busy.
+          startupProbe:
+            exec:
+              command: ["sh", "-c", 'mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD"']
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", 'mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD"']
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", 'mysql -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1" > /dev/null']
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: story-content-vault-data

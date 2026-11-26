@@ -1,0 +1,153 @@
+# The player-facing route group.
+#
+# ----------------------------------------------------------------------------
+# Why there is an ingress at all, when the course only demonstrates NodePort
+# ----------------------------------------------------------------------------
+# A NodePort per service means the client has to know which service answers
+# which part of the API, and has to be told a new port every time a service is
+# added. The architecture has always shown one gateway, and one gateway is what
+# makes the set of services an addressable system rather than six addresses.
+# NodePorts are kept alongside, as debugging doors, not as the way in.
+#
+# ----------------------------------------------------------------------------
+# Why there are two Ingress objects and not two gateways
+# ----------------------------------------------------------------------------
+# These two files are route groups on ONE controller, not two gateways. The
+# split is by audience -- authors against players -- because that is the axis
+# that decides how much traffic a caller should be allowed and what it can
+# reach. Splitting by domain instead (content against state) was considered and
+# rejected: a domain boundary is about who owns data, a gateway is about who is
+# exposed, and a player would then have to talk to both gateways to play.
+#
+# ----------------------------------------------------------------------------
+# Why the gateway does not authenticate
+# ----------------------------------------------------------------------------
+# It routes, rate-limits and terminates TLS. It does not verify tokens.
+#
+# Open source ingress-nginx cannot verify an RS256 signature. The alternative,
+# auth-request forwarding to AccountManager, would put a service that currently
+# only serves a public key on the critical path of every request in the system
+# and make it a single point of failure for all of them.
+#
+# So the security boundary is the service. RecapManager already verifies tokens
+# locally against a public key, an issuer and an audience, and the others will.
+# A gateway that rejected unauthenticated traffic early would be an
+# optimisation -- it would save the services some work -- and it would not be
+# the boundary. Those are different claims and the report should make the
+# second one, not the first.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: choose-your-fate-public
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/part-of: choose-your-fate
+    choose-your-fate/route-group: public
+  annotations:
+    # Generous relative to the admin group below. Players make many small
+    # requests; the limit is here to blunt a runaway client, not to shape
+    # traffic.
+    nginx.ingress.kubernetes.io/limit-rps: "50"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "3"
+    # Off deliberately, and only because this is a laptop. With a TLS secret
+    # present the controller would otherwise send every plain HTTP request to
+    # HTTPS, and the certificate here is self-signed -- every curl and every
+    # browser would stop to complain about a certificate that is not the point
+    # of the exercise. TLS still terminates here, which is the part that
+    # belongs in the report. Turn this on anywhere real.
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - localhost
+      secretName: choose-your-fate-tls
+  rules:
+    - host: localhost
+      http:
+        paths:
+          # Longest matching prefix wins, so /choose-your-fate/ai reaches
+          # RecapManager even though CharacterManager owns other paths under
+          # /choose-your-fate. The prefixes are listed one by one rather than
+          # as /choose-your-fate, because two services share that root and a
+          # catch-all would hand one service the other service's traffic.
+          - path: /scenes
+            pathType: Prefix
+            backend:
+              service:
+                name: scene-manager
+                port:
+                  name: http
+          - path: /choose-your-fate/ai
+            pathType: Prefix
+            backend:
+              service:
+                name: recap-manager
+                port:
+                  name: http
+          - path: /choose-your-fate/characters
+            pathType: Prefix
+            backend:
+              service:
+                name: character-manager
+                port:
+                  name: http
+          - path: /choose-your-fate/inventories
+            pathType: Prefix
+            backend:
+              service:
+                name: character-manager
+                port:
+                  name: http
+          - path: /choose-your-fate/items
+            pathType: Prefix
+            backend:
+              service:
+                name: character-manager
+                port:
+                  name: http
+          - path: /choose-your-fate/loadout
+            pathType: Prefix
+            backend:
+              service:
+                name: character-manager
+                port:
+                  name: http
+          - path: /choose-your-fate/quests
+            pathType: Prefix
+            backend:
+              service:
+                name: character-manager
+                port:
+                  name: http
+          - path: /choose-your-fate/race-details
+            pathType: Prefix
+            backend:
+              service:
+                name: character-manager
+                port:
+                  name: http
+          - path: /api/character-details
+            pathType: Prefix
+            backend:
+              service:
+                name: character-manager
+                port:
+                  name: http
+          - path: /api/equipment
+            pathType: Prefix
+            backend:
+              service:
+                name: character-manager
+                port:
+                  name: http
+          # The SOAP endpoint that hands out the JWT verification key, plus its
+          # WSDL. Routed because a service outside the cluster has to be able to
+          # fetch the key during provisioning.
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: account-manager
+                port:
+                  name: http

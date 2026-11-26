@@ -1,0 +1,96 @@
+# AccountManager -- serves the RS256 public key over a versioned SOAP contract.
+#
+# The scaffold only distributes the verification key; account storage, login and
+# token signing are still to be written. That matters for the gateway decision:
+# the ingress does not call this service to authenticate requests, and must not
+# start to. Every protected service verifies tokens locally against this key, so
+# a service that is barely begun is not on the path of every request in the
+# system.
+#
+# ACCOUNT_MANAGER_BIND_ADDRESS is the setting to notice. The service defaults to
+# 127.0.0.1, which inside a pod means the Service gets a connection refused on
+# every request and the pod still looks healthy. The Dockerfile already
+# overrides it; it is set here as well so the manifest states the requirement
+# rather than inheriting it from an image someone may rebuild.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-manager
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: account-manager
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: account-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: account-manager
+        app.kubernetes.io/component: service
+        app.kubernetes.io/part-of: choose-your-fate
+    spec:
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: account-manager
+          image: registry.invalid/account-manager:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8092
+          env:
+            - name: ACCOUNT_MANAGER_BIND_ADDRESS
+              value: 0.0.0.0
+            - name: ACCOUNT_MANAGER_PORT
+              value: "8092"
+            # The service reads this key at startup and exits if it cannot read
+            # or validate it, so the Secret has to exist before the pod does.
+            # scripts/setup.ps1 creates it; the README says what happens if you
+            # skip that step, which is a clean CreateContainerConfigError rather
+            # than a confusing crash loop.
+            - name: JWT_PUBLIC_KEY_FILE
+              value: /app/config/account-jwt-public.pem
+            - name: JWT_ISSUER
+              value: http://localhost:8092
+            - name: JWT_AUDIENCE
+              value: choose-your-fate
+            - name: SERVER_SHUTDOWN
+              value: graceful
+            - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
+              value: 30s
+          # TCP, no Actuator in the pom. See the README section on probes.
+          livenessProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 10
+            failureThreshold: 3
+          startupProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 5
+            failureThreshold: 60
+          volumeMounts:
+            - name: jwt-public-key
+              mountPath: /app/config
+              readOnly: true
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 768Mi }
+      volumes:
+        - name: jwt-public-key
+          secret:
+            secretName: jwt-public-key
+            # The same key, under the filename this service expects. One
+            # keypair in the system: AccountManager hands out the public half
+            # and RecapManager verifies with it, so two Secrets would be two
+            # chances for them to disagree.
+            items:
+              - key: public.pem
+                path: account-jwt-public.pem
+            # The image runs as uid 10001, so the file has to be world readable.
+            defaultMode: 0444

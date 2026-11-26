@@ -1,0 +1,21 @@
+# The address the ingress routes to, and the name other services resolve.
+#
+# Port 80 on the Service, 8081 in the container: callers inside the cluster use
+# "http://storycontent-manager" without a port, and the port the application
+# happens to listen on stays an implementation detail of the pod.
+apiVersion: v1
+kind: Service
+metadata:
+  name: storycontent-manager
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: storycontent-manager
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: storycontent-manager
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

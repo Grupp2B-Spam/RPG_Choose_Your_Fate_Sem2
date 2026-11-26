@@ -1,0 +1,132 @@
+# The shared message broker.
+#
+# One broker for the whole system, as in the root docker-compose.yml. The
+# management plugin is kept because a topic exchange with no bound queue
+# discards messages silently -- being able to look at the exchange list and see
+# an empty queue is the only way to tell that case apart from a working system.
+#
+# Replicas stay at 1 deliberately. A second replica would be a second,
+# independent broker holding different queues, not a cluster: RabbitMQ
+# clustering needs stable network identities and peer discovery, which is a
+# StatefulSet and a plugin, not another pod.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/component: broker
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  replicas: 1
+  strategy:
+    # The volume is ReadWriteOnce, so the old pod must release it before the new
+    # one can mount it. A rolling update would deadlock waiting for itself.
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rabbitmq
+        app.kubernetes.io/component: broker
+        app.kubernetes.io/part-of: choose-your-fate
+    spec:
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:4-management-alpine
+          ports:
+            - name: amqp
+              containerPort: 5672
+            - name: management
+              containerPort: 15672
+            # The Prometheus plugin, enabled by default in this image. Nothing
+            # scrapes it -- it is here because it is the cheapest honest health
+            # signal the broker offers. See the probes below.
+            - name: metrics
+              containerPort: 15692
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: username
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: password
+          # Liveness asks whether the Erlang node is alive at all; readiness
+          # asks whether it will accept an AMQP connection. They are different
+          # questions, and a broker can briefly answer yes to the first and no
+          # to the second while it recovers its queues from disk.
+          #
+          # HTTP and TCP, not "rabbitmq-diagnostics". This was arrived at by
+          # measurement rather than preference, and the measurement is the
+          # interesting part.
+          #
+          # The obvious probe is "rabbitmq-diagnostics -q ping", which is what
+          # most examples use. It does not work well here. Every
+          # rabbitmq-diagnostics invocation starts a second Erlang VM to ask the
+          # running one a question, and on this cluster that cost more than 20
+          # seconds -- measured, not guessed, in repeated "timed out after 20s"
+          # probe failures while the broker's own log said
+          # "Server startup complete". Kubernetes behaved correctly throughout:
+          # a probe that times out is a probe that failed, and the kubelet
+          # cannot tell a slow answer from no answer. So a healthy broker was
+          # killed and restarted, repeatedly, by its own health check.
+          #
+          # For context, this broker logged "Time to start RabbitMQ: 129435 ms"
+          # on a laptop that was also building six container images. An
+          # expensive probe is most likely to time out exactly when the machine
+          # is already struggling, which is the worst possible moment to start
+          # restarting the message broker.
+          #
+          # What replaced it costs a socket instead of a runtime:
+          #
+          #   startup + liveness  GET :15692/metrics -- the Prometheus plugin,
+          #                       served by the running broker, no auth, and it
+          #                       only answers once the broker core is up.
+          #   readiness           TCP on 5672 -- readiness means "will accept an
+          #                       AMQP connection", and opening that connection
+          #                       is the most direct way to ask.
+          #
+          # failureThreshold on startup allows five minutes, because 129 seconds
+          # has actually been observed and a startup probe that gives up turns a
+          # slow start into a restart loop.
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: amqp
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/rabbitmq
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: rabbitmq-data

@@ -1,0 +1,131 @@
+# RecapManager -- generates and stores per-character journey summaries.
+#
+# Two things this manifest fixes without touching the service's source, because
+# both are Spring properties and every Spring property can be set from the
+# environment:
+#
+#   * Graceful shutdown. The service does not enable it. In a cluster a pod is
+#     terminated on every deploy, scale-down and node drain, and a process that
+#     stops immediately abandons whatever it was doing.
+#   * Nothing else. The probes below are the honest gap -- see the comment on
+#     them.
+#
+# StoryPathManager does not exist yet, so STORYPATH_MODE stays on the mock the
+# service already ships. That is a real dependency missing, not a shortcut: the
+# recap content this produces is placeholder until that service is built.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recap-manager
+  namespace: choose-your-fate
+  labels:
+    app.kubernetes.io/name: recap-manager
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: choose-your-fate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: recap-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: recap-manager
+        app.kubernetes.io/component: service
+        app.kubernetes.io/part-of: choose-your-fate
+    spec:
+      terminationGracePeriodSeconds: 45
+      initContainers:
+        - name: wait-for-recap-vault
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z recap-vault 3306; do echo "waiting for recap-vault:3306"; sleep 2; done
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { memory: 32Mi }
+      containers:
+        - name: recap-manager
+          image: registry.invalid/recap-manager:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8090
+          env:
+            - name: MYSQL_URI
+              value: jdbc:mysql://recap-vault:3306/recap-vault
+            - name: MYSQL_USERNAME
+              value: root
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: recap-vault-credentials
+                  key: root-password
+            # The service verifies RS256 tokens against this key. It is mounted
+            # from a Secret rather than bind-mounted from the developer's disk,
+            # which is what the compose file does today -- and that file points
+            # at ./.local/recap-jwt-public.pem, which need not exist.
+            - name: JWT_PUBLIC_KEY_LOCATION
+              value: file:/app/config/recap-jwt-public.pem
+            # Kept at the compose default. AccountManager does not issue tokens
+            # yet, so the only tokens in existence are minted by hand with
+            # tools/LocalToken.java against this issuer; changing it here would
+            # invalidate them for no gain.
+            - name: JWT_ISSUER
+              value: http://localhost:8092
+            - name: JWT_AUDIENCE
+              value: choose-your-fate
+            # There is no Ollama in this cluster and none is being installed.
+            # Leaving the default of true would mean the AI path fails at call
+            # time with a connection error instead of being plainly off.
+            - name: AI_ENABLED
+              value: "false"
+            - name: STORYPATH_MODE
+              value: mock
+            - name: SERVER_SHUTDOWN
+              value: graceful
+            - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
+              value: 30s
+          # TCP probes, not HTTP ones, and this is a compromise worth naming.
+          #
+          # The service's pom does not declare spring-boot-starter-actuator, so
+          # there is no /actuator/health to ask. A TCP probe says the port is
+          # open, which is strictly weaker: a pod whose database connection pool
+          # is exhausted still accepts connections and still gets traffic.
+          #
+          # Adding the dependency is not enough on its own either -- this
+          # service's SecurityConfig ends in anyRequest().authenticated(), so an
+          # unauthenticated probe would get 401 and Kubernetes counts that as a
+          # failure. Both halves are needed. The README writes up the change for
+          # the group to decide on; it is not made here, because this is
+          # somebody else's service.
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          volumeMounts:
+            - name: jwt-public-key
+              mountPath: /app/config
+              readOnly: true
+          resources:
+            requests: { cpu: 200m, memory: 384Mi }
+            limits: { memory: 1Gi }
+      volumes:
+        - name: jwt-public-key
+          secret:
+            secretName: jwt-public-key
+            items:
+              - key: public.pem
+                path: recap-jwt-public.pem
