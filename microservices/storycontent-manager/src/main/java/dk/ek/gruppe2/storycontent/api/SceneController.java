@@ -24,8 +24,10 @@ import jakarta.validation.Valid;
  * Authoring endpoints for scenes.
  *
  * <p>Under {@code /admin} because every route writes content, which the writing team does
- * and players do not. <b>The role check is not wired up yet, so these routes are open</b>
- * — it waits on the JWT claim shape, which AccountManager owns and we have not agreed.
+ * and players do not. <b>The role check is not wired up, so these routes are open to
+ * anyone who can reach the port.</b> That is deliberate rather than forgotten: it waits
+ * for AccountManager to exist, so the token handling can be built against tokens someone
+ * can actually issue instead of fixtures that only agree with themselves.
  *
  * <p>The API version goes in the {@code X-API-VERSION} header, not the path — send
  * {@code X-API-VERSION: 1}.

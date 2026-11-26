@@ -209,8 +209,20 @@ Two things that look like omissions and are not:
   convenient lookup here would make the cache optional in practice and the dependency
   would quietly come back.
 
-> **Authorization is not wired up.** These routes are currently open. The role claim they
-> need is AccountManager's to define, and that has not been agreed yet.
+> **Authorization is not wired up — these routes are open to anyone who can reach the
+> port.** Deliberate, not forgotten: it waits for AccountManager to exist, so the token
+> handling can be built and tested against tokens someone can actually issue rather than
+> fixtures that only agree with each other. The interesting failures in this kind of
+> integration — a mismatched issuer, a rotated key, a claim that is an array where the
+> parser expected a string — are exactly the ones a mocked token does not have.
+>
+> Safe only because nothing is deployed anywhere reachable. **Do not expose this service
+> outside a laptop or a local cluster until it is done.**
+>
+> There is a shape to copy when the time comes: RecapManager validates an RS256 token
+> against a public key and expects a single `role` claim of exactly `ROLE_USER` or
+> `ROLE_ADMIN`. Two things to get right — the actuator probes must stay open, since
+> Kubernetes sends no token, and `ApiVersioningTest` will need `spring-security-test`.
 
 ## Tests
 
