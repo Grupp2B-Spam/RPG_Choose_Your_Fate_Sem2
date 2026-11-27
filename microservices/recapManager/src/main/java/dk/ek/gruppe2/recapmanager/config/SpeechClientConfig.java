@@ -37,7 +37,8 @@ public class SpeechClientConfig {
             if (status == SpeechStatus.READY && properties.getMockAudioUrl().isBlank()) {
                 throw new IllegalStateException("READY speech fixture needs app.speech.mock-audio-url");
             }
-            return SpeechResponse.newBuilder().setContentHash(request.getContentHash()).setStatus(status)
+            // Opaque identity supplied by this substitute for the remote service, not a local synthesis calculation.
+            return SpeechResponse.newBuilder().setContentHash("0".repeat(64)).setStatus(status)
                     .setAudioUrl(status == SpeechStatus.READY ? properties.getMockAudioUrl() : "").build();
         };
     }

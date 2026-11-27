@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class RecapServiceTest {
+    private static final String TTS_HASH = "a".repeat(64);
     private final AiService ai = mock(AiService.class);
     private final SpeechClient speech = mock(SpeechClient.class);
     private final SpeechProperties properties = new SpeechProperties();
@@ -54,7 +55,7 @@ class RecapServiceTest {
         when(ai.handleRequest(any())).thenReturn("A journey");
         when(speech.getOrCreate(any())).thenAnswer(call -> {
             SpeechRequest request = call.getArgument(0);
-            return SpeechResponse.newBuilder().setContentHash(request.getContentHash())
+            return SpeechResponse.newBuilder().setContentHash(TTS_HASH)
                     .setStatus(SpeechStatus.PENDING).build();
         });
         var result = service.latest(request(true));
@@ -63,30 +64,24 @@ class RecapServiceTest {
         assertThat(result.audioUrl()).isNull();
     }
 
-    @Test void readyAudioUsesTheExactNarrativeAndConfiguredSynthesisIdentity() {
-        properties.setVoiceId("configured-voice");
-        properties.setModel("configured-model");
-        properties.setOutputFormat("configured-format");
-        String expectedHash = SpeechContent.hash("A journey", "configured-voice", "configured-model", "configured-format");
+    @Test void readyAudioSendsOnlyTheNarrativeAndWaitAndReturnsTheTtsIdentity() {
         when(ai.handleRequest(any())).thenReturn("A journey");
         when(speech.getOrCreate(any())).thenAnswer(call -> {
             SpeechRequest request = call.getArgument(0);
             assertThat(request.getText()).isEqualTo("A journey");
-            assertThat(request.getVoiceId()).isEqualTo("configured-voice");
-            assertThat(request.getModel()).isEqualTo("configured-model");
-            assertThat(request.getOutputFormat()).isEqualTo("configured-format");
-            assertThat(request.getContentHash()).isEqualTo(expectedHash);
-            return SpeechResponse.newBuilder().setContentHash(request.getContentHash())
+            assertThat(request.getWaitMillis()).isEqualTo(properties.getWaitMillis());
+            assertThat(request.getAllFields()).hasSize(2);
+            return SpeechResponse.newBuilder().setContentHash(TTS_HASH)
                     .setStatus(SpeechStatus.READY).setAudioUrl("https://audio.example.test/a.mp3").build();
         });
         var result = service.latest(request(true));
         assertThat(result.audioStatus()).isEqualTo(AudioStatus.READY);
         assertThat(result.response()).isEqualTo("A journey");
-        assertThat(result.contentHash()).isEqualTo(expectedHash);
+        assertThat(result.contentHash()).isEqualTo(TTS_HASH);
         assertThat(result.audioUrl()).isEqualTo("https://audio.example.test/a.mp3");
     }
 
-    @Test void staleAudioIsNeverReturned() {
+    @Test void malformedAudioIdentityIsNeverReturned() {
         when(ai.handleRequest(any())).thenReturn("A new journey");
         when(speech.getOrCreate(any())).thenReturn(SpeechResponse.newBuilder().setContentHash("old")
                 .setStatus(SpeechStatus.READY).setAudioUrl("https://audio.example.test/old.mp3").build());
@@ -99,7 +94,9 @@ class RecapServiceTest {
     @Test void deadlineReturnsTextWithPendingAudio() {
         when(ai.handleRequest(any())).thenReturn("A journey");
         when(speech.getOrCreate(any())).thenThrow(Status.DEADLINE_EXCEEDED.asRuntimeException());
-        assertThat(service.latest(request(true)).audioStatus()).isEqualTo(AudioStatus.PENDING);
+        var result = service.latest(request(true));
+        assertThat(result.audioStatus()).isEqualTo(AudioStatus.PENDING);
+        assertThat(result.contentHash()).isNull();
     }
 
     @Test void speechOutageDoesNotFailSavedText() {
@@ -122,14 +119,4 @@ class RecapServiceTest {
         assertThatThrownBy(() -> service.latest(request(true))).isInstanceOf(AccessDeniedException.class);
     }
 
-    @Test void cacheIdentityIncludesEverySynthesisOptionAndHasUnambiguousBoundaries() {
-        String hash = SpeechContent.hash("journey", "voice", "model", "mp3");
-        assertThat(hash).hasSize(64).isEqualTo(SpeechContent.hash("journey", "voice", "model", "mp3"));
-        assertThat(hash).isNotEqualTo(SpeechContent.hash("new journey", "voice", "model", "mp3"))
-                .isNotEqualTo(SpeechContent.hash("journey", "other voice", "model", "mp3"))
-                .isNotEqualTo(SpeechContent.hash("journey", "voice", "new model", "mp3"))
-                .isNotEqualTo(SpeechContent.hash("journey", "voice", "model", "wav"));
-        assertThat(SpeechContent.hash("ab", "c", "m", "o"))
-                .isNotEqualTo(SpeechContent.hash("a", "bc", "m", "o"));
-    }
 }

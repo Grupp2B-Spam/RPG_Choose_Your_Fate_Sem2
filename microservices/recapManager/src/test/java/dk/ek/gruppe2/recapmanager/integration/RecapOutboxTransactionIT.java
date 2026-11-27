@@ -7,7 +7,6 @@ import dk.ek.gruppe2.recapmanager.messaging.RecapEventOutbox;
 import dk.ek.gruppe2.recapmanager.model.SummarySnapshot;
 import dk.ek.gruppe2.recapmanager.repository.*;
 import dk.ek.gruppe2.recapmanager.service.CharacterPathService;
-import dk.ek.gruppe2.recapmanager.speech.SpeechContent;
 import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +33,6 @@ class RecapOutboxTransactionIT {
     @Autowired RecapOutboxRepository outbox;
     @Autowired PlatformTransactionManager transactions;
     @Autowired ObjectMapper mapper;
-    @Autowired SpeechProperties speech;
 
     @BeforeEach void reset() {
         outbox.deleteAll();
@@ -51,8 +49,11 @@ class RecapOutboxTransactionIT {
         assertThat(event.path("requestType").asString()).isEqualTo("PATH_SUMMARY");
         assertThat(event.path("throughSequence").asLong()).isEqualTo(2);
         assertThat(event.path("text").asString()).isEqualTo(saved.summary());
-        assertThat(event.path("contentHash").asString())
-                .isEqualTo(SpeechContent.request(saved.summary(), speech).getContentHash());
+        assertThat(event.path("eventVersion").asInt()).isEqualTo(2);
+        assertThat(event.path("summaryVersion").asLong()).isEqualTo(saved.version());
+        for (String field : new String[]{"contentHash", "voiceId", "model", "outputFormat"}) {
+            assertThat(event.has(field)).as("Recap events must not choose %s", field).isFalse();
+        }
     }
 
     @Test void rolledBackSummaryCannotLeaveAnEventToPublish() {
@@ -114,8 +115,8 @@ class RecapOutboxTransactionIT {
         }
         @Bean ObjectMapper mapper() { return JsonMapper.builder().build(); }
         @Bean SpeechProperties speech() { return new SpeechProperties(); }
-        @Bean RecapEventOutbox eventOutbox(RecapOutboxRepository repository, SpeechProperties speech, ObjectMapper mapper) {
-            return new RecapEventOutbox(repository, speech, mapper);
+        @Bean RecapEventOutbox eventOutbox(RecapOutboxRepository repository, ObjectMapper mapper) {
+            return new RecapEventOutbox(repository, mapper);
         }
         @Bean CharacterPathService paths(CharacterPathRepository repository, RecapEventOutbox outbox) {
             return new CharacterPathService(repository, outbox);

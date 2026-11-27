@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("app.recap-events")
 public class RecapMessagingProperties {
     @NotBlank private String exchange = "choose-your-fate.recap";
-    @NotBlank private String routingKey = "recap.generated.v1";
+    @NotBlank private String routingKey = "recap.generated.v2";
     @Min(1) @Max(60000) private long confirmTimeoutMillis = 3000;
     @Min(1000) private long retryDelayMillis = 10000;
 }

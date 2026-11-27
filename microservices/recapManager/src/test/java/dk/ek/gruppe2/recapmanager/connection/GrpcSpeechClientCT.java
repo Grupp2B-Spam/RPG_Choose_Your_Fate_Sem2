@@ -29,13 +29,13 @@ class GrpcSpeechClientCT {
         if (server != null) server.shutdownNow();
     }
 
-    @Test void grpcForwardsOptionsHashWaitAndBearerMetadata() throws Exception {
+    @Test void grpcForwardsTextWaitAndBearerMetadataAndReceivesTheTtsIdentity() throws Exception {
         var received = new AtomicReference<SpeechRequest>();
         var authorization = new AtomicReference<String>();
         var service = new SpeechServiceGrpc.SpeechServiceImplBase() {
             @Override public void getOrCreateSpeech(SpeechRequest request, StreamObserver<SpeechResponse> response) {
                 received.set(request);
-                response.onNext(SpeechResponse.newBuilder().setContentHash(request.getContentHash())
+                response.onNext(SpeechResponse.newBuilder().setContentHash("b".repeat(64))
                         .setStatus(SpeechStatus.READY).setAudioUrl("https://audio.example.test/one.mp3").build());
                 response.onCompleted();
             }
@@ -51,7 +51,9 @@ class GrpcSpeechClientCT {
         var client = start(ServerInterceptors.intercept(service, interceptor), properties);
         authenticate();
         var request = SpeechContent.request("A journey", properties);
-        assertThat(client.getOrCreate(request).getStatus()).isEqualTo(SpeechStatus.READY);
+        var result = client.getOrCreate(request);
+        assertThat(result.getStatus()).isEqualTo(SpeechStatus.READY);
+        assertThat(result.getContentHash()).isEqualTo("b".repeat(64));
         assertThat(received.get()).isEqualTo(request);
         assertThat(authorization.get()).isEqualTo("Bearer example-token");
     }

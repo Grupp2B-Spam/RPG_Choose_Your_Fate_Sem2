@@ -1,0 +1,94 @@
+# Service-owned local dependencies. The shared RabbitMQ broker lives in the root Compose file.
+# Start these dependencies with a normal docker compose up -d.
+services:
+  text-to-speech-manager:
+    build: .
+    image: text-to-speech-manager:local
+    pull_policy: build
+    ports:
+      - "127.0.0.1:9093:9093"
+    environment:
+      # Local Docker execution uses the direct queue consumer, not Knative activation.
+      SPRING_PROFILES_ACTIVE: local
+      PORT: 9093
+      MYSQL_URI: jdbc:mysql://tts-metadata-vault:3306/tts_metadata?connectionTimeZone=UTC
+      MYSQL_USERNAME: ${TTS_MYSQL_USERNAME:-tts_local}
+      MYSQL_PASSWORD: ${TTS_MYSQL_PASSWORD:-tts-local-development}
+      MINIO_ENDPOINT: http://tts-minio:9000
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://localhost:9002}
+      MINIO_ACCESS_KEY: local_minio
+      MINIO_SECRET_KEY: ${TTS_LOCAL_MINIO_PASSWORD:-minio-local-development-only}
+      MINIO_BUCKET: ${MINIO_BUCKET:-tts-audio}
+      MINIO_REGION: ${MINIO_REGION:-us-east-1}
+      RABBITMQ_HOST: ${TTS_RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_PORT: ${RABBITMQ_PORT:-5672}
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-${RABBITMQ_USER:-rabbitmq}}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-rabbitmq}
+      RECAP_EVENTS_EXCHANGE: ${RECAP_EVENTS_EXCHANGE:-choose-your-fate.recap}
+      RECAP_EVENTS_ROUTING_KEY: ${RECAP_EVENTS_ROUTING_KEY:-recap.generated.v2}
+      TTS_QUEUE: ${TTS_QUEUE:-text-to-speech-manager.recap-generated}
+      JWT_PUBLIC_KEY_LOCATION: file:/app/config/recap-jwt-public.pem
+      JWT_ISSUER: ${JWT_ISSUER:-http://localhost:8092}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-choose-your-fate}
+      TTS_PROVIDER_MODE: ${TTS_PROVIDER_MODE:-mock}
+      TTS_MOCK_AUDIO_FILE: ${TTS_MOCK_AUDIO_FILE:-classpath:mock-data/local-tone.mp3}
+      ELEVEN_LABS_API_KEY: ${ELEVEN_LABS_API_KEY:-}
+      SPEECH_VOICE_ID: ${SPEECH_VOICE_ID:-JBFqnCBsd6RMkjVDRZzb}
+      SPEECH_MODEL: ${SPEECH_MODEL:-eleven_turbo_v2_5}
+      SPEECH_OUTPUT_FORMAT: ${SPEECH_OUTPUT_FORMAT:-mp3_44100_128}
+    volumes:
+      # Public verification material only. Signing keys and .env files stay on the host.
+      - type: bind
+        source: ${TTS_JWT_PUBLIC_KEY_FILE:-../recapManager/.local/recap-jwt-public.pem}
+        target: /app/config/recap-jwt-public.pem
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      tts-metadata-vault:
+        condition: service_healthy
+      tts-minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9093/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+    stop_grace_period: 135s
+  tts-metadata-vault:
+    image: mysql:9.5.0
+    ports:
+      - "127.0.0.1:3313:3306"
+    environment:
+      MYSQL_DATABASE: tts_metadata
+      MYSQL_USER: ${TTS_MYSQL_USERNAME:-tts_local}
+      MYSQL_PASSWORD: ${TTS_MYSQL_PASSWORD:-tts-local-development}
+      MYSQL_ROOT_PASSWORD: ${TTS_MYSQL_ROOT_PASSWORD:-tts-root-local-development}
+    volumes:
+      - tts-metadata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+  tts-minio:
+    build: ./tools/local/minio
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: local_minio
+      MINIO_ROOT_PASSWORD: ${TTS_LOCAL_MINIO_PASSWORD:-minio-local-development-only}
+    ports:
+      - "127.0.0.1:9002:9000"
+      - "127.0.0.1:9003:9001"
+    volumes:
+      - tts-audio:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+volumes:
+  tts-metadata:
+  tts-audio:

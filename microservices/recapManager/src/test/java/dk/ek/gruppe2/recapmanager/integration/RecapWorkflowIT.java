@@ -77,7 +77,7 @@ class RecapWorkflowIT {
         when(speech.getOrCreate(any())).thenAnswer(call -> {
             SpeechRequest request = call.getArgument(0);
             speechRequests.add(request);
-            return SpeechResponse.newBuilder().setContentHash(request.getContentHash()).setStatus(SpeechStatus.READY)
+            return SpeechResponse.newBuilder().setContentHash("c".repeat(64)).setStatus(SpeechStatus.READY)
                     .setAudioUrl("https://audio.example.test/journey.mp3").build();
         });
         mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
@@ -111,9 +111,8 @@ class RecapWorkflowIT {
         verify(history).fetchAfter(1, 1);
         verify(history).fetchAfter(1, 2);
         assertThat(speechRequests).hasSize(2);
-        String eventHash = mapper.readTree(publication.getPayload()).path("contentHash").asString();
+        assertThat(mapper.readTree(publication.getPayload()).has("contentHash")).isFalse();
         assertThat(speechRequests).extracting(SpeechRequest::getText).containsExactly(saved.summary(), saved.summary());
-        assertThat(speechRequests).extracting(SpeechRequest::getContentHash).containsExactly(eventHash, eventHash);
     }
 
     @Test void ownershipLookupFailureStopsTheWholeWorkflowBeforeDataRetrieval() {

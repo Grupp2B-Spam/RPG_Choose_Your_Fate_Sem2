@@ -6,17 +6,15 @@ option java_multiple_files = true;
 
 // Proposed integration contract for the TTS team. RecapManager is the client.
 service SpeechService {
-  // Reuse cached/in-flight work by content_hash. Generate on a cache miss.
+  // TTS selects synthesis settings and computes the cache identity from the text.
   // Wait at most wait_millis; return PENDING if generation is still in progress.
   rpc GetOrCreateSpeech (SpeechRequest) returns (SpeechResponse);
 }
 
 message SpeechRequest {
-  string content_hash = 1;
+  reserved 1, 3, 4, 5;
+  reserved "content_hash", "voice_id", "model", "output_format";
   string text = 2;
-  string voice_id = 3;
-  string model = 4;
-  string output_format = 5;
   int64 wait_millis = 6;
 }
 

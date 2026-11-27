@@ -32,6 +32,7 @@ build/
 .vscode/
 
 # local environment secrets
+.local/
 .env
 .env.example
 

@@ -35,11 +35,11 @@ public class RecapService {
         if (!request.isAudio()) return response(text, AudioStatus.NOT_REQUESTED, null, null);
         if (text.isBlank()) return response(text, AudioStatus.NO_TEXT, null, null);
         var speechRequest = SpeechContent.request(text, properties);
-        String hash = speechRequest.getContentHash();
         try {
             var result = speech.getOrCreate(speechRequest);
-            if (!hash.equals(result.getContentHash())) {
-                throw new IllegalStateException("Speech response does not match the requested narrative version");
+            String hash = result.getContentHash();
+            if (!hash.matches("[0-9a-f]{64}")) {
+                throw new IllegalStateException("Speech response requires a valid audio identity");
             }
             return switch (result.getStatus()) {
                 case READY -> {
@@ -59,10 +59,10 @@ public class RecapService {
         } catch (StatusRuntimeException exception) {
             var status = exception.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED
                     ? AudioStatus.PENDING : AudioStatus.UNAVAILABLE;
-            return response(text, status, null, hash);
+            return response(text, status, null, null);
         } catch (RuntimeException exception) {
             log.warn("Audio lookup failed for character {} ({})", characterId, exception.getClass().getSimpleName());
-            return response(text, AudioStatus.UNAVAILABLE, null, hash);
+            return response(text, AudioStatus.UNAVAILABLE, null, null);
         }
     }
 
