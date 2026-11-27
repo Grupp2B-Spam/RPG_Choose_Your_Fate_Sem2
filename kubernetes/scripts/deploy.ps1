@@ -8,24 +8,21 @@
         1. builds a container image for each service
         2. kubectl apply -R -f kubernetes
 
-    Step 2 is the deploy, exactly as the course has it, and it works on its own
-    once the images exist. Nothing in this tree has to be applied by hand first
-    or in a particular order: where ordering genuinely matters it is handled by
-    readiness probes and initContainers, not by instructions somebody has to
-    remember.
+    Step 2 is the whole deploy and works on its own once the images exist.
+    Nothing has to be applied by hand first or in a particular order: where
+    ordering matters it is handled by readiness probes and initContainers.
 
     IMAGES AND THE REGISTRY
-    Docker Desktop's Kubernetes can use an image built locally, which is worth
-    knowing because it is not true of kind or minikube and the course notes say
-    otherwise. Two things make it work: an explicit version tag rather than
-    :latest, and imagePullPolicy: IfNotPresent. The kubelet then reports the
+    Docker Desktop's Kubernetes can use a locally built image, which is not true
+    of kind or minikube. Two things make it work: an explicit version tag rather
+    than :latest, and imagePullPolicy: IfNotPresent. The kubelet then reports the
     image as "already present on machine" and never contacts a registry.
 
-    So the cluster runs without a registry at all. Pushing to Docker Hub is
-    still what CI will do, and -Push is here for when the account exists. Until
-    then the image names carry registry.invalid, a reserved domain that can
-    never resolve -- so a missing image fails loudly instead of quietly pulling
-    a stranger's image that happens to have the same name.
+    So the cluster runs without a registry. Pushing to Docker Hub is still what
+    CI will do, and -Push is here for when the account exists. Until then the
+    image names carry registry.invalid, a reserved domain that can never resolve,
+    so a missing image fails loudly instead of pulling a stranger's image with
+    the same name.
 
 .PARAMETER SkipBuild
     Apply the manifests without rebuilding. Useful when only a manifest changed.
@@ -69,11 +66,10 @@ function Invoke-Quietly {
     <#
         Runs a native command purely for its exit code.
 
-        $ErrorActionPreference is lowered for the duration on purpose. Windows
-        PowerShell turns anything a native executable writes to stderr into a
-        NativeCommandError, and with the preference set to Stop that aborts the
-        script -- so an ordinary "not found" from kubectl, which is exactly the
-        answer these checks are asking for, would read as a crash.
+        $ErrorActionPreference is lowered for the duration: Windows PowerShell
+        turns anything a native executable writes to stderr into a
+        NativeCommandError, which with Stop aborts the script -- so an ordinary
+        "not found" from kubectl would read as a crash.
     #>
     param([scriptblock]$Command)
     $previous = $ErrorActionPreference
@@ -101,11 +97,9 @@ function Test-KubeObject {
 # Each service, where its Dockerfile lives, and whether a jar has to exist
 # before the image can be built.
 #
-# NeedsJar is not a preference. Three of these Dockerfiles start with
-# "COPY target/*.jar" and expect the jar to be there already; the other three
-# run Maven themselves in a build stage. That split is in the repository as it
-# stands, and it is worth unifying one day -- a self-building Dockerfile is one
-# fewer step for CI to get right.
+# Three of these Dockerfiles start with "COPY target/*.jar" and expect the jar
+# to be there; the other three run Maven in a build stage. Unifying them on the
+# self-building pattern would be one fewer step for CI to get right.
 $Services = @(
     @{ Name = 'storycontent-manager'; Path = 'microservices\storycontent-manager';      NeedsJar = $true  },
     @{ Name = 'recap-manager';        Path = 'microservices\recapManager';              NeedsJar = $true  },
@@ -129,7 +123,7 @@ function Get-ImageReference {
         throw "No deployment.yaml for $ServiceName at $manifest"
     }
     $content = Get-Content -LiteralPath $manifest -Raw
-    # Anchored on the service name so the busybox initContainer image is not
+    # Anchored on the service name, so the busybox initContainer image is not
     # mistaken for the application image.
     $pattern = 'image:\s*(\S+/' + [regex]::Escape($ServiceName) + ':\S+)'
     $match = [regex]::Match($content, $pattern)
@@ -153,8 +147,7 @@ if (-not (Invoke-Quietly { kubectl get namespace $Namespace })) {
 }
 
 # The manifests reference secrets by name. Without them the pods stop at
-# CreateContainerConfigError, which is a clear enough message once you know to
-# look for it and a baffling one if you do not.
+# CreateContainerConfigError.
 $requiredSecrets = @(
     'rabbitmq-credentials',
     'story-content-vault-credentials',
@@ -188,9 +181,8 @@ if (-not $SkipBuild) {
 
     $needsMaven = @($toBuild | Where-Object { $_.NeedsJar })
     if ($needsMaven.Count -gt 0) {
-        # Maven runs in a container, so the only tool this script needs on the
-        # machine is Docker. The named volume keeps the dependency cache between
-        # runs; without it every build downloads the internet again.
+        # Maven runs in a container, so the only tool this script needs is
+        # Docker. The named volume keeps the dependency cache between runs.
         Invoke-Quietly { docker volume create $MavenCache } | Out-Null
         Write-Note 'The first run fills the Maven cache and can take ten minutes or more.'
         Write-Note 'Maven and docker build are quiet here, so a long pause is normal, not a hang.'
@@ -205,18 +197,13 @@ if (-not $SkipBuild) {
 
         if ($service.NeedsJar) {
             Write-Host "    [maven] $($service.Name)"
-            # "clean package", never bare "package", and this is not caution.
+            # "clean package", never bare "package". target/ is in .gitignore, so
+            # it survives a branch switch and git shows nothing. Without clean,
+            # Maven packages whatever is already in target/classes alongside the
+            # current sources, and the jar holds two branches at once.
             #
-            # The build runs against the working tree, and target/ is in
-            # .gitignore -- so it survives a branch switch and git shows nothing.
-            # Without clean, Maven keeps whatever is already in target/classes
-            # and packages it alongside the current sources. Switching from a
-            # feature branch to main then produces a jar holding classes from
-            # both, and the failure surfaces at runtime as a
-            # NoClassDefFoundError for a dependency the current pom never
-            # declared. That happened while building this tree, and it cost an
-            # hour: the pod crash-looped on a class whose source file did not
-            # exist in the checkout.
+            # It surfaces at runtime as a NoClassDefFoundError for a class whose
+            # source file is not in the checkout. That happened here.
             $mavenArgs = @(
                 'run', '--rm',
                 '-v', "$($serviceDir):/workspace",
@@ -262,14 +249,12 @@ try {
 }
 
 # Rebuilt images keep the same tag, so apply sees an unchanged Deployment and
-# creates no new pod -- the old one keeps running the old code, and the deploy
+# creates no new pod: the old one keeps running the old code and the deploy
 # silently does nothing. A rollout restart is what makes the new image take
 # effect.
 #
-# The alternative is a unique tag per build, which is what a real pipeline does
-# and what the project should move to once CI is pushing images. It needs a
-# version that something generates and writes into the manifests, which is more
-# machinery than this is worth while the tag is edited by hand.
+# A unique tag per build is what a real pipeline does, and what this should move
+# to once CI pushes images.
 if (-not $SkipBuild) {
     Write-Step 'Restarting the deployments whose images were rebuilt'
     foreach ($service in $toBuild) {
@@ -283,9 +268,8 @@ if (-not $SkipBuild) {
 # Wait
 # ---------------------------------------------------------------------------
 # Databases and the broker first, then the services. Not because the order is
-# required -- the initContainers take care of that -- but because waiting in
-# this order means the output reads as progress instead of as a list of things
-# that are not ready yet.
+# required -- the initContainers handle that -- but so the output reads as
+# progress rather than a list of things that are not ready.
 Write-Step 'Waiting for rollouts'
 
 $infrastructure = @('rabbitmq', 'story-content-vault', 'recap-vault', 'character-vault', 'scene-read-model')

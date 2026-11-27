@@ -3,33 +3,25 @@
     One-time setup for the Choose Your Fate cluster.
 
 .DESCRIPTION
-    Everything in here is done once per machine. It is separate from the deploy
-    step because it creates things that must NOT be in version control
-    (passwords, keys, certificates) and installs a controller that lives outside
-    this project's namespace.
+    Everything here is done once per machine. Separate from the deploy step
+    because it creates things that must NOT be in version control (passwords,
+    keys, certificates) and installs a controller outside this namespace.
 
-    The script is idempotent: run it as often as you like. Secrets are the one
-    exception worth understanding -- they are created only when missing, and
-    never overwritten. A database bakes its root password into the data
-    directory on first start, so regenerating a secret against an existing
-    volume would lock the service out of its own database, with an
-    authentication error that looks nothing like the cause.
+    Safe to re-run. Secrets are created only when missing and never overwritten:
+    a database bakes its root password into the data directory on first start, so
+    regenerating one against an existing volume locks the service out of its own
+    database, with an error that looks nothing like the cause.
 
 .PARAMETER WithKeda
-    Also install KEDA. Nothing in this tree uses it yet. It is the autoscaler
-    the serverless text-to-speech work and the scene indexer will need, and
-    installing it early means that work starts with a ScaledObject rather than
-    with a cluster component.
+    Also install KEDA. Nothing in this tree uses it yet; it is the autoscaler the
+    serverless text-to-speech work and the scene indexer will need.
 
 .PARAMETER WithDashboard
-    Also install the Kubernetes Dashboard, a web UI for the cluster. Purely a
-    development convenience -- nothing in this project depends on it, and it is
-    off by default because it is five more containers for a view that Lens
-    already gives anyone who has it.
+    Also install the Kubernetes Dashboard, a read-only web UI. Off by default:
+    five more containers for a view Lens already gives.
 
-    It is upstream's Helm chart rendered to plain YAML inside a container, so
-    Helm is not needed on the machine and the project keeps its "kubectl and
-    Docker, nothing else" prerequisite.
+    It is upstream's Helm chart rendered to YAML inside a container, so Helm is
+    not a prerequisite on the machine.
 
 .EXAMPLE
     .\kubernetes\scripts\setup.ps1
@@ -57,10 +49,9 @@ function Write-Note  { param([string]$Text) Write-Host "    [note] $Text" -Foreg
 
 function New-RandomPassword {
     param([int]$Length = 28)
-    # Letters and digits only. These passwords travel through JDBC URLs, MongoDB
-    # connection strings, shell quoting and YAML before they reach a server, and
-    # a password containing a slash or an at-sign breaks in exactly one of those
-    # places and nowhere else.
+    # Letters and digits only. These travel through JDBC URLs, MongoDB connection
+    # strings, shell quoting and YAML, and a slash or an at-sign breaks in exactly
+    # one of those places.
     $alphabet = [char[]]((48..57) + (65..90) + (97..122))
     $bytes = New-Object byte[] $Length
     $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
@@ -88,11 +79,10 @@ function Invoke-Quietly {
     <#
         Runs a native command purely for its exit code.
 
-        $ErrorActionPreference is lowered for the duration on purpose. Windows
-        PowerShell turns anything a native executable writes to stderr into a
-        NativeCommandError, and with the preference set to Stop that aborts the
-        script -- so a perfectly ordinary "not found" from kubectl, which is the
-        answer these checks are asking for, would read as a crash.
+        $ErrorActionPreference is lowered for the duration: Windows PowerShell
+        turns anything a native executable writes to stderr into a
+        NativeCommandError, which with Stop aborts the script -- so an ordinary
+        "not found" from kubectl would read as a crash.
     #>
     param([scriptblock]$Command)
     $previous = $ErrorActionPreference
@@ -162,32 +152,23 @@ Invoke-Kubectl @('apply', '-f', (Join-Path $PSScriptRoot '..\00-namespace\namesp
 # ---------------------------------------------------------------------------
 # 3. The ingress controller
 # ---------------------------------------------------------------------------
-# Installed from the upstream static manifest at a pinned version, so that every
-# member of the group gets the same controller rather than whatever was latest
-# on the day they ran this. It goes in its own namespace because it is cluster
-# infrastructure and outlives this project.
+# Pinned to a version so everyone gets the same controller. It goes in its own
+# namespace because it is cluster infrastructure and outlives this project.
 #
-# The "cloud" provider manifest asks for a LoadBalancer Service. Docker Desktop
-# binds that to localhost, which is why the gateway ends up on http://localhost/
-# with no port number and no tunnel.
+# The "cloud" provider manifest asks for a LoadBalancer Service, which Docker
+# Desktop binds to localhost -- that is why the gateway is at http://localhost/
+# with no port and no tunnel.
 Write-Step "Installing ingress-nginx ($IngressVersion)"
 $ingressUrl = "https://raw.githubusercontent.com/kubernetes/ingress-nginx/$IngressVersion/deploy/static/provider/cloud/deploy.yaml"
 Invoke-Kubectl @('apply', '-f', $ingressUrl) 'installing ingress-nginx'
 
-# --enable-metrics is off by default in this controller version, which is easy
-# to get wrong: port 10254 answers 200 either way, but without the flag it
-# serves only the Go runtime's own numbers -- no request counts, no latencies,
-# nothing about the gateway's actual traffic. The flag turns on the collector
-# that produces nginx_ingress_controller_requests and friends, labelled by
-# ingress, path, service and status, which is what makes the two route groups
-# distinguishable once something scrapes them.
+# --enable-metrics is off by default in this controller version, and port 10254
+# answers 200 either way -- without the flag it serves only the Go runtime's own
+# numbers, nothing about the gateway's traffic.
 #
-# This is done by patching rather than by editing the upstream manifest,
-# because the manifest is applied straight from a pinned URL and string surgery
-# on someone else's YAML breaks quietly the first time they reformat it.
-#
-# It happens before the readiness wait below so the controller starts once with
-# the flag, instead of starting and then being restarted into it.
+# Patched rather than edited into the upstream manifest, which is applied from a
+# pinned URL. Done before the readiness wait, so the controller starts once with
+# the flag instead of being restarted into it.
 $controllerArgs = kubectl get deployment ingress-nginx-controller --namespace ingress-nginx `
     -o jsonpath='{.spec.template.spec.containers[0].args}' 2>$null
 if ($controllerArgs -and $controllerArgs -notmatch '--enable-metrics') {
@@ -199,10 +180,9 @@ if ($controllerArgs -and $controllerArgs -notmatch '--enable-metrics') {
     Write-Kept 'controller metrics already enabled'
 }
 
-# A Service of our own rather than a port added to the upstream one, because
-# the upstream Service is replaced wholesale every time the pinned manifest is
-# re-applied, and an added port would disappear with it. Separate object,
-# separate lifecycle, survives the next upgrade.
+# Our own Service rather than a port added to the upstream one: that Service is
+# replaced wholesale every time the pinned manifest is re-applied, so an added
+# port would disappear with it.
 $ingressMetricsService = @'
 apiVersion: v1
 kind: Service
@@ -232,10 +212,9 @@ if ($LASTEXITCODE -ne 0) { throw 'could not create the ingress metrics Service' 
 Write-Ok 'ingress-nginx-controller-metrics (nothing scrapes it yet)'
 
 Write-Host '    waiting for the controller to become ready (up to 5 minutes)...'
-# rollout status, not "wait --for=condition=Ready pod". The apply returns the
-# moment the Deployment object exists, before the controller has created any
-# pod, and a pod selector that matches nothing fails immediately with
-# "no matching resources found" rather than waiting for one to appear.
+# rollout status, not "wait --for=condition=Ready pod". The apply returns before
+# the controller has created any pod, and a pod selector that matches nothing
+# fails immediately instead of waiting for one to appear.
 kubectl rollout status deployment/ingress-nginx-controller --namespace ingress-nginx --timeout=300s
 if ($LASTEXITCODE -ne 0) {
     Write-Note 'The controller did not become ready in time. Look at:  kubectl -n ingress-nginx get pods'
@@ -246,9 +225,8 @@ if ($LASTEXITCODE -ne 0) {
 # ---------------------------------------------------------------------------
 # 4. Secrets
 # ---------------------------------------------------------------------------
-# None of this is committed. The passwords are generated here and exist only
-# inside the cluster; the JWT keypair is written to .local/ at the repository
-# root, which .gitignore excludes.
+# None of this is committed. The passwords exist only inside the cluster; the JWT
+# keypair goes to .local/ at the repository root, which .gitignore excludes.
 Write-Step 'Creating secrets (only the ones that are missing)'
 
 if (-not (Test-Path -LiteralPath $LocalDir)) {
@@ -282,8 +260,8 @@ foreach ($vault in @('story-content-vault', 'recap-vault', 'character-vault')) {
 }
 
 # -- mongo, which needs whole connection strings -----------------------------
-# The URI lives in the secret rather than being assembled in the Deployment,
-# because assembling it there would put the password in the Deployment.
+# The whole URI lives in the secret: assembling it in the Deployment would put
+# the password there in plain text.
 if (Test-SecretExists 'scene-read-model-credentials') {
     Write-Kept 'scene-read-model-credentials already exists'
 } else {
@@ -302,11 +280,9 @@ if (Test-SecretExists 'scene-read-model-credentials') {
 }
 
 # -- the JWT verification key ------------------------------------------------
-# One keypair for the system. AccountManager hands out the public half over
-# SOAP and RecapManager verifies tokens against it, so they have to be the same
-# key. The private half goes to .local/ so tokens can be minted by hand with
-# microservices/recapManager/tools/LocalToken.java until AccountManager can
-# sign them itself.
+# One keypair for the system: AccountManager hands out the public half over SOAP
+# and RecapManager verifies tokens against it. The private half goes to .local/
+# so tokens can be minted by hand until AccountManager can sign them itself.
 $openssl    = Get-OpenSslPath
 $privatePem = Join-Path $LocalDir 'jwt-private.pem'
 $publicPem  = Join-Path $LocalDir 'jwt-public.pem'
@@ -316,9 +292,8 @@ if (-not (Test-Path -LiteralPath $publicPem)) {
         throw "openssl was not found, so the JWT keypair cannot be generated. Install Git for Windows or OpenSSL, or put an RSA public key at $publicPem yourself."
     }
     Write-Host '    generating a 2048-bit RSA keypair...'
-    # Through Invoke-Quietly, because openssl writes its key-generation progress
-    # dots to stderr and PowerShell would otherwise treat a successful run as a
-    # failure.
+    # Through Invoke-Quietly: openssl writes its progress dots to stderr, which
+    # PowerShell would otherwise treat as a failure.
     if (-not (Invoke-Quietly { & $openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out $privatePem })) {
         throw 'openssl could not generate the private key.'
     }
@@ -339,9 +314,8 @@ if (Test-SecretExists 'jwt-public-key') {
     Write-Ok 'jwt-public-key'
 }
 
-# The same public key, placed where the two compose files expect to bind-mount
-# it. Both point at a path that need not exist, and a missing file there is a
-# confusing failure rather than a clear one.
+# The same public key, where the two compose files expect to bind-mount it. Both
+# point at a path that need not exist, and a missing file there fails confusingly.
 $keyTargets = @(
     @{ Dir = (Join-Path $RepoRoot 'microservices\recapManager\.local');   File = 'recap-jwt-public.pem' },
     @{ Dir = (Join-Path $RepoRoot 'microservices\accountManager\.local'); File = 'account-jwt-public.pem' }
@@ -360,9 +334,8 @@ foreach ($target in $keyTargets) {
 }
 
 # -- TLS for the gateway -----------------------------------------------------
-# Self-signed, for localhost. The point being demonstrated is that TLS
-# terminates at the gateway and not in the services. A certificate that
-# browsers would trust is a different problem, and not one a laptop solves.
+# Self-signed, for localhost. What matters is that TLS terminates at the gateway
+# and not in the services; a certificate browsers trust is a different problem.
 $tlsCrt = Join-Path $LocalDir 'gateway-tls.crt'
 $tlsKey = Join-Path $LocalDir 'gateway-tls.key'
 
@@ -392,14 +365,12 @@ if (Test-SecretExists 'choose-your-fate-tls') {
 # 5. Database schemas, as ConfigMaps built from the service folders
 # ---------------------------------------------------------------------------
 # The SQL is not copied into kubernetes/. There is one schema file per service,
-# in that service's own folder, and this reads it from there. Two copies would
-# drift, and the copy under kubernetes/ would be the stale one.
+# in that service's own folder, and this reads it from there.
 #
-# These are refreshed on every run, unlike the secrets: they hold no
-# credentials, so there is nothing to lose by replacing them. Note that MySQL
+# Refreshed on every run, unlike the secrets: they hold no credentials. MySQL
 # runs init scripts only against an empty data directory, so refreshing the
-# ConfigMap does not apply a changed schema to a database that already exists.
-# The README says how to reset one.
+# ConfigMap does not apply a changed schema to an existing database. The README
+# says how to reset one.
 Write-Step 'Building database schema ConfigMaps from the service folders'
 
 function Set-SqlConfigMap {
@@ -413,15 +384,12 @@ function Set-SqlConfigMap {
         return
     }
 
-    # ReadAllText recognises a UTF-8 byte order mark and leaves it out of the
-    # string it returns, and WriteAllText with UTF8Encoding($false) does not put
-    # one back. So the BOM is dropped by writing the file out again, and the
-    # check below exists to report it rather than to do the work.
+    # MySQL feeds init scripts straight into its client, which reads a BOM as the
+    # first token of the first statement and fails with a syntax error pointing at
+    # a line that looks fine. recapManager's schema file has one.
     #
-    # It matters because MySQL feeds init scripts straight into its client,
-    # which reads a BOM as the first token of the first statement and fails with
-    # a syntax error pointing at a line that looks perfectly fine.
-    # recapManager's schema file has one today, which is why this is here.
+    # ReadAllText drops the BOM and WriteAllText with UTF8Encoding($false) does not
+    # put one back, so the rewrite below removes it. This check only reports it.
     $firstBytes = [System.IO.File]::ReadAllBytes($SourcePath) | Select-Object -First 3
     if ($firstBytes.Count -eq 3 -and $firstBytes[0] -eq 0xEF -and $firstBytes[1] -eq 0xBB -and $firstBytes[2] -eq 0xBF) {
         $fileName = [System.IO.Path]::GetFileName($SourcePath)
@@ -453,8 +421,8 @@ if ($WithKeda) {
     Write-Step "Installing KEDA ($KedaVersion)"
     $kedaPlain = $KedaVersion.TrimStart('v')
     $kedaUrl = "https://github.com/kedacore/keda/releases/download/$KedaVersion/keda-$kedaPlain.yaml"
-    # Server-side apply: the KEDA manifest contains large CRDs whose annotations
-    # exceed the limit that client-side apply has to work within.
+    # Server-side apply: the KEDA CRDs have annotations too large for client-side
+    # apply.
     Invoke-Kubectl @('apply', '--server-side', '-f', $kedaUrl) 'installing KEDA'
     kubectl wait --namespace keda --for=condition=Available deployment --all --timeout=300s
     if ($LASTEXITCODE -ne 0) {
@@ -470,19 +438,14 @@ if ($WithKeda) {
 # ---------------------------------------------------------------------------
 # 7. The Kubernetes Dashboard, on request
 # ---------------------------------------------------------------------------
-# Upstream stopped shipping a plain manifest after version 2.7.0; everything
-# since is a Helm chart only. Rather than make Helm a prerequisite for the
-# whole project over one optional dev tool, the chart is rendered to YAML by a
-# Helm container and the result is applied with kubectl.
+# Upstream stopped shipping a plain manifest after 2.7.0; everything since is a
+# Helm chart. Rather than make Helm a prerequisite for the whole project over one
+# optional dev tool, the chart is rendered to YAML in a container and applied with
+# kubectl.
 #
-# "helm template" needs no cluster access at all -- it is a local text
-# transformation -- so the container never talks to the API server and there is
-# no kubeconfig to mount or certificate to work around. kubectl, running on the
-# machine, does the applying.
-#
-# The side effect is worth having: the rendered file is ordinary YAML that can
-# be read and diffed before it is applied, and the cluster ends up with plain
-# objects rather than a Helm release that only Helm can explain.
+# "helm template" is a local text transformation and needs no cluster access, so
+# the container never talks to the API server. The rendered file is ordinary YAML
+# that can be read and diffed before it is applied.
 if ($WithDashboard) {
     Write-Step "Installing the Kubernetes Dashboard ($DashboardVersion)"
 
@@ -503,9 +466,8 @@ if ($WithDashboard) {
     }
 
     Write-Host '    rendering it to YAML...'
-    # docker writes its pull progress to stderr, and with $ErrorActionPreference
-    # set to Stop that alone is enough to end the script even when the command
-    # succeeds. Same trap as the openssl and kubectl calls further up.
+    # docker writes its pull progress to stderr, which with Stop ends the script
+    # even when the command succeeds. Same trap as openssl and kubectl above.
     $previous = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
@@ -523,36 +485,24 @@ if ($WithDashboard) {
     kubectl create namespace kubernetes-dashboard --dry-run=client -o yaml | kubectl apply -f -
     if ($LASTEXITCODE -ne 0) { throw 'could not create the kubernetes-dashboard namespace' }
 
-    # --namespace on the apply, and it is not optional.
-    #
-    # "helm template --namespace X" does not write metadata.namespace into the
-    # objects it renders unless the chart itself templates it. Helm does not
-    # need it to: it remembers the namespace as part of the release. kubectl
-    # has no such memory, so every object without an explicit namespace lands
-    # in whatever the current context points at.
+    # --namespace on the apply is not optional. "helm template --namespace X"
+    # does not write metadata.namespace into the objects it renders unless the
+    # chart templates it, and kubectl then puts them wherever the current context
+    # points.
     #
     # This chart templates the namespace on its Kong subchart and nowhere else,
-    # which produces the worst version of the problem: applying without this
-    # flag puts Kong in kubernetes-dashboard and the other four deployments in
-    # default, where they start cleanly and look healthy. The only visible
-    # symptom is Kong stuck on a ConfigMap "not found" that was created a
-    # second earlier -- in the other namespace.
+    # so without the flag Kong lands in kubernetes-dashboard and the other four
+    # deployments in default, looking healthy. The only symptom is Kong stuck on
+    # a ConfigMap "not found" that exists -- in the other namespace.
     Invoke-Kubectl @('apply', '--namespace', 'kubernetes-dashboard', '-f', $renderedFile) 'installing the dashboard'
 
-    # The dashboard has no users of its own: you log in with a token belonging
-    # to a ServiceAccount, and you see exactly what that account is allowed to
-    # see. So the choice of role is the choice of what the dashboard can do.
+    # The dashboard has no users of its own: you log in with a ServiceAccount
+    # token and see what that account may see, so the role is the choice.
     #
-    # This binds the built-in "view" role, which is read-only across the
-    # cluster and deliberately cannot read Secrets. A dashboard you can only
-    # look through is the right default for a tool nobody needs in order to
-    # work: nothing is one misclick from being deleted, and a token that leaks
-    # is a much smaller problem.
-    #
-    # Most guides reach for cluster-admin here. If the group later wants to
-    # edit from the UI, change the roleRef below to cluster-admin and re-run --
-    # but it is worth being honest that this would hand anyone holding a token
-    # full control of the cluster, Secrets included.
+    # This binds the built-in "view" role: read-only across the cluster, and it
+    # cannot read Secrets. Most guides use cluster-admin instead. Changing the
+    # roleRef below to cluster-admin would hand anyone holding a token full
+    # control of the cluster, Secrets included.
     $dashboardAccount = @'
 apiVersion: v1
 kind: ServiceAccount

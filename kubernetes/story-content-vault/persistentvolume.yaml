@@ -1,11 +1,9 @@
-# Storage for the database StoryContentManager owns. One volume per database, because one
-# database per service is the decision the whole decomposition rests on: a
-# shared volume would be a shared database wearing a different name.
+# Storage for the database StoryContentManager owns. One volume per database, because
+# there is one database per service.
 #
 # persistentVolumeReclaimPolicy: Retain means "kubectl delete -R -f kubernetes"
-# leaves the data behind. That is deliberate -- an accidental teardown should
-# not destroy content that took time to author. See the README for how to wipe
-# it on purpose.
+# leaves the data behind, so an accidental teardown does not destroy authored
+# content. The README says how to wipe it on purpose.
 apiVersion: v1
 kind: PersistentVolume
 metadata:

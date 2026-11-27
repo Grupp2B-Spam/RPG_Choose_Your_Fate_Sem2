@@ -1,7 +1,6 @@
-# The in-cluster address every publisher and consumer uses. The name "rabbitmq"
-# is what makes "rabbitmq.choose-your-fate.svc.cluster.local" resolve, and the
-# short form "rabbitmq" is enough for pods in this namespace -- which is why the
-# services need no host configuration beyond one environment variable.
+# The in-cluster address every publisher and consumer uses. The name is what makes
+# "rabbitmq.choose-your-fate.svc.cluster.local" resolve, and pods in this namespace
+# can use the short form, so a service needs only RABBITMQ_HOST=rabbitmq.
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,19 +10,12 @@ metadata:
     app.kubernetes.io/name: rabbitmq
     app.kubernetes.io/part-of: choose-your-fate
   annotations:
-    # Nothing scrapes these yet. They are the long-standing convention a plain
-    # Prometheus install discovers targets by: scrape this endpoint, on this
-    # port, at this path. Putting them here now means whoever adds Prometheus
-    # does not have to come back and edit this file -- the broker is already
-    # advertising where its numbers are.
+    # Nothing scrapes these yet. They are the convention a plain Prometheus
+    # install discovers targets by, so whoever adds one does not have to edit
+    # this file.
     #
-    # The port is the Prometheus plugin, enabled by default in the
-    # rabbitmq:*-management image. The deployment already opens it; this just
-    # makes it reachable by service name and findable by discovery.
-    #
-    # A Prometheus Operator install would use a ServiceMonitor instead, which
-    # needs a CRD that is not in this cluster. Annotations work either way, so
-    # they are the cheaper bet until that decision is made.
+    # A Prometheus Operator install would want a ServiceMonitor instead, which
+    # needs a CRD this cluster does not have.
     prometheus.io/scrape: "true"
     prometheus.io/port: "15692"
     prometheus.io/path: /metrics

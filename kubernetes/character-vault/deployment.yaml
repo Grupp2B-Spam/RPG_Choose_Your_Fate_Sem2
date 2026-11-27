@@ -1,8 +1,8 @@
 # The database CharacterManager owns.
 #
-# As with recap-vault the schema file creates the database itself, so
-# MYSQL_DATABASE is left unset. scripts/setup.ps1 builds the ConfigMap from
-# microservices/character-manager-service/character-vault/01_create_schema.sql.
+# As with recap-vault, the schema file creates the database itself, so
+# MYSQL_DATABASE is left unset. scripts/setup.ps1 builds the ConfigMap from the
+# service's own schema file.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,9 +15,8 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    # ReadWriteOnce storage: the old pod has to let go of the data directory
-    # before the new one can take it, so a rolling update would wait for itself.
-    # Two MySQL processes on one data directory would also corrupt it.
+    # ReadWriteOnce storage: the old pod has to release the data directory before
+    # the new one can mount it, so a rolling update would wait for itself.
     type: Recreate
   selector:
     matchLabels:
@@ -42,11 +41,9 @@ spec:
                 secretKeyRef:
                   name: character-vault-credentials
                   key: root-password
-          # The server answers "mysqladmin ping" before it has finished recovery
-          # and before it will accept a real query, so a startupProbe absorbs the
-          # first start and the other two stay strict. Liveness restarts only a
-          # process that has genuinely stopped answering; readiness is what takes
-          # it out of the Service while it is busy.
+          # The server answers "mysqladmin ping" before it has finished recovery,
+          # so the startupProbe absorbs the first start and the other two stay
+          # strict. Readiness runs a real query; liveness only pings.
           startupProbe:
             exec:
               command: ["sh", "-c", 'mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD"']

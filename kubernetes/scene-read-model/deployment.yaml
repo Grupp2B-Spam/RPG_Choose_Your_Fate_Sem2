@@ -1,9 +1,8 @@
 # MongoDB holding the denormalised scene documents.
 #
-# The read half of the CQRS split: StoryContentManager owns the truth about
-# content in MySQL, shaped by how authors edit it, and this holds one document
-# per scene shaped by how the game reads it. It can be thrown away and rebuilt
-# from events, which is why losing it is an inconvenience and not a data loss.
+# The read half of the CQRS split: StoryContentManager owns the content in MySQL,
+# shaped by how authors edit it; this holds one document per scene, shaped by how
+# the game reads it. It can be thrown away and rebuilt from events.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,8 +44,8 @@ spec:
                 secretKeyRef:
                   name: scene-read-model-credentials
                   key: root-password
-            # Read by the init script on first start only. They are set on every
-            # start because a container cannot know whether this is the first.
+            # Read by the init script on first start only, but set on every start
+            # because a container cannot know whether this is the first.
             - name: SCENE_INDEXER_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -57,29 +56,22 @@ spec:
                 secretKeyRef:
                   name: scene-read-model-credentials
                   key: manager-password
-          # Every one of these starts a mongosh process, which is a Node
-          # runtime and takes seconds rather than milliseconds.
+          # Every one of these starts a mongosh process, which is a Node runtime
+          # and takes seconds, not milliseconds.
           #
-          # timeoutSeconds matters more than it looks. It defaults to 1 second,
-          # and leaving it off the startupProbe is what broke this pod: mongosh
-          # could not start, connect and answer within a second, so the startup
-          # probe failed every time and Kubernetes killed the container again
-          # and again. The pod was in a restart loop caused entirely by the
-          # probe, while MongoDB itself was perfectly healthy.
-          #
-          # Worth remembering as a general rule: an exec probe that starts a
-          # runtime always needs an explicit timeout, and the default is far too
-          # short for anything heavier than a shell builtin.
+          # timeoutSeconds defaults to 1 second. Leaving it off the startupProbe
+          # put this pod in a restart loop caused entirely by the probe, while
+          # MongoDB was healthy. An exec probe that starts a runtime always needs
+          # an explicit timeout.
           startupProbe:
             exec:
               command: ["sh", "-c", 'mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "db.adminCommand({ping:1}).ok" | grep -q 1']
             periodSeconds: 10
             timeoutSeconds: 15
             failureThreshold: 30
-          # Unauthenticated on purpose: ping is allowed before authentication,
-          # and liveness should ask the cheapest question that distinguishes a
-          # live process from a dead one. Whether credentials work is a
-          # readiness question, and it is asked below.
+          # Unauthenticated on purpose: ping is allowed before authentication, and
+          # liveness only has to tell a live process from a dead one. Whether the
+          # credentials work is a readiness question, asked below.
           livenessProbe:
             exec:
               command: ["sh", "-c", 'mongosh --quiet --eval "db.adminCommand({ping:1}).ok" | grep -q 1']

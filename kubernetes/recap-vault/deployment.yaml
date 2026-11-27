@@ -1,17 +1,15 @@
 # The database RecapManager owns.
 #
-# MYSQL_DATABASE is deliberately not set: the schema file creates the database
-# itself (CREATE SCHEMA `recap-vault`), and having the server create it as well
-# would mean two places decide one name.
+# MYSQL_DATABASE is not set: the schema file creates the database itself
+# (CREATE SCHEMA `recap-vault`), and setting it here would be a second place that
+# decides the name.
 #
-# The init script comes from a ConfigMap that scripts/setup.ps1 builds from
-# microservices/recapManager/src/main/resources/01_schema_recap_vault.sql. The
-# SQL is not copied into this tree, so the repository holds one schema file
-# rather than two that can drift apart.
+# scripts/setup.ps1 builds the init ConfigMap from the service's own schema file
+# in microservices/recapManager/, so there is one copy rather than two.
 #
 # MySQL runs init scripts only when the data directory is empty. Editing the
-# schema file does not re-run it against an existing volume -- the README says
-# how to reset it.
+# schema does not re-run them against an existing volume; the README says how to
+# reset it.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,9 +22,8 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    # ReadWriteOnce storage: the old pod has to let go of the data directory
-    # before the new one can take it, so a rolling update would wait for itself.
-    # Two MySQL processes on one data directory would also corrupt it.
+    # ReadWriteOnce storage: the old pod has to release the data directory before
+    # the new one can mount it, so a rolling update would wait for itself.
     type: Recreate
   selector:
     matchLabels:
@@ -51,11 +48,9 @@ spec:
                 secretKeyRef:
                   name: recap-vault-credentials
                   key: root-password
-          # The server answers "mysqladmin ping" before it has finished recovery
-          # and before it will accept a real query, so a startupProbe absorbs the
-          # first start and the other two stay strict. Liveness restarts only a
-          # process that has genuinely stopped answering; readiness is what takes
-          # it out of the Service while it is busy.
+          # The server answers "mysqladmin ping" before it has finished recovery,
+          # so the startupProbe absorbs the first start and the other two stay
+          # strict. Readiness runs a real query; liveness only pings.
           startupProbe:
             exec:
               command: ["sh", "-c", 'mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD"']

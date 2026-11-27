@@ -1,13 +1,10 @@
-# The broker's durable state: exchanges, queues, bindings and the messages
-# sitting in them. Without a volume, every restart of the pod empties the
-# queues, and a consumer that was down during the restart loses the backlog it
-# was supposed to work through.
+# The broker's durable state: exchanges, queues, bindings and the messages in
+# them. Without a volume, every restart of the pod empties the queues and a
+# consumer that was down loses its backlog.
 #
-# A PersistentVolume is declared explicitly rather than left to the default
-# StorageClass, so that the storage is visible in the manifests rather than
-# implied by a cluster setting. claimRef names the claim up front, which makes
-# the binding deterministic: this volume can only ever be taken by this claim,
-# never by whichever claim happens to be created first.
+# The PersistentVolume is declared here rather than left to the default
+# StorageClass, so the storage is visible in the manifests. claimRef names the
+# claim up front, so this volume can only ever be taken by that claim.
 apiVersion: v1
 kind: PersistentVolume
 metadata:

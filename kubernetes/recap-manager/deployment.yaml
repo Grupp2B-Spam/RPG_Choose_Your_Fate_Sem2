@@ -1,18 +1,11 @@
 # RecapManager -- generates and stores per-character journey summaries.
 #
-# Two things this manifest fixes without touching the service's source, because
-# both are Spring properties and every Spring property can be set from the
-# environment:
-#
-#   * Graceful shutdown. The service does not enable it. In a cluster a pod is
-#     terminated on every deploy, scale-down and node drain, and a process that
-#     stops immediately abandons whatever it was doing.
-#   * Nothing else. The probes below are the honest gap -- see the comment on
-#     them.
+# The service does not enable graceful shutdown; this manifest turns it on from
+# the environment without touching its source. The probes are the remaining gap
+# -- see the comment on them.
 #
 # StoryPathManager does not exist yet, so STORYPATH_MODE stays on the mock the
-# service already ships. That is a real dependency missing, not a shortcut: the
-# recap content this produces is placeholder until that service is built.
+# service ships. The recaps it produces are placeholder until that service exists.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -62,23 +55,20 @@ spec:
                 secretKeyRef:
                   name: recap-vault-credentials
                   key: root-password
-            # The service verifies RS256 tokens against this key. It is mounted
-            # from a Secret rather than bind-mounted from the developer's disk,
-            # which is what the compose file does today -- and that file points
-            # at ./.local/recap-jwt-public.pem, which need not exist.
+            # The service verifies RS256 tokens against this key. Mounted from a
+            # Secret rather than from the developer's disk, which is what the
+            # compose file does.
             - name: JWT_PUBLIC_KEY_LOCATION
               value: file:/app/config/recap-jwt-public.pem
             # Kept at the compose default. AccountManager does not issue tokens
-            # yet, so the only tokens in existence are minted by hand with
-            # tools/LocalToken.java against this issuer; changing it here would
-            # invalidate them for no gain.
+            # yet, so the only ones that exist are minted by hand against this
+            # issuer, and changing it here would invalidate them.
             - name: JWT_ISSUER
               value: http://localhost:8092
             - name: JWT_AUDIENCE
               value: choose-your-fate
-            # There is no Ollama in this cluster and none is being installed.
-            # Leaving the default of true would mean the AI path fails at call
-            # time with a connection error instead of being plainly off.
+            # There is no Ollama in this cluster. Left at true, the AI path would
+            # fail at call time with a connection error instead of being off.
             - name: AI_ENABLED
               value: "false"
             - name: STORYPATH_MODE
@@ -87,19 +77,15 @@ spec:
               value: graceful
             - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
               value: 30s
-          # TCP probes, not HTTP ones, and this is a compromise worth naming.
+          # TCP probes, not HTTP, and that is weaker: the pom has no
+          # spring-boot-starter-actuator, so there is no /actuator/health to ask,
+          # and a pod with an exhausted connection pool still accepts TCP and
+          # still gets traffic.
           #
-          # The service's pom does not declare spring-boot-starter-actuator, so
-          # there is no /actuator/health to ask. A TCP probe says the port is
-          # open, which is strictly weaker: a pod whose database connection pool
-          # is exhausted still accepts connections and still gets traffic.
-          #
-          # Adding the dependency is not enough on its own either -- this
-          # service's SecurityConfig ends in anyRequest().authenticated(), so an
-          # unauthenticated probe would get 401 and Kubernetes counts that as a
-          # failure. Both halves are needed. The README writes up the change for
-          # the group to decide on; it is not made here, because this is
-          # somebody else's service.
+          # Adding the dependency alone would not fix it: this service's
+          # SecurityConfig ends in anyRequest().authenticated(), so an
+          # unauthenticated probe would get 401. The README writes up both halves
+          # for the group; the change is not made here, in somebody else's service.
           livenessProbe:
             tcpSocket:
               port: http

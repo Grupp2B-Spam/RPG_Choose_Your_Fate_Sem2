@@ -1,16 +1,12 @@
 # CharacterManager -- characters, inventory, items, quests and race details.
 #
 # The Kubernetes name is character-manager, not character-manager-service. The
-# folder in microservices/ carries the -service suffix and the Maven artifact is
-# still called choose-your-fate-backend, left over from the monolith it was cut
-# from. Convention 5 asks for one name per service across Deployment, Service,
-# image and artifact; the two that can be fixed from here are fixed, and the
-# artifact id is the service owner's to change.
+# folder and the Maven artifact (choose-your-fate-backend) still carry the old
+# names; those are the service owner's to change. The README has the full table.
 #
 # MYSQL_URI has no default in this service: application.properties reads it with
-# no fallback, so the service does not start without it. That is stricter than
-# the other services and it is the better behaviour -- a missing setting fails
-# at startup rather than silently connecting somewhere unintended.
+# no fallback, so a missing setting fails at startup rather than connecting
+# somewhere unintended.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -66,7 +62,7 @@ spec:
               value: graceful
             - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
               value: 30s
-          # TCP, no Actuator in the pom. See the README section on probes.
+          # TCP, no Actuator in the pom. See the README on probes.
           livenessProbe:
             tcpSocket: { port: http }
             periodSeconds: 20

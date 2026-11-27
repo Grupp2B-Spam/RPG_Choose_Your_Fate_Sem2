@@ -3,18 +3,16 @@
     Point every image reference at a real registry.
 
 .DESCRIPTION
-    The manifests ship with registry.invalid as the registry. That is a
-    placeholder, chosen on purpose: .invalid is reserved by RFC 2606 and can
-    never resolve, so an image that is genuinely missing fails loudly instead of
-    being quietly pulled from whichever stranger happens to own that name on
-    Docker Hub. A friendlier-looking placeholder would be squattable.
+    The manifests ship with registry.invalid as the registry. .invalid is
+    reserved by RFC 2606 and can never resolve, so a missing image fails loudly
+    instead of being pulled from whichever stranger owns that name on Docker Hub.
+    A friendlier-looking placeholder would be squattable.
 
-    This rewrites the registry in every deployment.yaml. The image reference in
-    the manifest is the single source of truth -- deploy.ps1 reads its build and
-    push tags from there -- so changing it here changes it everywhere.
+    This rewrites the registry in every deployment.yaml. deploy.ps1 reads its
+    build and push tags from there, so changing it here changes it everywhere.
 
-    Run it once, when the group has decided whose Docker Hub account or
-    organisation the images belong in, and commit the result.
+    Run it once, when the group has decided whose Docker Hub account the images
+    belong in, and commit the result.
 
 .PARAMETER Registry
     The Docker Hub namespace, for example a username or an organisation. Pass
@@ -59,7 +57,7 @@ foreach ($service in $Services) {
 
     $content = Get-Content -LiteralPath $manifest -Raw
     # Anchored on the service name, so the busybox initContainer image is left
-    # alone. It comes from Docker Hub and has nothing to do with our registry.
+    # alone.
     $pattern = '(image:\s*)\S+/(' + [regex]::Escape($service) + ':\S+)'
     $updated = [regex]::Replace($content, $pattern, ('${1}' + $Registry + '/${2}'))
 
@@ -68,8 +66,8 @@ foreach ($service in $Services) {
         continue
     }
 
-    # Written without a BOM. kubectl copes either way, but a BOM in a YAML file
-    # shows up as a mystery character in every diff from then on.
+    # Written without a BOM. kubectl copes either way, but a BOM shows up as a
+    # mystery character in every later diff.
     [System.IO.File]::WriteAllText($manifest, $updated, (New-Object System.Text.UTF8Encoding $false))
     $match = [regex]::Match($updated, 'image:\s*(\S+/' + [regex]::Escape($service) + ':\S+)')
     Write-Host "    [set]  $($match.Groups[1].Value)" -ForegroundColor Green

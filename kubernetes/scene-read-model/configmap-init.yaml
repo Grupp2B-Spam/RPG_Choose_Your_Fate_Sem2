@@ -1,11 +1,7 @@
-# Creates the two database users the scene services authenticate as.
-#
-# This is the same arrangement as microservices/Scenes/mongo/init.js -- indexer
-# with readWrite, manager with read -- with one difference: the passwords come
-# from the Secret through the environment instead of being written into the
-# script. The repository's init.js has them in plain text, which is survivable
-# for a local compose file and is not something to carry into a manifest tree
-# that is meant to be committed.
+# Creates the two database users the scene services authenticate as: indexer with
+# readWrite, manager with read. Same split as microservices/Scenes/mongo/init.js,
+# except the passwords come from the Secret instead of being written into the
+# script.
 #
 # Mongo runs everything in /docker-entrypoint-initdb.d once, on the first start
 # with an empty data directory, and never again.

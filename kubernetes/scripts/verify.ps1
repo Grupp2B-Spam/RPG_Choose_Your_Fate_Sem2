@@ -5,8 +5,7 @@
 .DESCRIPTION
     Green pods prove that processes started. They do not prove that a request
     reaches a service through the gateway, that the broker has the topology the
-    design assumes, or that readiness means anything. Each check here establishes
-    one of those.
+    design assumes, or that readiness means anything.
 
         1  Gateway routing      a request through the ingress reaches a service
         2  Route groups         the admin group is a separate policy, not a
@@ -16,9 +15,9 @@
         4  Readiness is real    take RabbitMQ away and watch readiness fall
                                 while liveness holds
 
-    Check 4 deliberately stops the broker for about a minute and then puts it
-    back. It is the only one that proves the probes are wired to anything, which
-    is why it is on by default. Use -SkipDisruptive to leave the broker alone.
+    Check 4 stops the broker for about a minute and then puts it back. It is the
+    only one that proves the probes are wired to anything, which is why it is on
+    by default. Use -SkipDisruptive to leave the broker alone.
 
 .PARAMETER SkipDisruptive
     Skip check 4, which scales RabbitMQ to zero and back.
@@ -48,9 +47,9 @@ function Write-Flag  { param([string]$Text) Write-Host "    NOTE  $Text" -Foregr
 function Invoke-Http {
     <#
         Invoke-WebRequest throws on any non-2xx status, which makes a 404 and a
-        connection refusal look the same to the caller. They are not the same
-        thing at all: one is a service answering, the other is nothing
-        answering. This flattens both into an object so the checks can tell.
+        connection refusal look the same to the caller. One is a service
+        answering, the other is nothing answering. This flattens both into an
+        object so the checks can tell them apart.
     #>
     param(
         [string]$Uri,
@@ -110,10 +109,8 @@ if ($notReady) {
 # ===========================================================================
 # 1. A request through the gateway reaches a service
 # ===========================================================================
-# The skeleton endpoint is used on purpose: it returns 202 with a body naming
-# the routing key it published, so a success is unambiguous AND it puts a real
-# message on the broker, which check 3 then looks for. One action, two pieces
-# of evidence.
+# The skeleton endpoint on purpose: it returns 202 with a body naming the routing
+# key it published, and it puts a real message on the broker for check 3.
 Write-Check '1. Gateway routing (ingress-nginx -> storycontent-manager)'
 $publish = Invoke-Http -Uri "$Gateway/admin/v1/test-events/scene-content" -Method POST
 
@@ -134,10 +131,10 @@ if (-not $publish.Reached) {
     Write-Info "body: $($publish.Body)"
 }
 
-# The query side, through the same gateway on a different prefix. A 404 here is
-# a pass: it is scene-manager saying the scene does not exist, which it cannot
-# say unless the request got to it. What would be a failure is nginx answering
-# instead -- so the body is what distinguishes them, not the status code.
+# The query side, through the same gateway on a different prefix. A 404 here is a
+# pass: scene-manager cannot say the scene does not exist unless the request got
+# to it. A failure is nginx answering instead, so the body distinguishes them,
+# not the status code.
 Write-Check '1b. Gateway routing (ingress-nginx -> scene-manager)'
 $scene = Invoke-Http -Uri "$Gateway/scenes/verification-probe"
 if (-not $scene.Reached) {
@@ -153,13 +150,11 @@ if (-not $scene.Reached) {
 # 2. One gateway, two route groups
 # ===========================================================================
 Write-Check '2. Route groups'
-# -o json and ConvertFrom-Json, not -o jsonpath.
-#
-# A jsonpath expression needs embedded double quotes for its separators, and
-# Windows PowerShell 5.1 eats those when it builds the command line for a native
-# executable. The expression arrives at kubectl malformed, matches nothing, and
-# returns empty -- which reads exactly like "there are no Ingress objects". The
-# other jsonpath queries in this script have no embedded quotes and are fine.
+# -o json and ConvertFrom-Json, not -o jsonpath. This expression needs embedded
+# double quotes, and Windows PowerShell 5.1 eats those when building the command
+# line for a native executable: the expression arrives malformed, matches nothing
+# and returns empty, which reads like "there are no Ingress objects". The other
+# jsonpath queries here have no embedded quotes.
 $ingressJson = kubectl get ingress -n $Namespace -o json 2>$null | ConvertFrom-Json
 $items = @()
 if ($ingressJson -and $ingressJson.items) { $items = @($ingressJson.items) }

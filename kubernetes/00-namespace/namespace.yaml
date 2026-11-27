@@ -1,8 +1,7 @@
-# Every object in this tree lives in one namespace, so the whole system can be
-# listed, watched and deleted as a unit without touching anything else on the
-# cluster. The folder is named 00- so that "kubectl apply -R -f kubernetes",
-# which walks the tree in lexical order, creates the namespace before the
-# objects that go into it.
+# One namespace for the whole system, so it can be listed and deleted as a unit.
+#
+# The folder is named 00- because "kubectl apply -R -f kubernetes" walks the tree
+# in lexical order, and the namespace has to exist first.
 apiVersion: v1
 kind: Namespace
 metadata:

@@ -4,9 +4,8 @@ Everything needed to bring the system up on a local cluster: the services, a
 database for each of them, the message broker, and one gateway in front of it
 all.
 
-You should be able to use this without asking anyone. If you get stuck on
-something that is not written down here, that is a gap in this file and worth
-reporting.
+If you get stuck on something that is not written down here, that is a gap in
+this file — say so.
 
 ---
 
@@ -65,10 +64,10 @@ Once per machine, and safe to re-run:
 - builds the database schema **ConfigMaps** by reading the SQL out of each
   service's own folder
 
-Secrets are created only when missing, never replaced. This matters: a database
-bakes its root password into its data directory the first time it starts, so
-regenerating a password against an existing volume locks the service out of its
-own database, with an authentication error that looks nothing like the cause.
+Secrets are created only when missing, never replaced. A database bakes its root
+password into its data directory the first time it starts, so regenerating one
+against an existing volume locks the service out of its own database, with an
+error that looks nothing like the cause.
 
 Two optional extras:
 
@@ -90,9 +89,9 @@ kubectl apply -R -f kubernetes
 ```
 
 Nothing has to be applied by hand first and nothing has to be applied in a
-particular order. Where ordering genuinely matters — a service must not start
-before its database — it is handled by an `initContainer` that waits on the
-port, and by readiness probes. Not by a note somebody has to remember.
+particular order. Where ordering matters — a service must not start before its
+database — an `initContainer` waits on the port, and the readiness probes do the
+rest.
 
 Useful flags:
 
@@ -124,9 +123,8 @@ to leave it alone.
 ```
 
 The volumes use the `Retain` reclaim policy, so an ordinary teardown does not
-destroy authored content. Use `-IncludeData` when a schema has changed, because
-MySQL and MongoDB run their init scripts **only** against an empty data
-directory and will otherwise ignore a new schema completely.
+destroy authored content. Use `-IncludeData` when a schema has changed: MySQL and
+MongoDB run their init scripts **only** against an empty data directory.
 
 Neither form touches the Kubernetes Dashboard, which lives in its own namespace
 and belongs to the machine rather than to this project. Remove it with:
@@ -145,11 +143,10 @@ kubectl delete namespace kubernetes-dashboard; kubectl delete clusterrolebinding
 | RabbitMQ management UI | <http://localhost:31672> |
 | Service NodePorts | 30081 storycontent, 30090 recap, 30080 scene, 30092 account, 30010 character |
 
-The NodePorts are **debugging doors, not the way in**. They exist so that when
-a request through the gateway fails you can hit the service directly and find
-out whether the fault is in the service or in the routing — which is otherwise
-hard to tell apart. They also reach `/actuator`, which the gateway deliberately
-does not expose. Each one is a single file you can delete.
+The NodePorts are **debugging doors, not the way in**. When a request through
+the gateway fails, hitting the service directly says whether the fault is in the
+service or in the routing. They also reach `/actuator`, which the gateway does
+not expose. Each one is a single file you can delete.
 
 The broker credentials for the management UI are in the cluster, not in this
 repository:
@@ -169,9 +166,9 @@ kubectl -n choose-your-fate get secret rabbitmq-credentials -o jsonpath='{.data.
 | `/api/{character-details,equipment}` | character-manager | public |
 | `/ws/...` | account-manager | public |
 
-`/choose-your-fate` is listed prefix by prefix rather than as one catch-all,
-because two services share that root and a catch-all would hand one service the
-other's traffic.
+`/choose-your-fate` is listed prefix by prefix rather than as one catch-all:
+two services share that root, and a catch-all would hand one of them the other's
+traffic.
 
 To see the table as the cluster has it, with the pod addresses each route
 actually resolves to:
@@ -188,22 +185,21 @@ not the route. It is the first thing to look at when a path returns 503.
 
 ## Looking at the cluster
 
-There is no web UI for the gateway itself, and that is deliberate on upstream's
-part: the controller is a reconcile loop over your Ingress objects, so a UI with
-buttons would be a second source of truth that the next `kubectl apply` would
-overwrite. Three things are worth knowing about instead.
+There is no web UI for the gateway itself: the controller is a reconcile loop
+over your Ingress objects, so a UI with buttons would be a second source of truth
+that the next `kubectl apply` would overwrite. Three things instead.
 
 ### Lens
 
 A desktop app, not a website. It reads the kubeconfig you already have, so
 nothing is installed into the cluster. It shows the Ingress objects, live pod
-logs and a terminal that exec's into a pod without you typing `kubectl exec`.
-If you have it, it covers most of what follows.
+logs and a terminal that exec's into a pod. If you have it, it covers most of
+what follows.
 
 One warning: Lens offers to install its own bundled Prometheus ("Lens Metrics")
-into a `lens-metrics` namespace. Do not accept it on a cluster where someone
-else is setting up monitoring — you end up with two Prometheus installs
-scraping the same targets and no obvious sign of which one a graph came from.
+into a `lens-metrics` namespace. Do not accept it on a cluster where someone else
+is setting up monitoring — two Prometheus installs scrape the same targets with
+no sign of which one a graph came from.
 
 ### The Kubernetes Dashboard
 
@@ -221,11 +217,9 @@ Then open <https://localhost:8443/>, accept the self-signed certificate, and
 paste the token. It expires after an hour; mint another with the same command.
 
 The dashboard is **read-only**. It logs in as a ServiceAccount bound to the
-built-in `view` role, which cannot change anything and cannot read Secrets.
-Most guides bind `cluster-admin` instead; this does not, because nothing here
-depends on the dashboard and a token that reaches the whole cluster is a poor
-trade for a browser tab. The `roleRef` in `setup.ps1` is a one-line change if
-the group wants more.
+built-in `view` role, which cannot change anything and cannot read Secrets. Most
+guides bind `cluster-admin` instead. The `roleRef` in `setup.ps1` is a one-line
+change if the group wants more.
 
 CPU and memory graphs will be empty. That needs `metrics-server`, which is not
 installed — see **Metrics** below for why.
@@ -245,12 +239,11 @@ overwritten on the next reload. Two things in it are worth reading once:
 
 - Both Ingress objects are merged into a **single `server` block** for
   `localhost`. The route groups are not separate servers; they are per-location
-  `limit_req` zones inside one. That is the design from the decision log, made
-  visible.
+  `limit_req` zones inside one.
 - Each `Prefix` path becomes **two** locations, `location = "/scenes"` and
   `location "/scenes/"`. Kubernetes defines `Prefix` as matching whole path
-  segments, so `/scenesfoo` must not match — and a bare `location /scenes` in
-  nginx would match it, because nginx matches characters.
+  segments, so `/scenesfoo` must not match — and a bare `location /scenes` would,
+  because nginx matches characters.
 
 You will not find pod addresses in that file. Upstreams are resolved at request
 time by a Lua balancer, which is why replacing a pod does not reload nginx. The
@@ -271,9 +264,8 @@ kubectl logs -n ingress-nginx deploy/ingress-nginx-controller -f
 ## How it is laid out
 
 One folder per service, each holding its `deployment.yaml` and `service.yaml`,
-with a `persistentvolume.yaml` where there is a database. That is the structure
-the course asks for, and it is what makes `kubectl apply -R -f kubernetes` a
-single command.
+with a `persistentvolume.yaml` where there is a database. That is what makes
+`kubectl apply -R -f kubernetes` a single command.
 
 ```
 kubernetes/
@@ -335,8 +327,7 @@ here rather than left implicit:
 | `Scenes/scene-indexer` | `scene-indexer` | matches |
 
 Renaming a folder or a Maven artifact is the owner's call, so the Kubernetes
-names were chosen to be right and the mismatches are recorded instead of being
-fixed unilaterally.
+names were chosen to be right and the mismatches are recorded here instead.
 
 Databases are named after what they hold, following the names already in the
 compose files: `story-content-vault`, `recap-vault`, `character-vault`, and
@@ -346,10 +337,9 @@ compose files: `story-content-vault`, `recap-vault`, `character-vault`, and
 
 ## Images and the registry
 
-**The image references say `registry.invalid`.** That is a placeholder, and it
-is deliberate. `.invalid` is reserved by RFC 2606 and can never resolve, so an
-image that is genuinely missing fails loudly rather than quietly pulling
-whatever stranger happens to own that name on Docker Hub. A friendlier-looking
+**The image references say `registry.invalid`.** `.invalid` is reserved by
+RFC 2606 and can never resolve, so a missing image fails loudly rather than
+pulling whatever stranger owns that name on Docker Hub. A friendlier-looking
 placeholder would be squattable.
 
 When the group has decided whose Docker Hub account or organisation to use:
@@ -362,10 +352,9 @@ docker login
 
 and commit the change, so everyone builds and pulls the same images.
 
-**Until then everything still runs.** The course notes say Kubernetes cannot use
-local images. That is true of kind and minikube; it is **not** true of Docker
-Desktop, which is the runtime this group chose. A locally built image works,
-confirmed by the kubelet itself:
+**Until then everything still runs.** Kubernetes cannot use local images on kind
+or minikube, but it **can** on Docker Desktop, which is the runtime this group
+chose. The kubelet says so itself:
 
 ```
 Normal  Pulled  kubelet  Container image "registry.invalid/storycontent-manager:0.1.0"
@@ -391,14 +380,13 @@ them on the self-building pattern would be one fewer thing for CI to get right.
 
 ## Probes: what is wired up, and what is not
 
-Each service should have **both** probes, and they answer different questions.
-Liveness asks whether the process is alive; a failure restarts the pod.
-Readiness asks whether it can serve; a failure takes it out of the Service
-without restarting it. A service that cannot reach RabbitMQ is not broken and
-should not be restarted — restarting will not bring the broker back — but it
+Each service should have **both** probes. Liveness asks whether the process is
+alive; a failure restarts the pod. Readiness asks whether it can serve; a failure
+takes it out of the Service without restarting it. A service that cannot reach
+RabbitMQ should not be restarted — that will not bring the broker back — but it
 must not receive traffic either.
 
-Here is the honest state of it:
+Where it stands:
 
 | Service | Liveness / readiness | Readiness reflects |
 |---|---|---|
@@ -410,19 +398,17 @@ Here is the honest state of it:
 | `scene-indexer` | **none** | — |
 
 **Why four services are on TCP probes.** `spring-boot-starter-actuator` appears
-in exactly one pom in this repository. Without it there is no
-`/actuator/health` to ask, so the probe falls back to asking whether the port is
-open. That is strictly weaker: a pod whose database connection pool is exhausted
-still accepts TCP connections, and still gets traffic.
+in exactly one pom in this repository. Without it there is no `/actuator/health`
+to ask, so the probe only asks whether the port is open. That is weaker: a pod
+whose connection pool is exhausted still accepts TCP, and still gets traffic.
 
 **Why `scene-indexer` has none at all.** It sets
-`spring.main.web-application-type: none`, so there is no HTTP server and no
-listening port — there is nothing for a probe to ask, over HTTP or over TCP.
-Kubernetes will restart it if the process exits and will do nothing at all if it
+`spring.main.web-application-type: none`, so there is no listening port for a
+probe to ask. Kubernetes restarts it if the process exits and does nothing if it
 hangs with its broker connection gone.
 
 None of this is fixed here, because four of those five services belong to other
-people. The fix is small and is written out below so the group can decide on it.
+people. The fix is written out below so the group can decide on it.
 
 ### The proposed fix, for the group
 
@@ -452,10 +438,9 @@ in this repository, swap `tcpSocket` for `httpGet` in that service's
 **Two services need something extra.**
 
 `recap-manager`: its `SecurityConfig` ends in `anyRequest().authenticated()`, so
-an unauthenticated probe gets `401` and Kubernetes counts that as a failed
-probe. Adding the dependency alone would make things *worse* — the pod would
-start failing probes it currently passes. `/actuator/health/**` has to be
-permitted:
+an unauthenticated probe gets `401`, which counts as a failed probe. Adding the
+dependency alone makes things *worse* — the pod starts failing probes it
+currently passes. `/actuator/health/**` has to be permitted:
 
 ```java
 authorize.requestMatchers("/actuator/health/**").permitAll();
@@ -464,7 +449,6 @@ authorize.requestMatchers("/actuator/health/**").permitAll();
 `scene-indexer`: drop `spring.main.web-application-type: none`. It then starts a
 web server that nothing routes to, which is fine — what makes the indexer
 unreachable is that no Service object points at it, not that no port is open.
-That is the cleaner mechanism anyway.
 
 **What readiness should include** differs per service, and is worth deciding
 rather than copying:
@@ -480,7 +464,7 @@ rather than copying:
 Including a dependency the service does not need makes a pod drop out of the
 Service for an outage it could have survived. Leaving out one it does need means
 Kubernetes keeps routing requests to a pod that will fail every one of them.
-Both are silent, and neither shows up until the cluster is under load.
+Both are silent until the cluster is under load.
 
 **You do not have to change code to set this.** Every Spring property can come
 from the environment, so a readiness group is one entry in `deployment.yaml`:
@@ -512,44 +496,38 @@ gave it time to finish.
 `verify.ps1` runs four checks. What each one establishes:
 
 **1 — Gateway routing.** `POST /admin/v1/test-events/scene-content` through the
-ingress returns `202`. That single request confirms the ingress is listening on
+ingress returns `202`. One request confirms the ingress is listening on
 `localhost:80`, the route matches, the Service selector finds the pod and the
-container port is right. It also publishes a real event, which check 3 then
-looks for — one action, two pieces of evidence. A second request to `/scenes/...`
-confirms a different route group reaches a different service; a `404` there is a
-pass, because the point is *which process* said it, and the check looks at the
-body to tell `scene-manager` apart from nginx.
+container port is right, and it publishes a real event for check 3. A second
+request to `/scenes/...` confirms a different route group reaches a different
+service; a `404` there is a pass, because the point is *which process* said it,
+and the check reads the body to tell `scene-manager` apart from nginx.
 
 **2 — Route groups.** Both Ingress objects are admitted at the same address with
-different `limit-rps` values. That is what "one gateway with route groups"
-looks like from outside: same controller, same address, different policy.
+different `limit-rps` values: same controller, same address, different policy.
 
 **3 — Queue topology.** Lists the exchanges, queues and bindings the broker
-actually has. Expect to see `storycontent.events` — declared by
-StoryContentManager at startup — and also `game.events`, declared by the Scenes
-services, **with nothing bridging them**. That is a real, known problem and the
-cluster is what makes it visible: StoryContentManager publishes
-`scene-content.updated` to `storycontent.events`, while `scene-indexer` consumes
-`scene.changed` from `game.events`. Neither half is broken on its own, neither
-logs an error, and the queue simply stays empty. In separate compose files both
-sides look healthy.
+actually has. Expect `storycontent.events`, declared by StoryContentManager at
+startup, and also `game.events`, declared by the Scenes services, **with nothing
+bridging them**. StoryContentManager publishes `scene-content.updated` to
+`storycontent.events` while `scene-indexer` consumes `scene.changed` from
+`game.events`. Neither half logs an error and the queue stays empty; in separate
+compose files both sides look healthy.
 
 **4 — Readiness is real.** Scales RabbitMQ to zero and watches
 `storycontent-manager`. Readiness should go false, the pod should leave the
-Service endpoints, and the restart count should **not** change. That last part
-is the point: the broker belongs in readiness and not in liveness, and this is
-the check that proves the manifest actually achieves it rather than merely
-claiming to. RabbitMQ is then scaled back and readiness should recover on its
-own.
+Service endpoints, and the restart count should **not** change. That last part is
+what proves the broker is in readiness and not in liveness. RabbitMQ is then
+scaled back and readiness should recover on its own.
 
 ---
 
 ## Metrics: what is exposed, and what collects it
 
-**Nothing collects them.** There is no Prometheus, no Grafana, no Loki and no
-Promtail in this cluster, whatever the architecture diagram says. What the
-cluster does is advertise where its numbers are, so that whoever installs a
-collector does not also have to go looking for them.
+**Nothing collects them.** There is no Prometheus, Grafana, Loki or Promtail in
+this cluster, whatever the architecture diagram says. What the cluster does is
+advertise where its numbers are, so whoever installs a collector does not have to
+go looking.
 
 Two sources, both annotated with `prometheus.io/scrape`, `prometheus.io/port`
 and `prometheus.io/path` — the convention a plain Prometheus discovers targets
@@ -560,26 +538,23 @@ by:
 | Gateway | `ingress-nginx-controller-metrics.ingress-nginx:10254` | requests, latencies, status codes, per ingress and per path |
 | Broker | `rabbitmq.choose-your-fate:15692` | queue depths, publish and deliver rates, connections |
 
-A Prometheus Operator install would want `ServiceMonitor` objects instead,
-which need a CRD this cluster does not have. The annotations work either way,
-so they are the cheaper bet until that choice is made.
+A Prometheus Operator install would want `ServiceMonitor` objects instead, which
+need a CRD this cluster does not have. The annotations work either way.
 
 ### One thing to know about the gateway's metrics
 
-`--enable-metrics` is **off by default** in this controller version, and the
-way it fails is nasty. Port 10254 answers `200` either way. Without the flag the
-body is 128 lines of the Go runtime describing itself and nothing else — a
-collector pointed at it scrapes successfully, graphs cleanly, and shows nothing
-about HTTP traffic, with no error to explain why. `setup.ps1` sets the flag. If
-you ever rebuild the controller by hand, set it too:
+`--enable-metrics` is **off by default** in this controller version, and port
+10254 answers `200` either way. Without the flag the body is 128 lines of the Go
+runtime describing itself — a collector pointed at it scrapes successfully,
+graphs cleanly, and shows nothing about HTTP traffic. `setup.ps1` sets the flag.
+If you rebuild the controller by hand, set it too:
 
 ```powershell
 kubectl -n ingress-nginx exec deploy/ingress-nginx-controller -- curl -s http://127.0.0.1:10254/metrics | Select-String nginx_ingress_controller_requests
 ```
 
-An empty result means the flag is missing. A result looks like this, and the
-`ingress` label is the useful part — it makes the two route groups separable in
-a query:
+An empty result means the flag is missing. The `ingress` label is the useful
+part: it makes the two route groups separable in a query.
 
 ```
 nginx_ingress_controller_requests{ingress="choose-your-fate-public",
@@ -589,11 +564,10 @@ nginx_ingress_controller_requests{ingress="choose-your-fate-public",
 ### What is not exposed, and cannot be from here
 
 **No service produces application metrics.** `spring-boot-starter-actuator` is
-in one of six `pom.xml` files, and `micrometer-registry-prometheus` — the thing
-that turns Actuator into a Prometheus endpoint — is in none of them. So there
-are no per-service request rates, no JVM heap numbers, no consumer lag. No
-cluster configuration can produce them; it is two lines per service, and it
-belongs with each service's owner:
+in one of six `pom.xml` files, and `micrometer-registry-prometheus` — which turns
+Actuator into a Prometheus endpoint — is in none. So there are no per-service
+request rates, no JVM heap numbers, no consumer lag. No cluster configuration can
+produce them; it is two lines per service, and it belongs with each owner:
 
 ```xml
 <dependency>
@@ -603,8 +577,8 @@ belongs with each service's owner:
 ```
 
 plus `management.endpoints.web.exposure.include=health,prometheus`. The same
-`spring-boot-starter-actuator` that the probes section above asks for covers the
-first half of this, so the two requests are really one.
+`spring-boot-starter-actuator` the probes section asks for covers the first half,
+so the two requests are really one.
 
 ### `metrics-server` is not installed, on purpose
 
@@ -621,13 +595,12 @@ SANs. `metrics-server` trusts the cluster CA, so the scrape fails with:
 x509: cannot validate certificate for 192.168.65.3 because it doesn't contain any IP SANs
 ```
 
-There is no configuration that makes verification succeed — the certificate is
-simply not one the cluster can vouch for. The only working options are to skip
-verification or to do without. On a single-node cluster on one laptop the risk
-is close to nothing, but it is still a deliberate decision to disable a
-certificate check, so it is the group's to take rather than the setup script's.
+No configuration makes verification succeed: the certificate is not one the
+cluster can vouch for. The options are to skip verification or to do without. On
+a single-node cluster the risk is close to nothing, but disabling a certificate
+check is the group's decision, not the setup script's.
 
-If you decide to take it, it is two commands:
+If you take it, it is two commands:
 
 ```powershell
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.9.1/components.yaml
@@ -644,8 +617,6 @@ with the x509 error above. To undo both, `kubectl delete -f` the same URL.
 
 ## Known gaps
 
-Written down rather than left to be discovered.
-
 - **Nothing scrapes the metrics.** The gateway and the broker expose them; no
   collector is installed. See above.
 - **No service exposes application metrics.** Missing Micrometer. See above.
@@ -656,10 +627,10 @@ Written down rather than left to be discovered.
 - **The two halves of the messaging system do not talk to each other.**
   Different exchanges, different routing keys. Check 3 shows it. Fixing it is a
   contract decision, not a deployment one.
-- **`storycontent-manager` is still the walking skeleton on `main`.** It
-  publishes events and has no persistence. `story-content-vault` is deployed and
-  idle so that merging the branch which adds persistence is a change to the
-  service and not also a change to this tree.
+- **`storycontent-manager` is still the skeleton on `main`.** It publishes events
+  and has no persistence. `story-content-vault` is deployed and idle so that
+  merging the branch which adds persistence is a change to the service and not
+  also a change to this tree.
 - **StoryPathManager does not exist**, so `recap-manager` runs with
   `STORYPATH_MODE=mock`. The recaps it produces are placeholder.
 - **No Ollama in the cluster**, so `recap-manager` runs with `AI_ENABLED=false`
@@ -671,10 +642,9 @@ Written down rather than left to be discovered.
   otherwise.
 - **No autoscaling.** No HPA and no KEDA `ScaledObject`. KEDA can be installed
   with `setup.ps1 -WithKeda`, and nothing uses it yet.
-- **The TLS certificate is self-signed**, and HTTP→HTTPS redirect is turned off
-  so that `curl` and browsers do not stop to complain about it. TLS terminating
-  at the gateway is the part that matters; a certificate anyone would trust is a
-  different problem and not one a laptop solves.
+- **The TLS certificate is self-signed**, and HTTP→HTTPS redirect is off so that
+  `curl` and browsers do not stop to complain about it. TLS still terminates at
+  the gateway, which is the part that matters.
 - **`recapManager`'s schema file starts with a UTF-8 BOM**, which MySQL reads as
   the first token of the first statement. `setup.ps1` drops it when building the
   ConfigMap and says so. Worth fixing at the source.
@@ -708,34 +678,28 @@ kubectl -n ingress-nginx logs deploy/ingress-nginx-controller  # gateway
 
 ### Two that cost real time while this was built
 
-Both are written down because neither is obvious and both look like something
-else.
-
 **A healthy container in a restart loop caused by its own probe.** Watch for
 `Liveness probe failed: command timed out` while the container's own log says it
 started fine. An `exec` probe that starts a runtime — `rabbitmq-diagnostics`
-boots a second Erlang VM, `mongosh` is a Node process — can easily take longer
-than the probe's timeout, and **`timeoutSeconds` defaults to 1 second**. A probe
-that times out counts as failed, and the kubelet cannot tell a slow answer from
-no answer, so Kubernetes kills a perfectly healthy process.
+boots a second Erlang VM, `mongosh` is a Node process — can take longer than the
+probe's timeout, and **`timeoutSeconds` defaults to 1 second**. A probe that
+times out counts as failed, so Kubernetes kills a healthy process.
 
-It bites hardest under load, which is exactly when restarting the broker is the
-worst thing to do. RabbitMQ here logged `Time to start RabbitMQ: 129435 ms` on a
-laptop that was also building six images.
+It bites hardest under load, which is when restarting the broker is the worst
+thing to do. RabbitMQ here logged `Time to start RabbitMQ: 129435 ms` on a laptop
+that was also building six images.
 
-The fix in this tree: RabbitMQ is probed over HTTP against the Prometheus
-endpoint on 15692 and over TCP on 5672 — a socket instead of a runtime — and
-every remaining `exec` probe has an explicit, generous `timeoutSeconds`. If you
-add a service, prefer an HTTP or TCP probe, and if you must exec something,
-measure what it costs before choosing a timeout.
+The fix in this tree: RabbitMQ is probed over HTTP on the Prometheus endpoint at
+15692 and over TCP on 5672, and every remaining `exec` probe has an explicit,
+generous `timeoutSeconds`. If you add a service, prefer HTTP or TCP, and if you
+must exec something, measure what it costs before choosing a timeout.
 
 **A jar containing classes from a branch you are not on.** `target/` is in
-`.gitignore`, so it survives `git checkout` and git shows nothing. Running
-`mvn package` without `clean` keeps whatever is already in `target/classes` and
-packages it next to the current sources, producing a jar that holds two
-branches at once. It surfaces as a `NoClassDefFoundError` at startup, for a
-dependency the current `pom.xml` never declared, naming a class whose source
-file is not in your checkout.
+`.gitignore`, so it survives `git checkout` and git shows nothing. `mvn package`
+without `clean` keeps whatever is in `target/classes` and packages it next to the
+current sources, producing a jar that holds two branches at once. It surfaces as
+a `NoClassDefFoundError` at startup, naming a class whose source file is not in
+your checkout.
 
 `deploy.ps1` always runs `clean package` for this reason. If you build by hand,
 do the same.

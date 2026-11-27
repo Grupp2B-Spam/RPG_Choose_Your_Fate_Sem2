@@ -1,33 +1,17 @@
 # The authoring route group.
 #
-# Same controller, same host, same TLS certificate as ingress-public.yaml --
-# one gateway. What differs is the policy, and that is the whole reason the
-# group exists as a separate object: ingress-nginx applies these annotations
-# per Ingress, so a tighter limit on /admin is expressible without a second
-# controller.
+# Same controller, same host, same certificate as ingress-public.yaml -- one
+# gateway. It is a separate object only because ingress-nginx applies these
+# annotations per Ingress, so a tighter limit on /admin needs its own.
 #
-# The admin surface is held to a tenth of the player limit because a request
-# here changes content that every player is subsequently served. The blast
-# radius of an author request is the whole game; the blast radius of a player
-# request is that player. The limit follows the blast radius, not the expected
-# traffic.
+# The limit is a tenth of the player limit because an author request changes
+# content every player is then served. It is not authentication: a rate limit
+# slows a caller down, it does not ask who they are. StoryContentManager has no
+# authorization yet, and that gap is in the service.
 #
-# This is still not authentication. The limit slows a caller down; it does not
-# ask who they are. StoryContentManager has no authorization yet -- it waits on
-# AccountManager -- and that gap is in the service, which is where it will be
-# closed. A rate limit at the gateway is not a stand-in for it and should not
-# be described as one.
-#
-# ----------------------------------------------------------------------------
-# On the path, which is mid-migration
-# ----------------------------------------------------------------------------
-# The prefix is /admin, not /admin/v1. On origin/main the service still answers
-# at /admin/v1/test-events; the branch that moves versioning into the
-# X-API-VERSION header answers at /admin/... instead. A /admin prefix routes
-# both, so the migration lands without an edit here. That is the practical
-# argument for keeping a version out of the path that the versioning decision
-# makes in the abstract: a path version is a routing concern, and it ends up in
-# the gateway's configuration whether you meant it to or not.
+# The prefix is /admin, not /admin/v1. The service answers at /admin/v1/... on
+# main and at /admin/... on the branch that moves the version into a header; a
+# /admin prefix routes both, so that migration needs no edit here.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

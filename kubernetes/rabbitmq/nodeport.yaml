@@ -1,13 +1,9 @@
-# Debugging only, alongside the ClusterIP Service above.
+# Debugging only. The broker is infrastructure and is not routed through the
+# ingress, which exists for the system's HTTP APIs.
 #
-# The broker is infrastructure and is not routed through the ingress: the
-# gateway exists to expose the system's HTTP APIs, and putting an AMQP port or a
-# broker admin UI behind it would make the gateway responsible for traffic that
-# has nothing to do with the public API.
-#
-# The management UI on 31672 is how queue topology is inspected by hand, and
-# 30672 lets a local tool connect to AMQP without a pod. Delete this file to
-# close both doors; nothing in the system depends on it.
+# The management UI on 31672 is how queue topology is inspected by hand; 30672
+# lets a local tool connect to AMQP without a pod. Delete this file to close both
+# doors; nothing depends on it.
 apiVersion: v1
 kind: Service
 metadata:

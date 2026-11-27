@@ -1,17 +1,14 @@
 # AccountManager -- serves the RS256 public key over a versioned SOAP contract.
 #
-# The scaffold only distributes the verification key; account storage, login and
-# token signing are still to be written. That matters for the gateway decision:
-# the ingress does not call this service to authenticate requests, and must not
-# start to. Every protected service verifies tokens locally against this key, so
-# a service that is barely begun is not on the path of every request in the
-# system.
+# It only distributes the verification key so far; account storage, login and
+# token signing are still to be written. The ingress does not call it to
+# authenticate requests and must not start to: every protected service verifies
+# tokens locally against this key.
 #
 # ACCOUNT_MANAGER_BIND_ADDRESS is the setting to notice. The service defaults to
-# 127.0.0.1, which inside a pod means the Service gets a connection refused on
-# every request and the pod still looks healthy. The Dockerfile already
-# overrides it; it is set here as well so the manifest states the requirement
-# rather than inheriting it from an image someone may rebuild.
+# 127.0.0.1, which inside a pod means every request is refused while the pod
+# still looks healthy. The Dockerfile overrides it; it is set here too so the
+# manifest states the requirement rather than inheriting it.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -46,11 +43,9 @@ spec:
               value: 0.0.0.0
             - name: ACCOUNT_MANAGER_PORT
               value: "8092"
-            # The service reads this key at startup and exits if it cannot read
-            # or validate it, so the Secret has to exist before the pod does.
-            # scripts/setup.ps1 creates it; the README says what happens if you
-            # skip that step, which is a clean CreateContainerConfigError rather
-            # than a confusing crash loop.
+            # The service reads this key at startup and exits if it cannot, so
+            # the Secret has to exist before the pod. scripts/setup.ps1 creates
+            # it; without it the pod stops at CreateContainerConfigError.
             - name: JWT_PUBLIC_KEY_FILE
               value: /app/config/account-jwt-public.pem
             - name: JWT_ISSUER
@@ -61,7 +56,7 @@ spec:
               value: graceful
             - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
               value: 30s
-          # TCP, no Actuator in the pom. See the README section on probes.
+          # TCP, no Actuator in the pom. See the README on probes.
           livenessProbe:
             tcpSocket: { port: http }
             periodSeconds: 20
@@ -85,10 +80,9 @@ spec:
         - name: jwt-public-key
           secret:
             secretName: jwt-public-key
-            # The same key, under the filename this service expects. One
-            # keypair in the system: AccountManager hands out the public half
-            # and RecapManager verifies with it, so two Secrets would be two
-            # chances for them to disagree.
+            # The same key, under the filename this service expects. One keypair
+            # in the system: AccountManager hands out the public half and
+            # RecapManager verifies with it, so two Secrets could disagree.
             items:
               - key: public.pem
                 path: account-jwt-public.pem

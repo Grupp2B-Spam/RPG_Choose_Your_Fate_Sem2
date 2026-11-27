@@ -2,13 +2,11 @@
 #
 # It serves scenes from MongoDB and never touches the authoring database. It
 # connects as the "manager" user, which the database grants read only, so the
-# query side cannot write the model it reads even by mistake.
+# query side cannot write the model it reads.
 #
-# replicas: 2 because this is the service a player hits on every scene, and it
-# is stateless: two pods behind one Service is the cheapest demonstration that
-# the read side scales independently of the projector. It is also the service an
-# HPA would be attached to later, scaling on request rate or CPU rather than on
-# queue depth -- a different signal from the indexer's, which is the point.
+# replicas: 2 because a player hits this on every scene and it is stateless. It
+# is also where an HPA would go, scaling on request rate rather than the
+# indexer's queue depth.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -49,9 +47,8 @@ spec:
             - name: http
               containerPort: 8080
           env:
-            # The whole URI, password included, comes from the Secret. Splitting
-            # it would mean assembling a connection string in the manifest, with
-            # the password sitting in the Deployment in plain text.
+            # The whole URI comes from the Secret. Assembling it here would put
+            # the password in the Deployment in plain text.
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
@@ -73,8 +70,7 @@ spec:
               value: graceful
             - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE
               value: 30s
-          # TCP, because this service has no Actuator either. See the comment in
-          # recap-manager/deployment.yaml and the README section on probes.
+          # TCP, because this service has no Actuator. See the README on probes.
           livenessProbe:
             tcpSocket: { port: http }
             periodSeconds: 20

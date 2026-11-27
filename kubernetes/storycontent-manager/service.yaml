@@ -1,8 +1,7 @@
 # The address the ingress routes to, and the name other services resolve.
 #
-# Port 80 on the Service, 8081 in the container: callers inside the cluster use
-# "http://storycontent-manager" without a port, and the port the application
-# happens to listen on stays an implementation detail of the pod.
+# Port 80 on the Service, 8081 in the container, so callers inside the cluster use
+# "http://storycontent-manager" without a port.
 apiVersion: v1
 kind: Service
 metadata:

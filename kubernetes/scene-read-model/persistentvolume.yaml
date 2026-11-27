@@ -1,11 +1,9 @@
 # Storage for the scene read model.
 #
-# This is the one datastore in the system with two writers' worth of ambiguity,
-# so it is worth being precise: scene-indexer writes it and scene-manager reads
-# it, and the database enforces that split through two users with different
-# grants rather than trusting the code to behave. The two deployments are
-# separately built and separately released, which is the cost the group
-# accepted; the grants are what keep it from being worse than that.
+# Two services share this datastore: scene-indexer writes it, scene-manager reads
+# it. The database enforces that with two users and different grants rather than
+# trusting the code. They are still separately released, so the document format
+# is a contract between them.
 apiVersion: v1
 kind: PersistentVolume
 metadata:

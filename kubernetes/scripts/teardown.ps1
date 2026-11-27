@@ -5,28 +5,23 @@
 .DESCRIPTION
     By default this removes the workloads and leaves the data. The
     PersistentVolumes use the Retain reclaim policy, so deleting the namespace
-    does not delete what is in the databases -- an accidental teardown should
-    not destroy authored content.
+    does not delete what is in the databases.
 
-    That has a consequence worth knowing before it surprises you: because the
-    volumes survive, so do the database root passwords baked into them on first
-    start. Re-running setup.ps1 after a plain teardown reuses the existing
-    secrets, so everything still matches. If you delete the secrets but keep the
-    volumes, the new passwords will not match the old databases and every
-    service will fail to authenticate.
+    One consequence: the volumes survive, and so do the root passwords baked into
+    them on first start. Deleting the secrets while keeping the volumes leaves new
+    passwords that do not match the old databases, and every service then fails to
+    authenticate.
 
-    -IncludeData removes the volumes as well, which is the clean slate. Use it
-    when a database schema has changed, because MySQL and MongoDB run their init
-    scripts only against an empty data directory and will otherwise ignore the
-    new schema entirely.
+    -IncludeData removes the volumes too. Use it when a schema has changed, since
+    MySQL and MongoDB run their init scripts only against an empty data directory.
 
 .PARAMETER IncludeData
     Also delete the PersistentVolumes, their claims, and the secrets. Everything
     in the databases is lost.
 
 .PARAMETER IncludeIngressController
-    Also uninstall ingress-nginx. It is shared cluster infrastructure, so this
-    is off by default -- another project on this cluster may be using it.
+    Also uninstall ingress-nginx. Off by default: it is shared cluster
+    infrastructure and another project may be using it.
 
 .EXAMPLE
     .\kubernetes\scripts\teardown.ps1
@@ -62,9 +57,9 @@ Write-Ok 'workloads removed'
 if ($IncludeData) {
     Write-Step 'Removing data and secrets'
 
-    # The claims go with the namespace delete above, but the PersistentVolumes
-    # are cluster-scoped and Retain means they outlive their claims. They have
-    # to be named explicitly.
+    # The claims go with the namespace delete above, but the PersistentVolumes are
+    # cluster-scoped and Retain means they outlive their claims, so they have to
+    # be named explicitly.
     $volumes = @(
         'rabbitmq-data',
         'story-content-vault-data',

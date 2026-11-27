@@ -1,15 +1,10 @@
 # StoryContentManager -- the authoring side of the content model.
 #
-# This is the only service in the system whose pom declares
-# spring-boot-starter-actuator, so it is the only one that can be probed on the
-# endpoints the conventions ask for. The other four are probed on their TCP port
-# instead; see the README for what that costs and what it would take to fix.
+# The only service with spring-boot-starter-actuator in its pom, so the only one
+# with real HTTP probes. The others are probed on their TCP port; see the README.
 #
-# Every setting below is an environment variable rather than an edit to
-# application.yml. That is deliberate and it is what lets this manifest add
-# graceful shutdown and a readiness group to a service without changing a line
-# of its source -- the same image runs under compose and here, and only the
-# configuration differs.
+# Everything below is set as an environment variable, so the same image runs under
+# compose and here with no change to the service's source.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,15 +27,12 @@ spec:
         app.kubernetes.io/part-of: choose-your-fate
     spec:
       # Must exceed the Spring shutdown timeout below, or Kubernetes kills the
-      # process in the middle of the work it was given time to finish, and the
-      # setting buys nothing.
+      # process in the middle of the work it was given time to finish.
       terminationGracePeriodSeconds: 45
       initContainers:
-        # Ordering without instructions. The pod does not start until the broker
-        # answers, so "apply everything at once" needs no sequence a human has
-        # to remember. Spring Boot would otherwise start, fail to connect and
-        # crash-loop until the broker happened to be up -- which also works, but
-        # looks like a fault rather than a wait.
+        # The pod waits for the broker, so "apply everything at once" needs no
+        # ordering a human has to remember. Without it the service crash-loops
+        # until the broker happens to be up, which looks like a fault.
         - name: wait-for-rabbitmq
           image: busybox:1.36
           command:
@@ -56,9 +48,9 @@ spec:
       containers:
         - name: storycontent-manager
           image: registry.invalid/storycontent-manager:0.1.0
-          # An explicit version tag, never :latest. With IfNotPresent this makes
-          # an image built locally on Docker Desktop usable without a registry,
-          # and a pull happen exactly once per new tag when there is one.
+          # An explicit version tag, never :latest. With IfNotPresent, an image
+          # built locally on Docker Desktop runs without a registry. :latest would
+          # default the policy to Always and force a registry lookup.
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -92,19 +84,16 @@ spec:
                 secretKeyRef:
                   name: story-content-vault-credentials
                   key: root-password
-            # Readiness answers "can this pod serve a request correctly", and
-            # every write here both persists and publishes. Without the broker
-            # the service would accept a write and tell nobody, which is worse
-            # than refusing it -- so the broker belongs in readiness. It
-            # deliberately does not belong in liveness: restarting this process
-            # will not bring RabbitMQ back, and a restart loop turns one outage
-            # into two.
+            # Every write here both persists and publishes, so without the broker
+            # the service would accept a write and tell nobody. The broker belongs
+            # in readiness and not in liveness: restarting will not bring RabbitMQ
+            # back.
             - name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED
               value: "true"
             - name: MANAGEMENT_ENDPOINT_HEALTH_GROUP_READINESS_INCLUDE
               value: readinessState,rabbit
-            # Finish the in-flight request before exiting. On every deploy and
-            # every scale-down, not only on failures.
+            # Finish the in-flight request before exiting, on every deploy and
+            # scale-down.
             - name: SERVER_SHUTDOWN
               value: graceful
             - name: SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE

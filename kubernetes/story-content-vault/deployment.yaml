@@ -1,13 +1,11 @@
 # The database StoryContentManager owns.
 #
-# On origin/main that service is still the walking skeleton: it publishes events
-# and has no persistence at all, so nothing connects here yet. The database is
-# deployed anyway, because the schema work exists on a feature branch and the
-# point of this tree is that merging it should be a code change and not also a
-# deployment change.
+# Nothing connects here yet: on main that service is still the skeleton and has no
+# persistence. Deployed anyway, so merging the branch that adds it is a change to
+# the service and not also a change to this tree.
 #
-# db-init/ in the service folder is empty on main, so there is no schema to
-# load. MYSQL_DATABASE creates the empty database the service will expect.
+# db-init/ is empty on main, so there is no schema to load. MYSQL_DATABASE creates
+# the empty database.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -49,11 +47,9 @@ spec:
                   key: root-password
             - name: MYSQL_DATABASE
               value: story_content
-          # The server answers "mysqladmin ping" before it has finished recovery
-          # and before it will accept a real query, so a startupProbe absorbs the
-          # first start and the other two stay strict. Liveness restarts only a
-          # process that has genuinely stopped answering; readiness is what takes
-          # it out of the Service while it is busy.
+          # The server answers "mysqladmin ping" before it has finished recovery,
+          # so the startupProbe absorbs the first start and the other two stay
+          # strict. Readiness runs a real query; liveness only pings.
           startupProbe:
             exec:
               command: ["sh", "-c", 'mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD"']
