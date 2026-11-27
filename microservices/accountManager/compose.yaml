@@ -4,12 +4,6 @@ services:
     ports:
       - "127.0.0.1:8092:8092"
     environment:
-      JWT_ISSUER: "${JWT_ISSUER:-http://localhost:8092}"
-      JWT_AUDIENCE: "${JWT_AUDIENCE:-choose-your-fate}"
-    volumes:
-      - type: bind
-        source: "${JWT_PUBLIC_KEY_FILE:-./.local/account-jwt-public.pem}"
-        target: /app/config/account-jwt-public.pem
-        read_only: true
-        bind:
-          create_host_path: false
+      OIDC_ISSUER_URI: "${OIDC_ISSUER_URI:-${OIDC_BASE_URL:-http://localhost:8082}/realms/choose-your-fate}"
+      OIDC_JWKS_URI: "${OIDC_JWKS_URI:-http://keycloak:8080/realms/choose-your-fate/protocol/openid-connect/certs}"
+      OIDC_AUDIENCE: "${OIDC_AUDIENCE:-account-manager}"

@@ -1,65 +1,43 @@
 # AccountManager
 
-AccountManager owns accounts, login, and RS256 JWT issuance in [Patrick's architecture revision](../../architecture-chooseYourFate-Patrick-revision1.drawio). It will own the MySQL Account vault. The API Gateway and each protected service verify tokens locally.
-
-This scaffold implements public verification key distribution. The gateway and protected services can retrieve the configured key through a versioned SOAP contract during provisioning or a controlled refresh. Account persistence, login, and signing are future work for this service.
-
-| Component | Responsibility |
-| --- | --- |
-| AccountManager | Owns the Account vault, authenticates users, and signs JWTs in the draft. The scaffold serves the configured RSA public key, issuer, audience, and algorithm. |
-| API Gateway | Verifies JWTs, enforces route policy, and applies routing and rate limits. |
-| Protected services | Verify JWTs locally and enforce their own domain rules, such as character ownership. |
-
-The browser continues to use the gateway's HTTP APIs. Queue-based game events continue on the broker.
+Keycloak handles sign-in and issues OpenID Connect tokens for the first OAuth integration. AccountManager is a Spring Security resource server. It fetches Keycloak's JSON Web Key Set (JWKS), caches the verification keys, and checks RS256 signatures, issuer, audience, and token timestamps locally. The earlier SOAP public-key endpoint has been retired in favor of the provider's JWKS.
 
 ## Run locally
 
-From this directory with Java 21 and Maven, place an X.509/SPKI RSA public key of at least 2048 bits in `.local/account-jwt-public.pem`. Use the `BEGIN PUBLIC KEY` PEM format. For a local smoke run, generate a throwaway key pair outside the repository and copy only its public key to this directory.
+With Java 21, Maven, and Docker running, use these commands from the repository root:
 
-| Environment variable | Default |
+```powershell
+mvn -f microservices/accountManager/pom.xml clean verify
+docker compose up --build -d keycloak account-manager
+```
+
+Keycloak starts in development mode at `http://localhost:8082`. For a new Keycloak data volume, set `KC_BOOTSTRAP_ADMIN_USERNAME` and `KC_BOOTSTRAP_ADMIN_PASSWORD` in your shell before starting Compose to create the initial admin. Use credentials unique to your local environment. The root Compose file imports the `choose-your-fate` realm on first start and persists it in `keycloak-data`. Keycloak skips the import when the realm already exists.
+
+In the Keycloak admin console, create a test user in the `choose-your-fate` realm and set its password. The imported public client `choose-your-fate-web` allows Authorization Code with PKCE (S256). Its registered callback is `http://localhost:5173/auth/callback`. Use a client that handles that callback to sign in and obtain an access token. The project frontend still needs this client integration.
+
+| Setting | Local value |
 | --- | --- |
-| `JWT_PUBLIC_KEY_FILE` | `./.local/account-jwt-public.pem` |
-| `JWT_ISSUER` | `http://localhost:8092` |
-| `JWT_AUDIENCE` | `choose-your-fate` |
-| `ACCOUNT_MANAGER_BIND_ADDRESS` | `127.0.0.1` |
-| `ACCOUNT_MANAGER_PORT` | `8092` |
+| Issuer | `http://localhost:8082/realms/choose-your-fate` |
+| Public client ID | `choose-your-fate-web` |
+| AccountManager audience | `account-manager` |
+| Discovery | `http://localhost:8082/realms/choose-your-fate/.well-known/openid-configuration` |
+
+The realm mapper adds the AccountManager audience to access tokens. Requests use a bearer **access token**:
 
 ```powershell
-mvn test
-mvn spring-boot:run
+curl.exe --fail --header "Authorization: Bearer $accessToken" http://localhost:8092/api/accounts/me
 ```
 
-The tests generate their own key and exercise the contract over HTTP. The service loads the configured public key at startup and exits if it cannot read or validate it.
+A valid token returns the issuer, subject, and preferred username from its claims. Missing or rejected tokens return HTTP 401. This endpoint is the starting point for a profile API. When adding persistence, use the issuer and subject together to link a profile to the identity provider.
 
-## Run with Docker Compose
+## Configuration
 
-With Docker Desktop running, build the JAR and start Compose from this directory. Compose publishes port `8092` on the host's loopback interface and mounts the public key read-only. Place the key at `.local/account-jwt-public.pem` or set `JWT_PUBLIC_KEY_FILE` to another host path. The file must be readable by the container's non-root user.
+Set `OIDC_ISSUER_URI`, `OIDC_JWKS_URI`, and `OIDC_AUDIENCE` to use another provider or environment. Compose uses Keycloak's browser-visible issuer and fetches keys over the internal network at `http://keycloak:8080`. If you run AccountManager directly with `mvn spring-boot:run`, it uses the issuer URL to build the default JWKS URL. If you run only the AccountManager Compose file, supply a JWKS URL reachable from its container.
 
-```powershell
-mvn package
-docker compose up --build
-```
+The included Keycloak configuration is for local development. A deployed provider needs its own HTTPS issuer, exact redirect URIs, and durable managed storage.
 
-The root `docker-compose.yml` also includes AccountManager. After building its JAR and provisioning the key, run `docker compose up --build` from the repository root to start it with the default stack. Use `--profile prod` to also enable the profiled applications after preparing their build artifacts and settings. If AccountManager and RecapManager use the same public-key file, set `JWT_PUBLIC_KEY_FILE` to its absolute host path so both mounts resolve to the same file.
+## Remaining integration
 
-## SOAP v1
-
-Import [the running WSDL](http://127.0.0.1:8092/ws/account-v1.wsdl) from `GET /ws/account-v1.wsdl`. Spring Web Services generates it from [the v1 XSD](src/main/resources/contracts/account-v1.xsd). The `GetVerificationKey` operation accepts an empty request and returns `issuer`, `audience`, `algorithm` (RS256), and `publicKey` (base64-encoded DER SubjectPublicKeyInfo). A Java client can load the decoded bytes using `X509EncodedKeySpec` and an RSA `KeyFactory`.
-
-Send this envelope to `POST /ws` with `Content-Type: text/xml; charset=utf-8` and `SOAPAction: ""`.
-
-```xml
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-               xmlns:acc="urn:choose-your-fate:account:v1">
-  <soap:Body>
-    <acc:GetVerificationKeyRequest/>
-  </soap:Body>
-</soap:Envelope>
-```
-
-## Integration steps
-
-1. Move account persistence and login into AccountManager with its own MySQL Account vault. Issue RS256 tokens with matching `iss` and `aud`, a stable account identifier in `sub`, and an expiry. RecapManager already expects RS256 and recognizes `ROLE_USER` and `ROLE_ADMIN` in a single `role` claim. The legacy backend currently signs HMAC tokens, so plan the issuer migration before connecting consumers.
-2. Provision the public verification key and configure the issuer and audience to match the tokens AccountManager will issue. Deploy the SOAP endpoint on an internal network with authenticated TLS and access controls at the ingress or service mesh. The scaffold serves public metadata over HTTP and relies on deployment to enforce transport and caller identity.
-3. Wire the gateway first. Generate a SOAP client from the WSDL and call it during provisioning or refresh. Configure the trusted endpoint, expected issuer and audience, and RS256 in the consumer. Retain the last trusted key through a transient outage and require a trusted key before accepting requests. RecapManager can initially keep using its configured PEM file.
-4. Before enabling automatic rotation, extend the contract to return multiple keys with `kid` values, then test the overlap window against token expiry and consumer refresh timing. This outline serves one configured key per process lifetime.
+- Connect the frontend to Keycloak using Authorization Code with PKCE and route AccountManager traffic through the gateway.
+- Add AccountManager's profile database and map existing account IDs to Keycloak identities before migrating ownership checks.
+- Move RecapManager and other services to provider JWKS after deciding their audience and role mapping. RecapManager currently uses the PEM-based configuration and role claims from its existing setup.

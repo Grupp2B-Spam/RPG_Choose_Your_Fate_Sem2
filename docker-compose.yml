@@ -10,6 +10,24 @@ include:
   - microservices/accountManager/compose.yaml
 
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.2
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_HOSTNAME: "${OIDC_BASE_URL:-http://localhost:8082}"
+      KC_BOOTSTRAP_ADMIN_USERNAME:
+      KC_BOOTSTRAP_ADMIN_PASSWORD:
+    ports:
+      - "127.0.0.1:8082:8080"
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - type: bind
+        source: ./microservices/auth/choose-your-fate-realm.json
+        target: /opt/keycloak/data/import/choose-your-fate-realm.json
+        read_only: true
+        bind:
+          create_host_path: false
+
   frontend:
     profiles: ["prod"]
     build:
@@ -43,4 +61,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  keycloak-data:
   rabbitmq-data:
