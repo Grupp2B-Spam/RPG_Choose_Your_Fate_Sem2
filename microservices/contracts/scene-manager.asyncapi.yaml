@@ -109,15 +109,15 @@ components:
         characterId:
           type: string
         sceneId:
-          type: integer
-        sceneVersion:
+          type: string
+        sceneVersion:z
           type: integer
           minimum: 1
         choiceId:
-          type: integer
+          type: string
         choiceLabel:
           type: string
         beat:
           type: string
         destinationSceneId:
-          type: integer
+          type: string
