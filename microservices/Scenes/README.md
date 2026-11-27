@@ -7,10 +7,10 @@ This is a teaching/demo vertical slice based on the uploaded architecture descri
 
 ```text
 StoryContentManager (not implemented; represented by seed_scenes.py)
-    │ scene.changed {UPSERT|DELETE, sceneId, version, full scene}
+    │ scene-content.updated {envelope + full scene payload}
     ▼
-RabbitMQ: game.events (topic exchange)
-    │ scene.changed → scene-indexer.scene-changed queue
+RabbitMQ: storycontent.events (topic exchange)
+    │ scene-content.updated → scene-indexer.scene-changed queue
     ▼
 SceneIndexer ────────── writes MongoDB.scenes (indexer readWrite user)
                                        │
@@ -18,11 +18,11 @@ SceneIndexer ────────── writes MongoDB.scenes (indexer readW
                                        ▼
 Player → GET/POST /scenes/* → SceneManager
                                        │
-                                       │ choice.made {snapshot + effects}
+                                       │ player-choice.made {choice envelope}
                                        ▼
-                               RabbitMQ: game.events
+                               RabbitMQ: scenemanager.events
                                    /          \
-             demo.storypath.choice-made     demo.character.choice-made
+        storypathmanager.player-choice     charactermanager.player-choice
                   (stub queue)                    (stub queue)
 ```
 
@@ -59,8 +59,8 @@ curl -i -X POST http://localhost:8080/scenes/start/choices/left \
 python3 scripts/peek_events.py
 ```
 
-The REST response is **202 Accepted**, and the same `choice.made` message appears in
-both demo subscriber queues. Inspect queues, routing and dead-lettered messages in the
+The REST response is **202 Accepted**, and the same `player-choice.made` message appears in
+both subscriber queues. Inspect queues, routing and dead-lettered messages in the
 RabbitMQ UI at <http://localhost:15672> (`dev` / `dev-local-only`).
 
 Run unit tests locally with Maven 3.9+ and Java 21:
@@ -82,38 +82,55 @@ Reset demo data (destructive): `docker compose down -v`.
 
 ## Event contracts (examples)
 
-**StoryContentManager → SceneIndexer** through exchange `game.events`, key `scene.changed`:
+**StoryContentManager → SceneIndexer** through exchange `storycontent.events`, key `scene-content.updated`:
 
 ```json
 {
-  "sceneId": "start",
-  "version": 1,
-  "operation": "UPSERT",
-  "title": "Crossroads",
-  "text": "A path splits around an old tree.",
-  "choices": [{"id":"left","text":"Go toward the mill","nextSceneId":"mill","effects":{"courage":1}}]
+  "eventId": "00000000-0000-4000-8000-000000000001",
+  "eventType": "scene-content.updated",
+  "occurredAt": "2026-11-27T12:00:00Z",
+  "schemaVersion": 1,
+  "payload": {
+    "sceneId": "start",
+    "sceneVersion": 1,
+    "status": "PUBLISHED",
+    "chapterId": "chapter-1",
+    "name": "Crossroads",
+    "description": "A path splits around an old tree.",
+    "choices": [{
+      "choiceId": "left",
+      "label": "Go toward the mill",
+      "beat": "You go toward the mill.",
+      "destinationSceneId": "mill",
+      "weight": 1,
+      "grantedItemIds": []
+    }]
+  }
 }
 ```
 
-To delete a scene publish `{"sceneId":"start","version":2,"operation":"DELETE"}`.
+To retire a scene, publish the same envelope with `"status":"RETIRED"` and a newer
+`sceneVersion`.
 Indexer retains a tombstone (`deleted: true`) rather than physically deleting the document,
 so a late version-1 upsert cannot resurrect it. SceneManager hides tombstones.
 
-**SceneManager → subscribers** through exchange `game.events`, key `choice.made`:
+**SceneManager → subscribers** through exchange `scenemanager.events`, key `player-choice.made`:
 
 ```json
 {
   "eventId": "generated-uuid",
-  "characterId": "char-123",
-  "sceneId": "start",
-  "sceneVersion": 1,
-  "sceneTitle": "Crossroads",
-  "sceneText": "A path splits around an old tree.",
-  "choiceId": "left",
-  "choiceText": "Go toward the mill",
-  "nextSceneId": "mill",
-  "effects": {"courage": 1},
-  "occurredAt": "2026-11-11T12:00:00Z"
+  "eventType": "player-choice.made",
+  "occurredAt": "2026-11-27T12:05:00Z",
+  "schemaVersion": 1,
+  "payload": {
+    "characterId": "char-123",
+    "sceneId": "start",
+    "sceneVersion": 1,
+    "choiceId": "left",
+    "choiceLabel": "Go toward the mill",
+    "beat": "You go toward the mill.",
+    "destinationSceneId": "mill"
+  }
 }
 ```
 
@@ -139,7 +156,7 @@ is edited. CharacterManager can use `effects`, subject to its own validation and
 6. **Publisher confirmations/outbox/retries and API gateway/JWT integration are missing.**
    A broker failure may produce an error, and successful `send` alone does not prove a
    downstream service processed the event. An indexer poison message is dead-lettered to
-   `scene-indexer.dead` instead of retried indefinitely.
+   `scene-indexer.scene-changed.dlq` instead of retried indefinitely.
 7. **Scene versioning is required from StoryContentManager.** The indexer uses a Mongo atomic
    version predicate and tombstones to protect against duplicate/out-of-order delivery.
    Events without a positive monotonic version are sent to the dead-letter queue.

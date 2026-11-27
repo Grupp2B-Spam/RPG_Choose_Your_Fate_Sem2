@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
     @Bean
-    TopicExchange gameEvents() {
-        return new TopicExchange("game.events", true, false);
+    TopicExchange sceneManagerEvents() {
+        return new TopicExchange("scenemanager.events", true, false);
     }
 
     // DEVELOPMENT-ONLY stub queues so that the sample can demonstrate fan-out
@@ -21,21 +21,23 @@ public class RabbitConfig {
     // deployment those services should provision their own subscriptions.
     @Bean
     Queue demoStoryPathQueue() {
-        return QueueBuilder.durable("demo.storypath.choice-made").build();
+        return QueueBuilder.durable("storypathmanager.player-choice").build();
     }
 
     @Bean
     Queue demoCharacterQueue() {
-        return QueueBuilder.durable("demo.character.choice-made").build();
+        return QueueBuilder.durable("charactermanager.player-choice").build();
     }
 
     @Bean
-    Binding demoStoryPathBinding(@Qualifier("demoStoryPathQueue") Queue demoStoryPathQueue, TopicExchange gameEvents) {
-        return BindingBuilder.bind(demoStoryPathQueue).to(gameEvents).with("choice.made");
+    Binding demoStoryPathBinding(@Qualifier("demoStoryPathQueue") Queue demoStoryPathQueue,
+                                 TopicExchange sceneManagerEvents) {
+        return BindingBuilder.bind(demoStoryPathQueue).to(sceneManagerEvents).with("player-choice.made");
     }
 
     @Bean
-    Binding demoCharacterBinding(@Qualifier("demoCharacterQueue") Queue demoCharacterQueue, TopicExchange gameEvents) {
-        return BindingBuilder.bind(demoCharacterQueue).to(gameEvents).with("choice.made");
+    Binding demoCharacterBinding(@Qualifier("demoCharacterQueue") Queue demoCharacterQueue,
+                                 TopicExchange sceneManagerEvents) {
+        return BindingBuilder.bind(demoCharacterQueue).to(sceneManagerEvents).with("player-choice.made");
     }
 }

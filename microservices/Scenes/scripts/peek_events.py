@@ -5,7 +5,7 @@ import json
 import urllib.request
 
 creds = base64.b64encode(b"dev:dev-local-only").decode("ascii")
-for queue in ("demo.storypath.choice-made", "demo.character.choice-made"):
+for queue in ("storypathmanager.player-choice", "charactermanager.player-choice"):
     request = urllib.request.Request(
         f"http://localhost:15672/api/queues/%2F/{queue}/get",
         data=json.dumps({"count": 1, "ackmode": "ack_requeue_true", "encoding": "auto"}).encode(),

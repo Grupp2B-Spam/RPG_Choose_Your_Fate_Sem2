@@ -25,11 +25,11 @@ async function fakeFetch(input, init = {}) {
   }
   if (url.hostname === 'rabbit.test') {
     if (url.pathname === '/api/overview') return asJson({ rabbitmq_version: '4.0.0' });
-    if (url.pathname === '/api/exchanges/%2F/game.events/publish' && init.method === 'POST') {
+    if (url.pathname === '/api/exchanges/%2F/storycontent.events/publish' && init.method === 'POST') {
       return asJson({ routed: true });
     }
     if (url.pathname.startsWith('/api/queues/%2F/')) {
-      if (url.pathname.endsWith('/scene-indexer.dead')) return asJson({ error: 'Not found' }, 404);
+      if (url.pathname.endsWith('/scene-indexer.scene-changed.dlq')) return asJson({ error: 'Not found' }, 404);
       return asJson({ messages_ready: 3, messages_unacknowledged: 1, consumers: 2 });
     }
     return asJson({ error: 'Unknown RabbitMQ route' }, 404);
@@ -125,36 +125,51 @@ test('Rejects malformed request bodies and unsupported routes', async () => {
   assert.equal((await call('/api/scenes/demo-start', { method: 'DELETE' })).status, 405);
 });
 
-test('Publishes a valid scene.changed event with server-side RabbitMQ auth', async () => {
-  const scene = { sceneId: 'demo-new', version: 3, operation: 'UPSERT', title: 'New', text: 'Hello', choices: [] };
+test('Publishes a valid scene-content.updated event with server-side RabbitMQ auth', async () => {
+  const scene = {
+    eventId: '00000000-0000-4000-8000-000000000201',
+    eventType: 'scene-content.updated', occurredAt: '2026-11-27T12:00:00Z', schemaVersion: 1,
+    payload: { sceneId: 'demo-new', sceneVersion: 3, status: 'PUBLISHED',
+      chapterId: 'demo-chapter', name: 'New', description: 'Hello', choices: [] },
+  };
   const { status, body } = await call('/api/mock/publish', { method: 'POST', body: JSON.stringify(scene) });
   assert.equal(status, 202);
   assert.equal(body.sceneId, 'demo-new');
-  const publish = calls.filter((c) => c.url.includes('/api/exchanges/%2F/game.events/publish')).at(-1);
+  const publish = calls.filter((c) => c.url.includes('/api/exchanges/%2F/storycontent.events/publish')).at(-1);
   const payload = JSON.parse(publish.body);
-  assert.equal(payload.routing_key, 'scene.changed');
+  assert.equal(payload.routing_key, 'scene-content.updated');
   assert.equal(payload.properties.delivery_mode, 2);
-  assert.equal(JSON.parse(payload.payload).sceneId, 'demo-new');
+  assert.equal(JSON.parse(payload.payload).payload.sceneId, 'demo-new');
   assert.equal(publish.headers.authorization, 'Basic ' + Buffer.from('server-only-user:server-only-password').toString('base64'));
 });
 
-test('Publishes SceneDocument-shaped scene.changed events', async () => {
+test('Publishes contract-shaped SceneContentUpdated events', async () => {
   const scene = {
-    sceneId: 'demo-new', version: 3, operation: 'UPSERT', chapterId: 'demo-chapter',
-    status: 'PUBLISHED', name: 'New', description: 'Hello',
-    choices: [], npcIds: ['npc-1'], questIds: ['quest-1'],
+    eventId: '00000000-0000-4000-8000-000000000202',
+    eventType: 'scene-content.updated', occurredAt: '2026-11-27T12:00:01Z', schemaVersion: 1,
+    payload: {
+      sceneId: 'demo-new', sceneVersion: 3, status: 'PUBLISHED', chapterId: 'demo-chapter',
+      name: 'New', description: 'Hello', choices: [], npcIds: ['npc-1'], questIds: ['quest-1'],
+    },
   };
   const { status } = await call('/api/mock/publish', { method: 'POST', body: JSON.stringify(scene) });
   assert.equal(status, 202);
-  const publish = calls.filter((c) => c.url.includes('/api/exchanges/%2F/game.events/publish')).at(-1);
+  const publish = calls.filter((c) => c.url.includes('/api/exchanges/%2F/storycontent.events/publish')).at(-1);
   assert.deepEqual(JSON.parse(JSON.parse(publish.body).payload), scene);
 });
 
 test('Rejects invalid events without sending them to RabbitMQ', async () => {
   const before = calls.length;
-  const { status, body } = await call('/api/mock/publish', { method: 'POST', body: JSON.stringify({ sceneId: 'bad', version: 0, operation: 'UPSERT' }) });
+  const { status, body } = await call('/api/mock/publish', {
+    method: 'POST',
+    body: JSON.stringify({
+      eventId: '00000000-0000-4000-8000-000000000203',
+      eventType: 'scene-content.updated', schemaVersion: 1,
+      payload: { sceneId: 'bad', sceneVersion: 0, status: 'PUBLISHED' },
+    }),
+  });
   assert.equal(status, 400);
-  assert.match(body.error, /version/);
+  assert.match(body.error, /[vV]ersion/);
   assert.equal(calls.length, before);
 });
 
@@ -165,12 +180,13 @@ test('Seeds three demo-prefixed scenes with version 1', async () => {
   assert.equal(body.published.length, 3);
   assert.deepEqual(body.published.map((scene) => scene.sceneId), ['demo-start', 'demo-mill', 'demo-village']);
   const events = calls.slice(before).map((c) => JSON.parse(JSON.parse(c.body).payload));
-  assert.equal(events.every((event) => event.version === 1), true);
-  assert.equal(events[0].choices.length, 2);
-  assert.equal(events.every((event) => event.status === 'PUBLISHED'), true);
-  assert.equal(events.every((event) => typeof event.name === 'string' && typeof event.description === 'string'), true);
-  assert.equal(events.every((event) => typeof event.chapterId === 'string'
-    && Array.isArray(event.npcIds) && Array.isArray(event.questIds)), true);
+  const payloads = events.map((event) => event.payload);
+  assert.equal(payloads.every((payload) => payload.sceneVersion === 1), true);
+  assert.equal(payloads[0].choices.length, 2);
+  assert.equal(payloads.every((payload) => payload.status === 'PUBLISHED'), true);
+  assert.equal(payloads.every((payload) => typeof payload.name === 'string' && typeof payload.description === 'string'), true);
+  assert.equal(payloads.every((payload) => typeof payload.chapterId === 'string'
+    && Array.isArray(payload.npcIds) && Array.isArray(payload.questIds)), true);
 });
 
 test('Returns 502 when a dependency is unreachable', async () => {

@@ -1,15 +1,29 @@
 /* Choose Your Fate - Scene Control. Browser code has no RabbitMQ credentials. */
 const byId = (id) => document.getElementById(id);
 const defaultEvent = {
-  sceneId: 'demo-start', version: 1, operation: 'UPSERT', chapterId: 'demo-chapter',
-  status: 'PUBLISHED', name: 'The Crossroads',
-  description: 'The road splits beneath an ancient oak.', npcIds: [], questIds: [],
-  choices: [
-    { id: 'left', text: 'Take the road to the mill', nextSceneId: 'demo-mill', effects: { courage: 1 } },
-    { id: 'right', text: 'Walk toward the village', nextSceneId: 'demo-village', effects: {} },
-  ],
+  eventId: '00000000-0000-4000-8000-000000000101',
+  eventType: 'scene-content.updated',
+  occurredAt: '2026-11-27T12:00:00Z',
+  schemaVersion: 1,
+  payload: {
+    sceneId: 'demo-start', sceneVersion: 1, chapterId: 'demo-chapter',
+    status: 'PUBLISHED', name: 'The Crossroads',
+    description: 'The road splits beneath an ancient oak.', npcIds: [], questIds: [],
+    choices: [
+      { choiceId: 'left', label: 'Take the road to the mill', beat: 'You take the road to the mill.',
+        destinationSceneId: 'demo-mill', weight: 1, grantedItemIds: [] },
+      { choiceId: 'right', label: 'Walk toward the village', beat: 'You walk toward the village.',
+        destinationSceneId: 'demo-village', weight: 1, grantedItemIds: [] },
+    ],
+  },
 };
-const deleteEvent = { sceneId: 'demo-start', version: 2, operation: 'DELETE' };
+const deleteEvent = {
+  eventId: '00000000-0000-4000-8000-000000000102',
+  eventType: 'scene-content.updated',
+  occurredAt: '2026-11-27T12:01:00Z',
+  schemaVersion: 1,
+  payload: { sceneId: 'demo-start', sceneVersion: 2, status: 'RETIRED', chapterId: 'demo-chapter' },
+};
 const contractDefinitions = {
   scene: {
     kind: 'MONGO DOCUMENT', name: 'SceneDocument',
@@ -32,8 +46,8 @@ const contractDefinitions = {
   },
   updated: {
     kind: 'INCOMING EVENT', title: 'SceneChangedEvent',
-    description: 'Full scene update published by StoryContentManager (or this mock) on game.events with routing key scene.changed.',
-    note: 'Supported operations are UPSERT and DELETE. Versions must increase per scene. DELETE keeps a tombstone.',
+    description: 'Full scene update published by StoryContentManager (or this mock) on storycontent.events with routing key scene-content.updated.',
+    note: 'PUBLISHED upserts the scene. RETIRED withdraws it and retains a tombstone. Versions must increase per scene.',
     example: defaultEvent,
   },
   made: {
@@ -41,10 +55,13 @@ const contractDefinitions = {
     description: 'Emitted by SceneManager after local choice validation, routed to both demo StoryPath and Character subscribers.',
     note: 'Includes a scene/choice text snapshot so subsequent content edits do not change the player\'s recorded history.',
     example: {
-      eventId: 'generated-uuid', characterId: 'demo-character', sceneId: 'demo-start', sceneVersion: 1,
-      sceneName: 'The Crossroads', sceneText: 'The road splits beneath an ancient oak.',
-      choiceId: 'left', choiceText: 'Take the road to the mill', nextSceneId: 'demo-mill',
-      effects: { courage: 1 }, occurredAt: '2026-11-12T12:00:00Z',
+      eventId: 'generated-uuid', eventType: 'player-choice.made',
+      occurredAt: '2026-11-12T12:00:00Z', schemaVersion: 1,
+      payload: {
+        characterId: 'demo-character', sceneId: 'demo-start', sceneVersion: 1,
+        choiceId: 'left', choiceLabel: 'Take the road to the mill',
+        beat: 'You take the road to the mill.', destinationSceneId: 'demo-mill',
+      },
     },
   },
 };
@@ -276,7 +293,8 @@ async function publishEvent() {
     let event;
     try { event = JSON.parse(byId('event-json').value); }
     catch { setPublishStatus('Invalid JSON. Correct the event before publishing.', false); return; }
-    if (event.operation === 'DELETE' && !confirm(`Publish a DELETE tombstone for ${event.sceneId}?`)) return;
+    if (event.payload?.status === 'RETIRED'
+        && !confirm(`Publish a RETIRED tombstone for ${event.payload.sceneId}?`)) return;
     try {
       const response = await api('/api/mock/publish', {
         method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(event),
@@ -285,7 +303,7 @@ async function publishEvent() {
         setPublishStatus(response.data.detail || response.data.error || 'Event not published', false);
         return;
       }
-      setPublishStatus(`Published ${response.data.sceneId} v${response.data.version} to scene.changed.`, true);
+      setPublishStatus(`Published ${response.data.sceneId} v${response.data.version} to scene-content.updated.`, true);
       displayToast('Scene changed event routed to the indexer queue');
       await loadQueues();
     } catch (error) { setPublishStatus(error.message, false); }

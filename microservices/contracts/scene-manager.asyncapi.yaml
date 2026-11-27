@@ -1,0 +1,123 @@
+asyncapi: 3.0.0
+
+info:
+  title: SceneManager
+  version: 1.0.0
+  description: |
+    Owns scene navigation and publishes facts about choices made by players.
+    SceneIndexer supplies the read projection. Consumers do not need to fetch the
+    scene again because this event carries the selected choice and destination.
+
+    Conventions (exchange naming, envelope, dead-lettering, schema evolution) are
+    described in ./README.md.
+
+defaultContentType: application/json
+
+servers:
+  local:
+    host: localhost:5672
+    protocol: amqp
+    description: RabbitMQ from docker-compose
+
+channels:
+  playerChoiceMade:
+    address: player-choice.made
+    description: Published after a valid choice is accepted.
+    messages:
+      playerChoiceMade:
+        $ref: '#/components/messages/PlayerChoiceMade'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: scenemanager.events
+          type: topic
+          durable: true
+          autoDelete: false
+
+operations:
+  publishPlayerChoiceMade:
+    action: send
+    channel:
+      $ref: '#/channels/playerChoiceMade'
+    summary: Publish a fact that a player made a choice
+    messages:
+      - $ref: '#/channels/playerChoiceMade/messages/playerChoiceMade'
+
+components:
+  messages:
+    PlayerChoiceMade:
+      name: PlayerChoiceMade
+      title: Player choice made
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/PlayerChoiceMadeEnvelope'
+      examples:
+        - name: playerChoosesTrust
+          payload:
+            eventId: 0f9c2d1e-7a41-4f0c-9d8e-3b2a1c5e6f70
+            eventType: player-choice.made
+            occurredAt: '2026-11-17T13:42:01.284Z'
+            schemaVersion: 1
+            payload:
+              characterId: char-123
+              sceneId: 42
+              sceneVersion: 7
+              choiceId: 118
+              choiceLabel: Trust him
+              beat: You chose to trust the innkeeper.
+              destinationSceneId: 58
+
+  schemas:
+    Envelope:
+      type: object
+      required: [eventId, eventType, occurredAt, schemaVersion, payload]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+        schemaVersion:
+          type: integer
+          minimum: 1
+
+    PlayerChoiceMadeEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            eventType:
+              const: player-choice.made
+            payload:
+              $ref: '#/components/schemas/PlayerChoicePayload'
+
+    PlayerChoicePayload:
+      type: object
+      required:
+        - characterId
+        - sceneId
+        - sceneVersion
+        - choiceId
+        - choiceLabel
+        - beat
+        - destinationSceneId
+      properties:
+        characterId:
+          type: string
+        sceneId:
+          type: integer
+        sceneVersion:
+          type: integer
+          minimum: 1
+        choiceId:
+          type: integer
+        choiceLabel:
+          type: string
+        beat:
+          type: string
+        destinationSceneId:
+          type: integer

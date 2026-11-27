@@ -33,20 +33,20 @@ const defaults = {
   amqpDockerAddress: process.env.AMQP_DOCKER_ADDRESS || 'rabbitmq:5672',
   mongoHostAddress: process.env.MONGO_HOST_ADDRESS || '127.0.0.1:27017',
   mongoDockerAddress: process.env.MONGO_DOCKER_ADDRESS || 'mongo:27017',
-  exchange: process.env.GAME_EXCHANGE || 'game.events',
+  exchange: process.env.SCENE_MANAGER_EXCHANGE || 'storycontent.events',
   updateQueue: process.env.UPDATE_QUEUE || 'scene-indexer.scene-changed',
-  updateRoutingKey: process.env.UPDATE_ROUTING_KEY || 'scene.changed',
-  deadQueue: process.env.DEAD_QUEUE || 'scene-indexer.dead',
-  choiceRoutingKey: process.env.CHOICE_ROUTING_KEY || 'choice.made',
-  choiceStoryPathQueue: process.env.CHOICE_STORYPATH_QUEUE || 'demo.storypath.choice-made',
-  choiceCharacterQueue: process.env.CHOICE_CHARACTER_QUEUE || 'demo.character.choice-made',
+  updateRoutingKey: process.env.UPDATE_ROUTING_KEY || 'scene-content.updated',
+  deadQueue: process.env.DEAD_QUEUE || 'scene-indexer.scene-changed.dlq',
+  choiceRoutingKey: process.env.CHOICE_ROUTING_KEY || 'player-choice.made',
+  choiceStoryPathQueue: process.env.CHOICE_STORYPATH_QUEUE || 'storypathmanager.player-choice',
+  choiceCharacterQueue: process.env.CHOICE_CHARACTER_QUEUE || 'charactermanager.player-choice',
 };
 
 // Queue names are logical RabbitMQ destinations, not separate IP addresses.
 function queueDefinitions(config) {
   return [
     { name: config.updateQueue, role: 'SceneUpdateQueue / SceneIndexer', event: config.updateRoutingKey },
-    { name: config.deadQueue, role: 'Indexer dead-letter queue', event: 'scene.changed.failed' },
+    { name: config.deadQueue, role: 'Indexer dead-letter queue', event: 'scene-indexer.scene-changed.dlq' },
     { name: config.choiceStoryPathQueue, role: 'ChoiceQueue / demo StoryPathManager', event: config.choiceRoutingKey },
     { name: config.choiceCharacterQueue, role: 'ChoiceQueue / demo CharacterManager', event: config.choiceRoutingKey },
   ];
@@ -120,23 +120,36 @@ function publicSettings(config) {
 
 const demoScenes = [
   {
-    sceneId: 'demo-start', version: 1, operation: 'UPSERT', chapterId: 'demo-chapter',
-    status: 'PUBLISHED', name: 'The Crossroads',
-    description: 'The road splits beneath an ancient oak.', npcIds: [], questIds: [],
-    choices: [
-      { id: 'left', text: 'Take the road to the mill', nextSceneId: 'demo-mill', effects: { courage: 1 } },
-      { id: 'right', text: 'Walk toward the village', nextSceneId: 'demo-village', effects: {} },
-    ],
+    eventId: '00000000-0000-4000-8000-000000000101', eventType: 'scene-content.updated',
+    occurredAt: '2026-11-27T12:00:00Z', schemaVersion: 1,
+    payload: {
+      sceneId: 'demo-start', sceneVersion: 1, chapterId: 'demo-chapter', status: 'PUBLISHED',
+      name: 'The Crossroads', description: 'The road splits beneath an ancient oak.', npcIds: [], questIds: [],
+      choices: [
+        { choiceId: 'left', label: 'Take the road to the mill', beat: 'You take the road to the mill.',
+          destinationSceneId: 'demo-mill', weight: 1, grantedItemIds: [] },
+        { choiceId: 'right', label: 'Walk toward the village', beat: 'You walk toward the village.',
+          destinationSceneId: 'demo-village', weight: 1, grantedItemIds: [] },
+      ],
+    },
   },
   {
-    sceneId: 'demo-mill', version: 1, operation: 'UPSERT', chapterId: 'demo-chapter',
-    status: 'PUBLISHED', name: 'Old Mill', description: 'A waterwheel turns slowly.',
-    npcIds: [], questIds: [], choices: [],
+    eventId: '00000000-0000-4000-8000-000000000102', eventType: 'scene-content.updated',
+    occurredAt: '2026-11-27T12:00:01Z', schemaVersion: 1,
+    payload: {
+      sceneId: 'demo-mill', sceneVersion: 1, chapterId: 'demo-chapter',
+      status: 'PUBLISHED', name: 'Old Mill', description: 'A waterwheel turns slowly.',
+      npcIds: [], questIds: [], choices: [],
+    },
   },
   {
-    sceneId: 'demo-village', version: 1, operation: 'UPSERT', chapterId: 'demo-chapter',
-    status: 'PUBLISHED', name: 'Village', description: 'Lights flicker along a cobbled street.',
-    npcIds: [], questIds: [], choices: [],
+    eventId: '00000000-0000-4000-8000-000000000103', eventType: 'scene-content.updated',
+    occurredAt: '2026-11-27T12:00:02Z', schemaVersion: 1,
+    payload: {
+      sceneId: 'demo-village', sceneVersion: 1, chapterId: 'demo-chapter',
+      status: 'PUBLISHED', name: 'Village', description: 'Lights flicker along a cobbled street.',
+      npcIds: [], questIds: [], choices: [],
+    },
   },
 ];
 
@@ -188,24 +201,26 @@ async function readJson(req, maxBytes = 65536) {
 
 function validateSceneEvent(event) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) return 'Event must be a JSON object';
-  if (typeof event.sceneId !== 'string' || !event.sceneId.trim()) return 'sceneId is required';
-  if (!Number.isSafeInteger(event.version) || event.version < 1) return 'version must be a positive integer';
-  if (!['UPSERT', 'DELETE'].includes(event.operation)) return 'operation must be UPSERT or DELETE';
-  if (event.operation === 'UPSERT') {
-    const name = event.name ?? event.title;
-    const description = event.description ?? event.text;
-    if (typeof name !== 'string' || typeof description !== 'string' || !Array.isArray(event.choices)) {
-      return 'UPSERT requires name, description and choices[]';
+  if (event.eventType !== 'scene-content.updated') return 'eventType must be scene-content.updated';
+  if (typeof event.eventId !== 'string' || !event.eventId.trim()) return 'eventId is required';
+  if (!Number.isSafeInteger(event.schemaVersion) || event.schemaVersion < 1) return 'schemaVersion must be a positive integer';
+  const payload = event.payload;
+  if (!payload || typeof payload !== 'object') return 'payload is required';
+  if (typeof payload.sceneId !== 'string' || !payload.sceneId.trim()) return 'payload.sceneId is required';
+  if (!Number.isSafeInteger(payload.sceneVersion) || payload.sceneVersion < 1) return 'payload.sceneVersion must be positive';
+  if (!['PUBLISHED', 'RETIRED'].includes(payload.status)) return 'payload.status must be PUBLISHED or RETIRED';
+  if (payload.status === 'PUBLISHED') {
+    if (typeof payload.name !== 'string' || typeof payload.description !== 'string' || !Array.isArray(payload.choices)) {
+      return 'PUBLISHED scene requires name, description and choices[]';
     }
-    for (const choice of event.choices) {
-      if (!choice || typeof choice.id !== 'string' || !choice.id.trim() || typeof choice.text !== 'string') {
-        return 'Every choice requires id and text';
+    for (const choice of payload.choices) {
+      if (!choice || typeof choice.choiceId !== 'string' || !choice.choiceId.trim()
+          || typeof choice.label !== 'string' || typeof choice.destinationSceneId !== 'string') {
+        return 'Every choice requires choiceId, label and destinationSceneId';
       }
     }
-    if (event.chapterId !== undefined && typeof event.chapterId !== 'string') return 'chapterId must be a string';
-    if (event.status !== undefined && typeof event.status !== 'string') return 'status must be a string';
     for (const key of ['npcIds', 'questIds']) {
-      if (event[key] !== undefined && (!Array.isArray(event[key]) || event[key].some(id => typeof id !== 'string'))) {
+      if (payload[key] !== undefined && (!Array.isArray(payload[key]) || payload[key].some(id => typeof id !== 'string'))) {
         return `${key} must be an array of strings`;
       }
     }
@@ -238,7 +253,7 @@ async function publishScene(event, config, fetcher) {
     error.status = 409;
     throw error;
   }
-  return { sceneId: event.sceneId, version: event.version, routed: true };
+  return { sceneId: event.payload.sceneId, version: event.payload.sceneVersion, routed: true };
 }
 
 /** Create the standalone dashboard server. Does not start it, so tests can use mock upstreams. */

@@ -35,12 +35,12 @@ class SceneControllerTest {
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
         assertEquals("mill", response.getBody().nextSceneId());
         ArgumentCaptor<Message> messages = ArgumentCaptor.forClass(Message.class);
-        verify(rabbit).send(eq("game.events"), eq("choice.made"), messages.capture());
+        verify(rabbit).send(eq("scenemanager.events"), eq("player-choice.made"), messages.capture());
         ChoiceMadeEvent published = json.readValue(messages.getValue().getBody(), ChoiceMadeEvent.class);
-        assertEquals("char-1", published.characterId());
-        assertEquals(3L, published.sceneVersion());
-        assertEquals("Go left", published.choiceText());
-        assertEquals(1, published.effects().get("courage"));
+        assertEquals("char-1", published.payload().characterId());
+        assertEquals(3L, published.payload().sceneVersion());
+        assertEquals("Go left", published.payload().choiceLabel());
+        assertEquals("player-choice.made", published.eventType());
     }
 
     @Test

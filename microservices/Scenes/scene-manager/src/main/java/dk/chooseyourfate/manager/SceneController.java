@@ -74,18 +74,30 @@ public class SceneController {
                         "Choice does not belong to this scene"));
 
         String eventId = UUID.randomUUID().toString();
+        Instant occurredAt = Instant.now();
         ChoiceMadeEvent event = new ChoiceMadeEvent(
-                eventId, request.characterId(), scene.id(), scene.version(),
-                scene.title(), scene.text(), choice.id(), choice.text(),
-                choice.nextSceneId(), choice.effects() == null ? Map.of() : choice.effects(),
-                Instant.now().toString());
+                eventId,
+                "player-choice.made",
+                occurredAt.toString(),
+                1,
+                new ChoiceMadeEvent.PlayerChoicePayload(
+                        request.characterId(),
+                        scene.id(),
+                        scene.version(),
+                        choice.id(),
+                        choice.text(),
+                        choice.text(),
+                        choice.nextSceneId()));
 
         // No MongoDB write here. Downstream consumers update their own databases.
         var message = MessageBuilder.withBody(json.writeValueAsBytes(event))
                 .setContentType(MessageProperties.CONTENT_TYPE_JSON)
                 .setDeliveryMode(MessageDeliveryMode.PERSISTENT)
+                .setMessageId(eventId)
+                .setType("player-choice.made")
+                .setTimestamp(java.util.Date.from(occurredAt))
                 .build();
-        rabbit.send("game.events", "choice.made", message);
+        rabbit.send("scenemanager.events", "player-choice.made", message);
         return ResponseEntity.accepted().body(new ChoiceReceipt(eventId, choice.nextSceneId()));
     }
 

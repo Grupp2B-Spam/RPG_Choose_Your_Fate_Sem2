@@ -2,6 +2,7 @@ package dk.chooseyourfate.indexer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.dao.DuplicateKeyException;
@@ -29,22 +30,22 @@ public class SceneIndexListener {
         SceneChangedEvent event = json.readValue(body, SceneChangedEvent.class);
         validate(event);
 
-        boolean deleted = "DELETE".equals(event.operation());
-        List<Choice> choices = deleted ? List.of() : event.choices();
-        String name = deleted ? null : event.name() != null ? event.name() : event.title();
-        String description = deleted ? null
-                : event.description() != null ? event.description() : event.text();
-        String status = deleted ? "DELETED"
-                : event.status() != null ? event.status() : "PUBLISHED";
+        SceneChangedEvent.ScenePayload payload = event.payload();
+        boolean deleted = "RETIRED".equals(payload.status());
+        List<Choice> choices = deleted ? List.of() : payload.choices().stream()
+                .map(choice -> new Choice(choice.choiceId(), choice.label(),
+                        choice.destinationSceneId(), Map.of()))
+                .toList();
         SceneDocument document = new SceneDocument(
-                event.sceneId(), event.sceneId(), event.version(), event.chapterId(),
-                status, name, description, choices,
-                event.npcIds() == null ? List.of() : event.npcIds(),
-                event.questIds() == null ? List.of() : event.questIds(), deleted);
+                payload.sceneId(), payload.sceneId(), payload.sceneVersion(), payload.chapterId(),
+                payload.status(), deleted ? null : payload.name(),
+                deleted ? null : payload.description(), choices,
+                payload.npcIds() == null ? List.of() : payload.npcIds(),
+                payload.questIds() == null ? List.of() : payload.questIds(), deleted);
 
         // Atomic version predicate: older/repeated messages cannot overwrite a newer scene.
-        Query onlyIfOlder = Query.query(Criteria.where("_id").is(event.sceneId())
-                .and("version").lt(event.version()));
+        Query onlyIfOlder = Query.query(Criteria.where("_id").is(payload.sceneId())
+                .and("version").lt(payload.sceneVersion()));
         Update update = new Update()
                 .set("sceneId", document.sceneId())
                 .set("version", document.version())
@@ -69,22 +70,29 @@ public class SceneIndexListener {
     }
 
     private static void validate(SceneChangedEvent event) {
-        if (event.sceneId() == null || event.sceneId().isBlank() || event.version() < 1) {
-            throw new IllegalArgumentException("sceneId and positive version are required");
+        if (event == null || event.payload() == null) {
+            throw new IllegalArgumentException("scene-content.updated payload is required");
         }
-        if (!"UPSERT".equals(event.operation()) && !"DELETE".equals(event.operation())) {
-            throw new IllegalArgumentException("operation must be UPSERT or DELETE");
+        SceneChangedEvent.ScenePayload payload = event.payload();
+        if (!"scene-content.updated".equals(event.eventType()) || event.schemaVersion() < 1) {
+            throw new IllegalArgumentException("unexpected event type or schema version");
         }
-        if ("UPSERT".equals(event.operation())) {
-            if ((event.name() == null && event.title() == null)
-                    || (event.description() == null && event.text() == null)
-                    || event.choices() == null) {
+        if (payload.sceneId() == null || payload.sceneId().isBlank()
+                || payload.sceneVersion() < 1) {
+            throw new IllegalArgumentException("sceneId and positive sceneVersion are required");
+        }
+        if (!"PUBLISHED".equals(payload.status()) && !"RETIRED".equals(payload.status())) {
+            throw new IllegalArgumentException("status must be PUBLISHED or RETIRED");
+        }
+        if ("PUBLISHED".equals(payload.status())) {
+            if (payload.name() == null || payload.description() == null
+                    || payload.choices() == null) {
                 throw new IllegalArgumentException(
-                        "UPSERT requires name, description, and choices");
+                        "PUBLISHED scene requires name, description, and choices");
             }
-            for (Choice choice : event.choices()) {
-                if (choice == null || choice.id() == null || choice.id().isBlank()
-                        || choice.text() == null) {
+            for (SceneChangedEvent.ContractChoice choice : payload.choices()) {
+                if (choice == null || choice.choiceId() == null
+                        || choice.label() == null || choice.destinationSceneId() == null) {
                     throw new IllegalArgumentException("invalid choice");
                 }
             }

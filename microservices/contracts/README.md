@@ -10,7 +10,8 @@ documentation are the same artifact rather than two things that drift apart.
 | File | Publisher |
 |---|---|
 | `storycontent-manager.asyncapi.yaml` | StoryContentManager |
-| *(to be added)* | SceneManager, RecapManager, AccountManager |
+| `scene-manager.asyncapi.yaml` | SceneManager |
+| *(to be added)* | RecapManager, AccountManager |
 
 ---
 

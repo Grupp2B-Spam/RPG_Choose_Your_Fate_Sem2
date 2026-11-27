@@ -27,8 +27,10 @@ class SceneIndexListenerTest {
                 .thenReturn(UpdateResult.acknowledged(1, 1L, null));
         SceneIndexListener listener = new SceneIndexListener(mongo, JsonMapper.builder().build());
         String event = """
-                {"sceneId":"start","version":2,"operation":"UPSERT",
-                 "title":"Start","text":"A fork","choices":[]}
+                {"eventId":"00000000-0000-4000-8000-000000000001",
+                 "eventType":"scene-content.updated","occurredAt":"2026-11-27T12:00:00Z","schemaVersion":1,
+                 "payload":{"sceneId":"start","sceneVersion":2,"status":"PUBLISHED",
+                 "chapterId":"chapter-1","name":"Start","description":"A fork","choices":[]}}
                 """;
 
         listener.onSceneChanged(new Message(event.getBytes(StandardCharsets.UTF_8), new MessageProperties()));
@@ -52,10 +54,11 @@ class SceneIndexListenerTest {
                 .thenReturn(UpdateResult.acknowledged(0, 0L, null));
         SceneIndexListener listener = new SceneIndexListener(mongo, JsonMapper.builder().build());
         String event = """
-                {"sceneId":"start","version":2,"operation":"UPSERT",
-                 "chapterId":"chapter-1","status":"PUBLISHED",
-                 "name":"Start","description":"A fork","choices":[],
-                 "npcIds":["npc-1"],"questIds":["quest-1"]}
+                {"eventId":"00000000-0000-4000-8000-000000000002",
+                 "eventType":"scene-content.updated","occurredAt":"2026-11-27T12:00:01Z","schemaVersion":1,
+                 "payload":{"sceneId":"start","sceneVersion":2,"status":"PUBLISHED",
+                 "chapterId":"chapter-1","name":"Start","description":"A fork","choices":[],
+                 "npcIds":["npc-1"],"questIds":["quest-1"]}}
                 """;
 
         listener.onSceneChanged(new Message(event.getBytes(StandardCharsets.UTF_8), new MessageProperties()));
