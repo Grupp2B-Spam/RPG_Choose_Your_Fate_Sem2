@@ -1,0 +1,35 @@
+services:
+  backend:
+    profiles: ["prod"]
+    build: .
+    ports:
+      - "8010:8010"
+    environment:
+      MYSQL_URI: jdbc:mysql://character-vault:3306/character-vault
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+    depends_on:
+      character-vault:
+        condition: service_healthy
+        
+  character-vault:
+    image: mysql:9.5.0
+    container_name: character-vault
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+    volumes:
+      - character-vault:/var/lib/mysql
+      - ./character-vault:/docker-entrypoint-initdb.d
+    hostname: character-vault
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  character-vault:
+    driver: local

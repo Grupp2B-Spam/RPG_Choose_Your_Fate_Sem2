@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `defaultdb`.`chapter` (
   INDEX `starting_scene_idx` (`starting_scene_id` ASC) VISIBLE,
   CONSTRAINT `fk_starting_scene_chapter`
     FOREIGN KEY (`starting_scene_id`)
-    REFERENCES `defaultdb`.`scene` (`id`)
+    REFERENCES `defaultdb`.`sceneId` (`id`)
   )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
@@ -86,9 +86,9 @@ DEFAULT CHARACTER SET = utf8mb3;
 
 
 -- -----------------------------------------------------
--- Table `defaultdb`.`scene`
+-- Table `defaultdb`.`sceneId`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `defaultdb`.`scene` (
+CREATE TABLE IF NOT EXISTS `defaultdb`.`sceneId` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `chapter_id` INT NOT NULL,
   `name` VARCHAR(100) NULL DEFAULT NULL,
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS `defaultdb`.`character_avatar` (
     REFERENCES `defaultdb`.`race_details` (`id`),
   CONSTRAINT `fk_scene_character_avatar`
     FOREIGN KEY (`scene_id`)
-    REFERENCES `defaultdb`.`scene` (`id`))
+    REFERENCES `defaultdb`.`sceneId` (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `defaultdb`.`quest` (
   INDEX `scene_id_idx` (`scene_id` ASC) VISIBLE,
   CONSTRAINT `fk_quest_scene`
     FOREIGN KEY (`scene_id`)
-    REFERENCES `defaultdb`.`scene` (`id`))
+    REFERENCES `defaultdb`.`sceneId` (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
@@ -221,10 +221,10 @@ CREATE TABLE IF NOT EXISTS `defaultdb`.`choice` (
   INDEX `fk_choice_destination_scene_idx` (`destination_scene_id` ASC) VISIBLE,
   CONSTRAINT `fk_choice_destination_scene`
     FOREIGN KEY (`destination_scene_id`)
-    REFERENCES `defaultdb`.`scene` (`id`),
+    REFERENCES `defaultdb`.`sceneId` (`id`),
   CONSTRAINT `fk_choice_scene`
     FOREIGN KEY (`scene_id`)
-    REFERENCES `defaultdb`.`scene` (`id`))
+    REFERENCES `defaultdb`.`sceneId` (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
@@ -375,7 +375,7 @@ CREATE TABLE IF NOT EXISTS `defaultdb`.`scene_has_npc` (
     REFERENCES `defaultdb`.`npc` (`id`),
   CONSTRAINT `fk_scene_has_npc_scene`
     FOREIGN KEY (`scene_id`)
-    REFERENCES `defaultdb`.`scene` (`id`))
+    REFERENCES `defaultdb`.`sceneId` (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 

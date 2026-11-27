@@ -12,11 +12,11 @@ Start the database containers in detached mode:
 docker compose up -d
 ```
 
-### running multiple microservices
-To run multiple microservices in docker we are using the -f system, where we run multiple segmented docker compose files from one command.
+### Running multiple microservices
 
-make sure that things that are reused between different microservices are added to the docker compose file in the root!!!
-where as things that are only used by your microservice are added to the microservices docker compose file.
+The root Compose file includes the microservice Compose files on one network. Prepare the [AccountManager JAR and public key](microservices/accountManager/README.md#run-with-docker-compose), then run `docker compose up --build -d` from the repository root. To also start the frontend, StoryContentManager, and RecapManager, prepare their build artifacts and settings and run `docker compose --profile prod up --build -d`.
+
+Define shared services in the root Compose file. Define each microservice and its own dependencies in that microservice's Compose file.
 
 If you need a clean MySQL reseed, recreate the Docker volumes:
 

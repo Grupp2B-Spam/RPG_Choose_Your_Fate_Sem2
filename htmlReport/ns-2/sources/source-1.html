@@ -123,7 +123,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="fc">&nbsp;        this.characterPathChoiceRepository = characterPathChoiceRepository;</b>
 &nbsp;    }
 &nbsp;
-&nbsp;    @Tool(description = &quot;Get basic information about a character: name, race ID, current chapter ID, current scene ID, and story flag.&quot;)
+&nbsp;    @Tool(description = &quot;Get basic information about a character: name, race ID, current chapter ID, current sceneId ID, and story flag.&quot;)
 &nbsp;    public String getCharacterInfo(
 &nbsp;            @ToolParam(description = &quot;The ID of the character to retrieve&quot;) Integer characterId
 &nbsp;    ) {
@@ -140,8 +140,8 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;    }
 &nbsp;
 &nbsp;    @Tool(description = &quot;&quot;&quot;
-&nbsp;        Get the full journey history of a character: every choice they made, which scene they came from,
-&nbsp;        which scene they moved to, and the consequence of each choice. Also returns any existing summary.
+&nbsp;        Get the full journey history of a character: every choice they made, which sceneId they came from,
+&nbsp;        which sceneId they moved to, and the consequence of each choice. Also returns any existing summary.
 &nbsp;        Use this to understand what the character has experienced so far.
 &nbsp;        &quot;&quot;&quot;)
 &nbsp;    public String getCharacterPathHistory(

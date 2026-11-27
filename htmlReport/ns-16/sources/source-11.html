@@ -89,15 +89,15 @@ Current scope:     <a href="../../index.html">all classes</a>
 <pre>
 <code class="sourceCode" id="sourceCode">&nbsp;package dk.ek.gruppe2.chooseyourfate.service;
 &nbsp;
-&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.scene.SceneLookaheadResponseDTO;
-&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.scene.SceneResponseDTO;
+&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.sceneId.SceneLookaheadResponseDTO;
+&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.sceneId.SceneResponseDTO;
 &nbsp;
 &nbsp;import java.util.List;
 &nbsp;
 &nbsp;import org.springframework.stereotype.Service;
 &nbsp;
-&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.scene.CreateSceneRequestDTO;
-&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.scene.UpdateSceneRequestDTO;
+&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.sceneId.CreateSceneRequestDTO;
+&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.sceneId.UpdateSceneRequestDTO;
 &nbsp;import dk.ek.gruppe2.chooseyourfate.exception.ResourceNotFoundException;
 &nbsp;import dk.ek.gruppe2.chooseyourfate.model.mysql.Chapter;
 &nbsp;import dk.ek.gruppe2.chooseyourfate.model.mysql.Scene;
@@ -114,7 +114,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="fc">&nbsp;        this.chapterRepository = chapterRepository;</b>
 &nbsp;    }
 &nbsp;
-&nbsp;    // Returns all SQL scenes with one-scene lookahead choices included.
+&nbsp;    // Returns all SQL scenes with one-sceneId lookahead choices included.
 &nbsp;    public List&lt;SceneResponseDTO&gt; getAllScenes() {
 <b class="fc">&nbsp;        return sceneRepository.findAllWithLookAhead()</b>
 <b class="fc">&nbsp;                .stream()</b>
@@ -122,21 +122,21 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="fc">&nbsp;                .toList();</b>
 &nbsp;    }
 &nbsp;
-&nbsp;    // Returns one SQL scene with the choices and destination scenes already loaded.
+&nbsp;    // Returns one SQL sceneId with the choices and destination scenes already loaded.
 &nbsp;    public SceneResponseDTO getSceneById(Integer id) {
 <b class="fc">&nbsp;        return new SceneResponseDTO(getSceneEntity(id));</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public SceneResponseDTO createScene(CreateSceneRequestDTO request) {
-<b class="fc">&nbsp;        Scene scene = request.toEntity(getChapterById(request.getChapterId()));</b>
-<b class="fc">&nbsp;        return new SceneResponseDTO(sceneRepository.save(scene));</b>
+<b class="fc">&nbsp;        Scene sceneId = request.toEntity(getChapterById(request.getChapterId()));</b>
+<b class="fc">&nbsp;        return new SceneResponseDTO(sceneRepository.save(sceneId));</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public SceneResponseDTO updateScene(Integer id, UpdateSceneRequestDTO request) {
-<b class="fc">&nbsp;        Scene scene = getSceneEntity(id);</b>
-<b class="fc">&nbsp;        scene.setName(request.getName());</b>
-<b class="fc">&nbsp;        scene.setChapter(getChapterById(request.getChapterId()));</b>
-<b class="fc">&nbsp;        return new SceneResponseDTO(sceneRepository.save(scene));</b>
+<b class="fc">&nbsp;        Scene sceneId = getSceneEntity(id);</b>
+<b class="fc">&nbsp;        sceneId.setName(request.getName());</b>
+<b class="fc">&nbsp;        sceneId.setChapter(getChapterById(request.getChapterId()));</b>
+<b class="fc">&nbsp;        return new SceneResponseDTO(sceneRepository.save(sceneId));</b>
 &nbsp;    }
 &nbsp;
 &nbsp;    public void deleteScene(Integer id) {

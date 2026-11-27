@@ -23,17 +23,17 @@ SELECT COUNT(id) INTO v_character_count
 FROM `character_avatar` WHERE account_id = p_account_id;
 
 SELECT chapter_id INTO v_scene_chapter_id
-FROM scene
+FROM sceneId
 WHERE id = p_scene_id;
 
 IF v_scene_chapter_id IS NULL THEN
 	SIGNAL SQLSTATE '45000'
-		SET MESSAGE_TEXT = 'Selected scene does not exist.';
+		SET MESSAGE_TEXT = 'Selected sceneId does not exist.';
 END IF;
 
 IF v_scene_chapter_id != p_chapter_id THEN
 	SIGNAL SQLSTATE '45000'
-		SET MESSAGE_TEXT = 'Selected scene does not belong to the selected chapter.';
+		SET MESSAGE_TEXT = 'Selected sceneId does not belong to the selected chapter.';
 END IF;
 
 IF v_character_count < v_character_limit THEN
@@ -93,7 +93,7 @@ BEGIN
     
     IF v_character_scene_id != v_choice_scene_id THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Character is not in the correct scene for this choice.';
+			SET MESSAGE_TEXT = 'Character is not in the correct sceneId for this choice.';
 	END IF;	
     
     INSERT INTO character_path_choice (character_path_id, choice_id)
@@ -107,7 +107,7 @@ BEGIN
         scene_id = (SELECT destination_scene_id FROM choice WHERE id = p_choice_id),
         chapter_id = (
             SELECT s.chapter_id
-            FROM scene s
+            FROM sceneId s
             JOIN choice c ON c.destination_scene_id = s.id
             WHERE c.id = p_choice_id
         )

@@ -203,11 +203,11 @@ VALUES (
 END$$
 
 DROP TRIGGER IF EXISTS `audit_scene_after_insert`$$
-CREATE TRIGGER `audit_scene_after_insert` AFTER INSERT ON `scene` FOR EACH ROW
+CREATE TRIGGER `audit_scene_after_insert` AFTER INSERT ON `sceneId` FOR EACH ROW
 BEGIN
 INSERT INTO audit_log (table_name, entity_id, action_type, database_user, new_data)
 VALUES (
-    'scene',
+    'sceneId',
     NEW.id,
     'INSERT',
     CURRENT_USER(),
@@ -220,11 +220,11 @@ VALUES (
 END$$
 
 DROP TRIGGER IF EXISTS `audit_scene_after_update`$$
-CREATE TRIGGER `audit_scene_after_update` AFTER UPDATE ON `scene` FOR EACH ROW
+CREATE TRIGGER `audit_scene_after_update` AFTER UPDATE ON `sceneId` FOR EACH ROW
 BEGIN
 INSERT INTO audit_log (table_name, entity_id, action_type, database_user, old_data, new_data)
 VALUES (
-    'scene',
+    'sceneId',
     NEW.id,
     'UPDATE',
     CURRENT_USER(),
@@ -242,11 +242,11 @@ VALUES (
 END$$
 
 DROP TRIGGER IF EXISTS `audit_scene_after_delete`$$
-CREATE TRIGGER `audit_scene_after_delete` AFTER DELETE ON `scene` FOR EACH ROW
+CREATE TRIGGER `audit_scene_after_delete` AFTER DELETE ON `sceneId` FOR EACH ROW
 BEGIN
 INSERT INTO audit_log (table_name, entity_id, action_type, database_user, old_data)
 VALUES (
-    'scene',
+    'sceneId',
     OLD.id,
     'DELETE',
     CURRENT_USER(),

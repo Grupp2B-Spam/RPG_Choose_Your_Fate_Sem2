@@ -32,7 +32,7 @@ export function ShowDialog({ nextscene, changeScene }: Props) {
     <div className="App" onClick={nextLine}>
       <img
         src={nextscene.img}
-        alt="scene"
+        alt="sceneId"
         style={{ width: "100vw", height: "99vh", objectFit: "contain" }}
       />
 

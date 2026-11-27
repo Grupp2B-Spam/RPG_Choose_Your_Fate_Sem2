@@ -113,7 +113,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 &nbsp;    @ManyToOne(optional = false)
 &nbsp;    @JoinColumn(name = &quot;scene_id&quot;, nullable = false)
-&nbsp;    private Scene scene;
+&nbsp;    private Scene sceneId;
 &nbsp;
 &nbsp;    @ManyToOne(optional = false)
 &nbsp;    @JoinColumn(name = &quot;race_detail_id&quot;, nullable = false)
@@ -144,8 +144,8 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="fc">&nbsp;    public Chapter getChapter() { return chapter; }</b>
 <b class="fc">&nbsp;    public void setChapter(Chapter chapter) { this.chapter = chapter; }</b>
 &nbsp;
-<b class="fc">&nbsp;    public Scene getScene() { return scene; }</b>
-<b class="fc">&nbsp;    public void setScene(Scene scene) { this.scene = scene; }</b>
+<b class="fc">&nbsp;    public Scene getScene() { return sceneId; }</b>
+<b class="fc">&nbsp;    public void setScene(Scene sceneId) { this.sceneId = sceneId; }</b>
 &nbsp;
 <b class="fc">&nbsp;    public RaceDetails getRaceDetails() { return raceDetails; }</b>
 <b class="fc">&nbsp;    public void setRaceDetails(RaceDetails raceDetails) { this.raceDetails = raceDetails; }</b>

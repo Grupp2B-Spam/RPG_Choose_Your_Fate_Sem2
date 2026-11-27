@@ -34,7 +34,7 @@ public class AiTools {
         this.characterPathChoiceRepository = characterPathChoiceRepository;
     }
 
-    @Tool(description = "Get basic information about a character: name, race ID, current chapter ID, current scene ID, and story flag.")
+    @Tool(description = "Get basic information about a character: name, race ID, current chapter ID, current sceneId ID, and story flag.")
     public String getCharacterInfo(
             @ToolParam(description = "The ID of the character to retrieve") Integer characterId
     ) {
@@ -51,8 +51,8 @@ public class AiTools {
     }
 
     @Tool(description = """
-        Get the full journey history of a character: every choice they made, which scene they came from,
-        which scene they moved to, and the consequence of each choice. Also returns any existing summary.
+        Get the full journey history of a character: every choice they made, which sceneId they came from,
+        which sceneId they moved to, and the consequence of each choice. Also returns any existing summary.
         Use this to understand what the character has experienced so far.
         """)
     public String getCharacterPathHistory(

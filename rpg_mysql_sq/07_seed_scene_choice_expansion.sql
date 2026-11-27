@@ -44,7 +44,7 @@ FROM tmp_extra_scene_seq;
 -- ---------------------------------------------------------------------------
 -- Add 100 extra scenes distributed across chapters 1-25 (4 extra scenes each).
 -- ---------------------------------------------------------------------------
-INSERT INTO scene (id, chapter_id, name)
+INSERT INTO sceneId (id, chapter_id, name)
 SELECT
     scene_id,
     chapter_id,
@@ -63,14 +63,14 @@ SELECT
 FROM tmp_extra_scenes;
 
 -- ---------------------------------------------------------------------------
--- Add one extra quest per added scene.
+-- Add one extra quest per added sceneId.
 -- ---------------------------------------------------------------------------
 INSERT INTO quest (id, scene_id, description)
 SELECT
     100 + seq,
     scene_id,
     CONCAT(
-        'Resolve the local conflict in scene ',
+        'Resolve the local conflict in sceneId ',
         LPAD(scene_id, 3, '0'),
         ' by gathering leverage, speaking to the right people, and choosing who to support.'
     )
@@ -83,7 +83,7 @@ SELECT
 FROM tmp_extra_scenes;
 
 -- ---------------------------------------------------------------------------
--- Add at least one NPC relation per added scene and a second one for half of them.
+-- Add at least one NPC relation per added sceneId and a second one for half of them.
 -- ---------------------------------------------------------------------------
 INSERT INTO scene_has_npc (scene_id, npc_id)
 SELECT
@@ -99,7 +99,7 @@ FROM tmp_extra_scenes
 WHERE MOD(seq, 2) = 0;
 
 -- ---------------------------------------------------------------------------
--- Add 3 choices per added scene:
+-- Add 3 choices per added sceneId:
 -- 1. Continue deeper into the same chapter flow.
 -- 2. Take on a local quest.
 -- 3. Take a risky shortcut.
@@ -126,7 +126,7 @@ SELECT
     END AS destination_scene_id,
     CONCAT(
         'Push forward from ',
-        'scene ',
+        'sceneId ',
         LPAD(scene_id, 3, '0'),
         ' and stay on the most direct route through the district.'
     ),
@@ -161,7 +161,7 @@ SELECT
         ELSE chapter_id + 1
     END AS destination_scene_id,
     CONCAT(
-        'Speak with the locals in scene ',
+        'Speak with the locals in sceneId ',
         LPAD(scene_id, 3, '0'),
         ' and take responsibility for the trouble unfolding there.'
     ),
@@ -195,7 +195,7 @@ SELECT
         ELSE LEAST(scene_id, 200)
     END AS destination_scene_id,
     CONCAT(
-        'Take a dangerous shortcut out of scene ',
+        'Take a dangerous shortcut out of sceneId ',
         LPAD(scene_id, 3, '0'),
         ' and trade safety for speed.'
     ),

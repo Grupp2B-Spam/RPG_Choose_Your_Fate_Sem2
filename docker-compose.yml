@@ -7,6 +7,7 @@
 include:
   - microservices/storycontent-manager/compose.yaml
   - microservices/recapManager/docker-compose-recap-manager.yml
+  - microservices/accountManager/compose.yaml
 
 services:
   frontend:

@@ -19,10 +19,10 @@
 <div class="breadCrumbs">
 Current scope:     <a href="../../index.html">all classes</a>
     <span class="separator">|</span>
-    <a href="../index.html">dk.ek.gruppe2.chooseyourfate.dto.scene</a>
+    <a href="../index.html">dk.ek.gruppe2.chooseyourfate.dto.sceneId</a>
 </div>
 
-<h1>Coverage Summary for Class: SceneResponseDTO (dk.ek.gruppe2.chooseyourfate.dto.scene)</h1>
+<h1>Coverage Summary for Class: SceneResponseDTO (dk.ek.gruppe2.chooseyourfate.dto.sceneId)</h1>
 
 <table class="coverageStats">
 <tr>
@@ -75,7 +75,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 
 
 <pre>
-<code class="sourceCode" id="sourceCode">&nbsp;package dk.ek.gruppe2.chooseyourfate.dto.scene;
+<code class="sourceCode" id="sourceCode">&nbsp;package dk.ek.gruppe2.chooseyourfate.dto.sceneId;
 &nbsp;
 &nbsp;import dk.ek.gruppe2.chooseyourfate.model.mysql.Scene;
 &nbsp;
@@ -93,17 +93,17 @@ Current scope:     <a href="../../index.html">all classes</a>
 <b class="nc">&nbsp;        this.chapterId = chapterId;</b>
 &nbsp;    }
 &nbsp;
-<b class="fc">&nbsp;    public SceneResponseDTO(Scene scene) {</b>
-<b class="fc">&nbsp;        this.id = scene.getId().toString();</b>
-<b class="fc">&nbsp;        this.name = scene.getName();</b>
-<b class="fc">&nbsp;        this.chapterId = scene.getChapter().getId().toString();</b>
+<b class="fc">&nbsp;    public SceneResponseDTO(Scene sceneId) {</b>
+<b class="fc">&nbsp;        this.id = sceneId.getId().toString();</b>
+<b class="fc">&nbsp;        this.name = sceneId.getName();</b>
+<b class="fc">&nbsp;        this.chapterId = sceneId.getChapter().getId().toString();</b>
 &nbsp;    }
 &nbsp;
-&nbsp;    public SceneResponseDTO toDTO(Scene scene) {
+&nbsp;    public SceneResponseDTO toDTO(Scene sceneId) {
 <b class="nc">&nbsp;        return new SceneResponseDTO(</b>
-<b class="nc">&nbsp;                scene.getId().toString(),</b>
-<b class="nc">&nbsp;                scene.getName(),</b>
-<b class="nc">&nbsp;                scene.getChapter().getId().toString()</b>
+<b class="nc">&nbsp;                sceneId.getId().toString(),</b>
+<b class="nc">&nbsp;                sceneId.getName(),</b>
+<b class="nc">&nbsp;                sceneId.getChapter().getId().toString()</b>
 &nbsp;        );
 &nbsp;    }
 &nbsp;

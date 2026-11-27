@@ -89,7 +89,7 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;
 &nbsp;import java.util.List;
 &nbsp;
-&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.scene.SceneLookaheadResponseDTO;
+&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.sceneId.SceneLookaheadResponseDTO;
 &nbsp;import org.springframework.security.access.prepost.PreAuthorize;
 &nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
 &nbsp;import org.springframework.web.bind.annotation.GetMapping;
@@ -101,15 +101,15 @@ Current scope:     <a href="../../index.html">all classes</a>
 &nbsp;import org.springframework.web.bind.annotation.RequestMapping;
 &nbsp;import org.springframework.web.bind.annotation.RestController;
 &nbsp;
-&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.scene.CreateSceneRequestDTO;
-&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.scene.SceneResponseDTO;
-&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.scene.UpdateSceneRequestDTO;
+&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.sceneId.CreateSceneRequestDTO;
+&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.sceneId.SceneResponseDTO;
+&nbsp;import dk.ek.gruppe2.chooseyourfate.dto.sceneId.UpdateSceneRequestDTO;
 &nbsp;import dk.ek.gruppe2.chooseyourfate.enums.DataSourceType;
 &nbsp;import dk.ek.gruppe2.chooseyourfate.service.SceneService;
 &nbsp;
 &nbsp;
 &nbsp;@RestController
-&nbsp;@RequestMapping(&quot;/choose-your-fate/scene&quot;)
+&nbsp;@RequestMapping(&quot;/choose-your-fate/sceneId&quot;)
 &nbsp;public class SceneController {
 &nbsp;
 &nbsp;    private final SceneService sceneService;
