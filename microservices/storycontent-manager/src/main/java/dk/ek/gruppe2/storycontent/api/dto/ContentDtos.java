@@ -30,11 +30,8 @@ public final class ContentDtos {
     }
 
     /**
-     * Sets a chapter's starting scene.
-     *
-     * <p>Its own endpoint rather than a field on {@link ChapterRequest}, because it is not
-     * an ordinary edit: the starting scene is copied into every race that begins in this
-     * chapter, so changing it republishes those races with new versions.
+     * Sets a chapter's starting scene. Its own endpoint rather than a field on
+     * ChapterRequest, because changing it republishes every race that begins here.
      */
     public record StartingSceneRequest(
             @NotNull(message = "sceneId is required") Integer sceneId) {
@@ -47,10 +44,8 @@ public final class ContentDtos {
             String description,
             @NotNull(message = "type is required") ItemType type,
 
-            // Validated against the type in the service: equipment needs a slot and
-            // nothing else may have one. The database carries the same rule as a check
-            // constraint, because the service will not be the only thing that ever writes
-            // this table.
+            // Equipment needs a slot and nothing else may have one. Validated in the
+            // service, and repeated in the database as a check constraint.
             EquipmentSlot slot,
 
             Map<CharacterStat, Integer> requirements,

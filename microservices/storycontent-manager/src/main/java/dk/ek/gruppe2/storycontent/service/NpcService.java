@@ -19,18 +19,11 @@ import dk.ek.gruppe2.storycontent.repository.SceneRepository;
 /**
  * Authoring operations on NPCs.
  *
- * <p>This is where "publish every change a consumer can see" stops being a slogan. Only
- * NPC ids go out in the scene message, so:
+ * Only NPC ids go out in the scene message, so renaming one publishes nothing, and deleting
+ * one republishes every scene it stood in.
  *
- * <ul>
- *   <li>Renaming an NPC changes nothing on the wire and publishes nothing.</li>
- *   <li>Deleting one removes an entry from every scene that contained it, which every
- *       consumer sees, so each of those scenes is republished with a new version.</li>
- * </ul>
- *
- * <p>Placing an NPC in a scene is the scene's operation, not this one, and lives in
- * {@code SceneService#replaceNpcs} for the same reason choices do: the scene is the
- * aggregate that gets published.
+ * Placing an NPC in a scene is SceneService.replaceNpcs: the scene is the aggregate that
+ * gets published.
  */
 @Service
 public class NpcService {
@@ -86,14 +79,13 @@ public class NpcService {
     public void delete(Integer id) {
         Npc npc = require(id);
 
-        // Collected before anything is removed: once the join rows are gone there is no
-        // way to find out which scenes have to be told.
+        // Collected before anything is removed: once the join rows are gone there is no way
+        // to find which scenes have to be told.
         List<Integer> affectedScenes = npcs.findSceneIdsContaining(id);
 
-        // The scene owns the association, so the join rows have to be removed through the
-        // scenes rather than by deleting the NPC and hoping. The flush is explicit because
-        // the delete below has to reach the database after them, or the foreign key on
-        // scene_npc rejects it.
+        // The scene owns the association, so the join rows go through the scenes. The flush
+        // is explicit because the delete below has to reach the database after them, or the
+        // foreign key on scene_npc rejects it.
         for (Integer sceneId : affectedScenes) {
             Scene scene = scenes.findById(sceneId).orElseThrow();
             scene.getNpcs().removeIf(placed -> placed.getId().equals(id));

@@ -21,20 +21,10 @@ import dk.ek.gruppe2.storycontent.service.SceneService;
 import jakarta.validation.Valid;
 
 /**
- * Authoring endpoints for scenes.
+ * Authoring endpoints for scenes. Send X-API-VERSION: 1.
  *
- * <p>Under {@code /admin} because every route writes content, which the writing team does
- * and players do not. <b>The role check is not wired up, so these routes are open to
- * anyone who can reach the port.</b> That is deliberate rather than forgotten: it waits
- * for AccountManager to exist, so the token handling can be built against tokens someone
- * can actually issue instead of fixtures that only agree with themselves.
- *
- * <p>The API version goes in the {@code X-API-VERSION} header, not the path — send
- * {@code X-API-VERSION: 1}.
- *
- * <p>Choices are a sub-resource of a scene, not a collection of their own. That is about
- * the aggregate rather than the URL: a choice cannot change without changing what the
- * scene publishes, so editing one on its own is not a thing.
+ * No authorization yet: these routes are open to anyone who can reach the port. It waits
+ * for AccountManager.
  */
 @RestController
 @RequestMapping("/admin/scenes")
@@ -67,14 +57,7 @@ public class SceneController {
         return scenes.update(id, request);
     }
 
-    /**
-     * Withdraws a scene from delivery.
-     *
-     * <p>{@code DELETE} in the URL, {@code RETIRED} in the data. Recorded paths point at
-     * scenes a player has already been through, and after the decomposition no foreign key
-     * stops an author from removing one — so the destructive version of this operation is
-     * not offered at all rather than guarded.
-     */
+    /** Retires the scene. Recorded player paths still point at it, so it is never deleted. */
     @DeleteMapping(path = "/{id}", version = "1")
     public SceneResponse retire(@PathVariable Integer id) {
         return scenes.retire(id);

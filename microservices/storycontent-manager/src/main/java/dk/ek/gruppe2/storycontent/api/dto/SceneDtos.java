@@ -12,14 +12,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * The authoring API's view of a scene.
- *
- * <p>Separate from {@code messaging.payload}, which is the wire format of the published
- * event. They overlap today, and keeping them as one type would be less code — but they
- * change for different reasons and are owned by different people. The event shape belongs
- * to the contract and cannot be altered without telling the other teams; this shape
- * belongs to whoever writes the admin UI. Merging them would mean a convenience field
- * added for an author silently becomes part of a published contract.
+ * The authoring API's view of a scene. Kept separate from messaging.payload, which is the
+ * published wire format: that one belongs to the contract and cannot change without
+ * telling the other teams.
  */
 public final class SceneDtos {
 
@@ -46,20 +41,15 @@ public final class SceneDtos {
     }
 
     /**
-     * A choice is written through its scene, never on its own.
-     *
-     * <p>That is not an accident of the URL layout. A choice is part of the scene
-     * aggregate and cannot change without changing the scene's published event, so routing
-     * every edit through the scene is what makes it impossible to change a choice and
-     * forget to bump {@code sceneVersion}.
+     * A choice is written through its scene, never on its own, so an edit cannot miss the
+     * sceneVersion bump.
      */
     public record ChoiceRequest(
             @NotNull(message = "destinationSceneId is required") Integer destinationSceneId,
             @NotBlank(message = "label is required") @Size(max = 255) String label,
 
-            // Mandatory, and the API is the right place to insist. A beat cannot be
-            // filled in later — that would mean knowing what the scene said at the time.
-            // Optional here means null for everything written before someone remembered.
+            // Mandatory. A beat cannot be filled in later: that would mean knowing what
+            // the scene said at the time.
             @NotBlank(message = "beat is required: one sentence describing what happens if "
                     + "this choice is taken. It is copied into the player's history and "
                     + "cannot be added afterwards")

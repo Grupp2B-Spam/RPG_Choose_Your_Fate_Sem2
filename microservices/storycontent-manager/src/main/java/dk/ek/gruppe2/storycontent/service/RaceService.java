@@ -19,12 +19,9 @@ import dk.ek.gruppe2.storycontent.repository.ChapterRepository;
 import dk.ek.gruppe2.storycontent.repository.RaceRepository;
 
 /**
- * Authoring operations on race definitions.
- *
- * <p>Races show most clearly why the boundary sits where it does. Both content and player
- * state refer to a race, but a race itself <em>points into</em> content — its starting
- * chapter is mandatory — so it belongs here, and the reference from the player side
- * becomes a plain integer.
+ * Authoring operations on race definitions. Races live here because a race's starting
+ * chapter is a mandatory reference into content; the reference from the player side is just
+ * an integer.
  */
 @Service
 public class RaceService {
@@ -89,15 +86,11 @@ public class RaceService {
 
     /**
      * Republishes every race that starts in a chapter whose starting scene has changed.
+     * Called from ChapterService, not from the API.
      *
-     * <p>Called from {@code ChapterService}, not from the API. Nothing about the races was
-     * edited — but a race message carries the chapter's starting scene, copied in so a new
-     * character can be placed without a second lookup. Changing the chapter therefore
-     * changes the right answer for every race beginning there, and a consumer caching them
-     * would keep putting new characters in a scene the author moved away from.
-     *
-     * <p>This is the running cost of copying data into a message: obvious while writing
-     * it, invisible six weeks later. Hence this comment and the test that covers it.
+     * Nothing about the races was edited, but a race message carries the chapter's starting
+     * scene, so changing it changes the right answer for every race beginning there. A
+     * consumer caching them would keep placing new characters in the old scene.
      */
     @Transactional
     public void republishRacesStartingIn(Integer chapterId) {

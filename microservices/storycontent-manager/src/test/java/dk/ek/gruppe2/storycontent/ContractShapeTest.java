@@ -28,21 +28,17 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Checks that what this service serialises matches the AsyncAPI document in
- * {@code microservices/contracts/}.
+ * microservices/contracts/.
  *
- * <p>Worth having because of who the contract is for. It is not our documentation — it is
- * the thing other people are writing consumers against, before those consumers can be run
- * against anything real. The usual way that breaks is silent: someone renames a field in a
- * record, the code still compiles, the service still publishes, and the mismatch is found
- * by whoever is debugging a consumer that reads null.
+ * The contract is what other people are writing consumers against. The usual way it breaks
+ * is silent: a field is renamed in a record, the code still compiles, and the mismatch is
+ * found by whoever is debugging a consumer that reads null.
  *
- * <p>The test compares field <em>names</em> both ways, so it fails in either direction —
- * a field added to the code and not the contract, or to the contract and not the code.
- * It uses the {@code ObjectMapper} Spring actually configures rather than one built here,
- * so the inclusion and date settings that the contract depends on are covered too.
+ * Field names are compared both ways, so it fails whether a field is missing from the
+ * contract or from the code. It uses the ObjectMapper Spring configures, not one built
+ * here, so the inclusion and date settings are covered too.
  *
- * <p>It is a unit test on purpose. It needs no broker and no database, so it runs in every
- * build rather than only where Docker is available.
+ * A unit test: it needs no broker and no database, so it runs in every build.
  */
 @JsonTest
 @DisplayName("Published payloads match the AsyncAPI contract")
@@ -118,9 +114,8 @@ class ContractShapeTest {
 
         assertThat(serialised.keySet()).isEqualTo(propertiesOf("Envelope"));
 
-        // The contract says date-time. A consumer parsing an ISO-8601 string would fail on
-        // an epoch number, and this is a setting that could change under us on a Jackson
-        // or Boot upgrade without anyone editing a line of our code.
+        // The contract says date-time, and this is a default that could change under us on a
+        // Jackson or Boot upgrade without anyone editing a line of our code.
         assertThat(serialised.get("occurredAt"))
                 .as("occurredAt must be an ISO-8601 instant, not an epoch number")
                 .isInstanceOf(String.class);

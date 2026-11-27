@@ -14,16 +14,14 @@ public interface RaceRepository extends JpaRepository<Race, Integer> {
     boolean existsByNameIgnoreCase(String name);
 
     /**
-     * The races affected when a chapter's starting scene changes.
-     *
-     * <p>They need republishing even though nothing about the races was edited: the race
-     * message carries the chapter's starting scene, so changing it changes their contents.
+     * The races affected when a chapter's starting scene changes. Their message carries that
+     * scene id, so they need republishing even though nothing about them was edited.
      */
     List<Race> findAllByStartingChapterId(Integer chapterId);
 
     boolean existsByStartingChapterId(Integer chapterId);
 
-    /** See {@code SceneRepository#incrementVersion} for why this is a statement, not a setter. */
+    /** See SceneRepository.incrementVersion for why this is a statement, not a setter. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Race r set r.version = r.version + 1 where r.id = :id")
     int incrementVersion(@Param("id") Integer id);

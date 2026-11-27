@@ -9,7 +9,7 @@ import dk.ek.gruppe2.storycontent.domain.Item;
 
 public interface ItemRepository extends JpaRepository<Item, Integer> {
 
-    /** See {@code SceneRepository#incrementVersion} for why this is a statement, not a setter. */
+    /** See SceneRepository.incrementVersion for why this is a statement, not a setter. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Item i set i.version = i.version + 1 where i.id = :id")
     int incrementVersion(@Param("id") Integer id);

@@ -16,14 +16,9 @@ import jakarta.persistence.Table;
 /**
  * One condition that must hold before a choice is offered.
  *
- * <p>The monolith kept these as JSON on the choice:
- * {@code {"requires": ["festival-access"], "grants": [...]}}, mixed with entries shaped
- * like {@code "item:6"} — two vocabularies in one text field, neither of them checked.
- *
- * <p>A story flag's <em>name</em> is authored here; whether a character holds it is state
- * owned by CharacterManager. Neither side owns a table of flag names, so the string is a
- * vocabulary shared across the boundary. It travels verbatim in the event, which is what
- * lets the state side evaluate the condition without calling back into this service.
+ * A story flag's name is authored here; whether a character holds it is CharacterManager's
+ * state. The name travels verbatim in the event, so the state side can evaluate the
+ * condition without calling back into this service.
  */
 @Entity
 @Table(name = "choice_requirement")
@@ -48,9 +43,8 @@ public class ChoiceRequirement {
     private String flag;
 
     /**
-     * A plain integer, not a {@code @ManyToOne Item}. The database has the foreign key, so
-     * the reference is enforced; mapping it as an association here would pull the whole
-     * item into memory to publish an id, on every scene that has an item requirement.
+     * A plain integer, not a @ManyToOne Item. The database has the foreign key, and mapping
+     * it as an association would load the whole item in order to publish an id.
      */
     @Column(name = "item_id")
     private Integer itemId;

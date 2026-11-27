@@ -49,14 +49,7 @@ public class ChapterController {
         return chapters.update(id, request);
     }
 
-    /**
-     * Sets the scene this chapter begins at.
-     *
-     * <p>Its own endpoint rather than a field on the chapter, because it is not an
-     * ordinary edit: this scene id is copied into every race that starts here, so changing
-     * it republishes those races with new versions. Giving the operation its own name
-     * keeps that from being a surprising side effect of renaming a chapter.
-     */
+    /** Its own endpoint because it republishes every race that starts in this chapter. */
     @PutMapping(path = "/{id}/starting-scene", version = "1")
     public ChapterResponse setStartingScene(
             @PathVariable Integer id,

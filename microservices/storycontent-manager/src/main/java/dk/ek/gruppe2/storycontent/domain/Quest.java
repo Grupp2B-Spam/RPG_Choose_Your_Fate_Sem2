@@ -18,16 +18,10 @@ import jakarta.persistence.Table;
 /**
  * A quest offered in a scene, and the items an author promises for completing it.
  *
- * <p>A quest looks like a split aggregate at first, because {@code character_has_quest} is
- * obviously state. It is not: {@code quest.scene_id} is mandatory, so a quest cannot exist
- * without the scene that offers it. What is state is the <em>tracking</em> of a quest per
- * character, not the quest.
+ * scene_id is mandatory, so a quest cannot exist without the scene that offers it. What is
+ * state is the tracking of a quest per character, which lives in CharacterManager.
  *
- * <p>{@link #rewardItems} is the counterpart of that distinction. It is the reward
- * <em>definition</em> — "completing this yields a Moon Key" — while
- * {@code inventory_has_item} on the other side records what a player actually holds. The
- * two tables have the same shape and sit on opposite sides of the boundary; what tells
- * them apart is who wrote the row.
+ * rewardItems is the reward definition, not what a player holds.
  */
 @Entity
 @Table(name = "quest")

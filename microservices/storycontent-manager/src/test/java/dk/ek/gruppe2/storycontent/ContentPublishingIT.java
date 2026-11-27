@@ -54,21 +54,17 @@ import dk.ek.gruppe2.storycontent.service.SceneService;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * End-to-end: a real MySQL built from this service's own {@code db-init}, a real RabbitMQ,
- * and a test queue bound the way a consumer would bind one.
+ * End-to-end: a real MySQL built from this service's own db-init, a real RabbitMQ, and a
+ * test queue bound the way a consumer would bind one.
  *
- * <p>What is being tested is not "does it publish" — the skeleton established that against
- * a real broker before any of this existed. It is the discipline around
- * {@code sceneVersion}, {@code itemVersion} and {@code raceVersion}, because those are
- * what consumer correctness rests on, and what makes consumers safe to run as several
- * instances. A version that fails to increment does not merely lose an update: it sends
- * a message that looks older than what the consumer already holds, so the consumer
- * discards it and the read model stays wrong with nothing logged anywhere.
+ * What is tested is the discipline around sceneVersion, itemVersion and raceVersion. A
+ * version that fails to increment sends a message that looks older than what the consumer
+ * already holds, so the consumer discards it and the read model stays wrong with nothing
+ * logged anywhere.
  *
- * <p>The test binds its own extra queues to the exchange, so that reading a message here
- * does not take it away from the queue a real consumer would read. Two tests deliberately
- * use the real queues instead, to check that the service created them and bound them to
- * the right routing keys.
+ * The test binds its own queues, so reading a message here does not take it from the queue
+ * a real consumer would read. Two tests use the real queues instead, to check that this
+ * service created them.
  */
 @SpringBootTest
 @Import({StoryContentContainers.class, ContentPublishingIT.TestQueues.class})
@@ -76,9 +72,8 @@ import tools.jackson.databind.ObjectMapper;
 class ContentPublishingIT {
 
     /**
-     * Makes each fixture's race name unique. Race names are unique system-wide, and this
-     * class's writes really commit, so reusing one name would make every test after the
-     * first fail on the second fixture.
+     * Makes each fixture's race name unique. Race names are unique system-wide and these
+     * writes really commit, so reusing one would fail every test after the first.
      */
     private static final AtomicInteger FIXTURE_COUNT = new AtomicInteger();
 
@@ -87,10 +82,8 @@ class ContentPublishingIT {
     private static final String RACE_QUEUE = "it.race-definition";
 
     /**
-     * Queues declared by the consumer, as the conventions require: durable, not
-     * auto-delete, not exclusive. Those three are not a matter of taste — an auto-delete
-     * queue disappears when the last consumer disconnects, which is exactly what an
-     * autoscaler causes on scale-down.
+     * Queues declared the way the conventions require: durable, not auto-delete, not
+     * exclusive.
      */
     @TestConfiguration(proxyBeanMethods = false)
     static class TestQueues {
@@ -149,20 +142,15 @@ class ContentPublishingIT {
     @Test
     @DisplayName("the consumer queues and the dead-letter path exist before any consumer has run")
     void thePublisherDeclaresTheConsumerTopology() {
-        // No consumer has ever started against this broker — these containers were
-        // created seconds ago — so if the queues are here, this service created them.
-        // Without them, a message published now would be routed nowhere and dropped,
-        // with the publish call still reporting success.
-        //
-        // The other tests in this class cannot show this: they declare their own queues,
-        // so they would pass just as happily against the old arrangement.
+        // No consumer has ever started against this broker, so if the queues are here, this
+        // service created them. The other tests cannot show that: they declare their own.
         assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_SCENE_CONTENT)).isNotNull();
         assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_ITEM_RULES)).isNotNull();
         assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_RACE_DEFINITIONS)).isNotNull();
 
-        // Declaring dlx alone would not have been enough: an exchange with nothing bound
-        // to it discards what it receives, so the dead-letter path would still have looked
-        // configured and still lost every message.
+        // Declaring dlx alone is not enough: an exchange with nothing bound to it discards
+        // what it receives, so the dead-letter path would look configured and still lose
+        // every message.
         assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_SCENE_CONTENT + ".dlq")).isNotNull();
         assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_ITEM_RULES + ".dlq")).isNotNull();
         assertThat(rabbitAdmin.getQueueProperties(RabbitConfig.QUEUE_RACE_DEFINITIONS + ".dlq")).isNotNull();
@@ -177,9 +165,8 @@ class ContentPublishingIT {
         SceneResponse scene = scenes.create(new SceneRequest(
                 chapter.id(), "The innkeeper", "A low fire burns.", null));
 
-        // Asserting on the queue SceneManager will actually consume from, rather than on
-        // the one this test declared. A queue that exists but is bound to the wrong
-        // routing key is silent in exactly the same way as no queue at all.
+        // The queue SceneManager will actually consume from, not the one this test declared.
+        // A queue bound to the wrong routing key is as silent as no queue at all.
         Message message = poll(RabbitConfig.QUEUE_SCENE_CONTENT, Duration.ofSeconds(10));
         assertThat(message).as("scenemanager.scene-content should have received the event").isNotNull();
 
@@ -259,10 +246,9 @@ class ContentPublishingIT {
 
         npcs.update(npc.id(), new NpcRequest("Captain Elira the Bold", fixture.raceId));
 
-        // Only npcIds travels in the scene payload, so a rename changes nothing on the
-        // wire. Republishing it would inflate the number consumers compare against for no
-        // information at all. We publish every change a consumer can see — and only
-        // those.
+        // Only npcIds travels in the scene payload, so a rename changes nothing on the wire.
+        // Republishing would inflate the number consumers compare against for no
+        // information.
         assertNothingPublished(SCENE_QUEUE);
     }
 
@@ -292,9 +278,9 @@ class ContentPublishingIT {
                 "Find the hidden moon key before the shrine doors are sealed.",
                 List.of(fixture.itemId)));
 
-        // The response is built before the version is incremented, because incrementing
-        // runs as a bulk update that clears the persistence context. Asserting on it is
-        // what keeps that ordering from being quietly reversed later.
+        // The response is built before the version is incremented, because incrementing runs
+        // as a bulk update that clears the persistence context. Asserting on it keeps that
+        // ordering from being quietly reversed later.
         assertThat(quest.sceneId()).isEqualTo(fixture.sceneId);
         assertThat(quest.rewardItemIds()).containsExactly(fixture.itemId);
 
@@ -314,10 +300,9 @@ class ContentPublishingIT {
         quests.update(quest.id(), new QuestRequest(
                 "The archive", "Return the moon key to Archivist Nyx.", List.of()));
 
-        // Consistent with the rule, and also a gap: CharacterManager needs a quest's
-        // reward items in order to grant them, and no event carries them. Recorded as an
-        // open issue rather than patched here, because adding a channel is a contract
-        // change and therefore a conversation.
+        // Consistent with the rule, and also a gap: CharacterManager needs a quest's reward
+        // items in order to grant them, and no event carries them. Adding one is a contract
+        // change, so it is left open rather than patched here.
         assertNothingPublished(SCENE_QUEUE);
     }
 
@@ -334,8 +319,8 @@ class ContentPublishingIT {
         Map<String, Object> payload = payloadOf(nextMessage(ITEM_QUEUE));
         assertThat(payload.get("status")).isEqualTo("RETIRED");
         assertThat(payload.get("itemVersion")).isEqualTo(2);
-        // A player who owns one must still be able to use it, so the definition is still
-        // there in full.
+        // A player who owns one must still be able to use it, so the definition is still all
+        // there.
         assertThat(payload.get("slot")).isEqualTo("MAINHAND");
         assertThat(payload.get("modifiers")).isEqualTo(Map.of("charisma", 2));
     }
@@ -348,10 +333,8 @@ class ContentPublishingIT {
 
         chapters.setStartingScene(fixture.chapterId, fixture.destinationSceneId);
 
-        // Nothing about the race was edited. The race payload denormalises the chapter's
-        // starting scene so that CharacterManager can place a new character without a
-        // second lookup, so this edit changes the correct answer for every race that
-        // begins here. Missing it would put new characters in a scene the author moved
+        // Nothing about the race was edited, but the race payload carries the chapter's
+        // starting scene. Missing this would put new characters in a scene the author moved
         // away from.
         Map<String, Object> payload = payloadOf(nextMessage(RACE_QUEUE));
         assertThat(payload.get("raceId")).isEqualTo(fixture.raceId);
@@ -368,10 +351,7 @@ class ContentPublishingIT {
         ChoiceRequest malformed = new ChoiceRequest(
                 fixture.destinationSceneId, "Climb the tower", "You climbed the tower.",
                 (short) 1, 0, List.of(),
-                // MODIFY_STAT with no stat. The monolith's equivalent was a bare integer
-                // that meant something different per consequence value, so there was
-                // nothing to check it against — and its own seed data does not follow the
-                // convention itself.
+                // MODIFY_STAT with no stat.
                 List.of(new EffectRequest(EffectKind.MODIFY_STAT, null, null, null, 1, null)));
 
         assertThatThrownBy(() -> scenes.addChoice(fixture.sceneId, malformed))
@@ -391,17 +371,12 @@ class ContentPublishingIT {
      * Content for one test: a chapter with two scenes, one item, and one race starting in
      * that chapter.
      *
-     * <p><b>Every test gets its own, and the database is never reset between them.</b>
-     * That is not laziness — it is forced by what this class tests. Making the test
-     * {@code @Transactional} would roll each one back and give clean isolation, but the
-     * publication happens on an {@code AFTER_COMMIT} listener, so a transaction that is
-     * rolled back never publishes anything and every assertion here would fail. The thing
-     * under test is precisely what happens after the commit.
+     * Every test gets its own and the database is never reset between them. Marking the
+     * test @Transactional would roll each one back, and publication happens on an
+     * AFTER_COMMIT listener, so nothing would ever be published.
      *
-     * <p>So the content accumulates across the class, and the fixture has to tolerate
-     * that. Only one thing in this schema is globally unique — {@code race.name} — so only
-     * the race name is made unique per call. The rest can repeat harmlessly, because every
-     * assertion is scoped to ids this fixture just created.
+     * Content therefore accumulates across the class. Only race.name is globally unique, so
+     * only that is made unique per call.
      */
     private Fixture fixture() {
         int n = FIXTURE_COUNT.incrementAndGet();
@@ -425,8 +400,8 @@ class ContentPublishingIT {
         Message message = poll(queue, Duration.ofSeconds(10));
         assertThat(message).as("expected a message on %s", queue).isNotNull();
         assertThat(message.getMessageProperties().getContentType()).isEqualTo("application/json");
-        // The envelope values are mirrored onto the AMQP properties so that the broker UI
-        // and the management tooling are useful without decoding the body.
+        // The envelope values are mirrored onto the AMQP properties, so the broker UI is
+        // useful without decoding the body.
         assertThat(message.getMessageProperties().getMessageId()).isNotBlank();
         return readMap(message);
     }
@@ -440,9 +415,8 @@ class ContentPublishingIT {
     }
 
     /**
-     * Asserts that nothing is published. Uses a short window deliberately: a long one would
-     * make every such test slow, and a publication that has not happened within a second of
-     * the commit is not going to.
+     * Asserts that nothing is published. A short window on purpose: a publication that has
+     * not happened within a second of the commit is not going to.
      */
     private void assertNothingPublished(String queue) {
         assertThat(poll(queue, Duration.ofSeconds(1)))

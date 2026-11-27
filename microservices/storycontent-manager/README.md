@@ -18,23 +18,16 @@ plays belongs here; anything a player produced belongs elsewhere.
 | `npc`, `scene_npc` | `character_path`, `character_path_choice` |
 | `race` | `account` |
 
-Watch the pairs on the same row — they look alike on purpose. `quest_reward_item` is the
-reward an author *promised*; `inventory_has_item` is what a player actually *holds*. Same
-shape, opposite sides of the boundary. What tells them apart is who wrote the row.
+The pairs on the same row look alike on purpose. `quest_reward_item` is the reward an
+author promised; `inventory_has_item` is what a player holds.
 
-Two cases that are asked about often:
+Two cases that get asked about:
 
 - **Races are here**, not in CharacterManager, because `race.starting_chapter_id` is a
-  mandatory reference into story content. Putting races on the state side would give
-  CharacterManager a foreign key into this database, which is the coupling the
-  decomposition exists to remove. `character_avatar.race_detail_id` becomes a plain
-  integer over there, which is harmless.
-- **Quests are here** even though questing is state, because `quest.scene_id` is mandatory
-  — a quest cannot exist without the scene that offers it. The *tracking* of a quest per
-  character is the state, not the quest.
-
-The full reasoning, and a register of every case that was genuinely ambiguous, is in
-the project's decision log, which is kept outside the repository.
+  mandatory reference into story content. On the state side it would be a foreign key into
+  this database. `character_avatar.race_detail_id` over there is just an integer.
+- **Quests are here** even though questing is state, because `quest.scene_id` is mandatory.
+  The tracking of a quest per character is the state, not the quest.
 
 ## What it publishes
 
@@ -48,15 +41,10 @@ Three events, all on the topic exchange `storycontent.events`. The contract is
 | `item-definition.updated` | what a consumer needs to enforce rules: type, slot, requirements, modifiers | CharacterManager |
 | `race-definition.updated` | a race, its starting chapter **and that chapter's starting scene** | CharacterManager |
 
-**This service declares the consumer queues as well as the exchange** — an interim
-arrangement, and a departure from the rule that a consumer owns its own queue.
-
-The rule used to be that a consumer declares its own queue, which is what keeps publisher
-and consumer independently deployable. It was suspended because an exchange stores
-nothing: until a consumer has started for the first time its queue does not exist, and
-every event published in that window is discarded with the publish call still succeeding.
-With seven services being built in parallel, nobody can rely on deployment ordering to
-close that window.
+**This service declares the consumer queues as well as the exchange.** That is interim, and
+a departure from the rule that a consumer owns its own queue. An exchange stores nothing:
+until a consumer has started for the first time its queue does not exist, and every event
+published in that window is discarded with the publish call still succeeding.
 
 | Event | Queue | Dead-letter queue |
 |---|---|---|
@@ -64,49 +52,42 @@ close that window.
 | `item-definition.updated` | `charactermanager.item-rules` | `charactermanager.item-rules.dlq` |
 | `race-definition.updated` | `charactermanager.race-definitions` | `charactermanager.race-definitions.dlq` |
 
-The `dlx` exchange and the three dead-letter queues are declared here too. The convention
-document had required `x-dead-letter-exchange: dlx` on every consumer queue and nothing
-had ever declared `dlx` — and RabbitMQ does not check that argument at declare time, so
-rejected messages were being dropped by a dead-letter path that looked configured.
+The `dlx` exchange and the three dead-letter queues are declared here too. RabbitMQ does
+not check `x-dead-letter-exchange` at declare time, and an exchange with nothing bound to
+it discards what it receives, so without them rejected messages went down a dead-letter
+path that only looked configured.
 
-**The cost, stated plainly:** this service now knows its consumer list. A fourth consumer
-means a change *here*, made by someone who does not own that consumer. That is what
-we traded away, and it is why this is interim rather than the intended end state.
+The cost: this service now knows its consumer list. A fourth consumer means a change
+*here*, made by someone who does not own that consumer.
 
 Consumers still own prefetch, concurrency, acknowledgement and what they do with a
 dead-lettered message — see `../contracts/README.md`. They do **not** own the queue
 arguments: redeclaring one of these queues differently fails with `PRECONDITION_FAILED`.
 
-### The version field is the thing to understand
+### The version field
 
-Every published aggregate carries a version: `sceneVersion`, `itemVersion`,
-`raceVersion`. It increments on **every change a consumer can observe**, and a consumer
-must discard any message whose version is not newer than what it already holds.
+Every published aggregate carries a version: `sceneVersion`, `itemVersion`, `raceVersion`.
+It increments on **every change a consumer can observe**, and a consumer must discard any
+message whose version is not newer than what it already holds.
 
-Both halves of that sentence are load-bearing:
-
-- A change that is published **without** incrementing produces a message that looks older
-  than what the consumer has, so the consumer throws it away. Nothing is logged anywhere.
+- Publishing **without** incrementing produces a message that looks older than what the
+  consumer has, so the consumer throws it away. Nothing is logged anywhere.
 - A change a consumer **cannot** observe must not increment. Renaming an NPC is the
-  example: only `npcIds` travels in the scene payload, so a rename changes nothing on the
-  wire.
+  example: only `npcIds` travels in the scene payload.
 
-One consequence is easy to forget and has its own test: changing a chapter's starting
-scene republishes **every race that starts in that chapter**, because the race payload
-denormalises that scene id. Nothing about the races was edited; the correct answer for
-them changed anyway.
+One consequence is easy to forget and has its own test: changing a chapter's starting scene
+republishes **every race that starts in that chapter**, because the race payload carries
+that scene id.
 
 ### Events are published after the transaction commits
 
 A service method records *that* something changed; `ContentEventDispatcher` sends it on an
 `AFTER_COMMIT` listener. Publishing inside the transaction would put a message on the
-broker that survives a rollback — and because of the version rule above, a consumer
-holding a version this service never kept would then discard every later event for that
-entity as stale. One rollback would freeze that scene in the read model permanently.
+broker that survives a rollback, and a consumer holding a version this service never kept
+would then discard every later event for that entity as stale.
 
 The remaining gap: if the process dies between the commit and the publish, the change is
-saved and nobody is told. The correct fix is a transactional outbox. It is not
-implemented; it is a known gap rather than an oversight.
+saved and nobody is told. The fix is a transactional outbox, which is not implemented.
 
 ## Running it
 
@@ -138,7 +119,7 @@ localhost, so starting the application class works with no configuration — **a
 the containers are up**.
 
 **Check nothing is already on 8081 before you start it.** Running it twice is a confusing
-failure, and killing someone else's instance is worse:
+failure:
 
 ```powershell
 Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue
@@ -167,9 +148,8 @@ Liveness includes neither — losing a dependency is not a reason to restart.
 of the monolith's schema; its header explains each deliberate difference.
 
 `spring.jpa.hibernate.ddl-auto` is `validate`, never `update`. Hibernate is not allowed to
-alter the schema, because then the running shape and the committed shape could differ and
-the committed one is what everyone else reads. Starting the service is therefore itself a
-check that the entities and the SQL agree.
+alter the schema, so starting the service is itself a check that the entities and the SQL
+agree.
 
 `db-init/02_seed_demo_content.sql` is development seed data. It runs only when the
 container initialises an empty data directory, so it never overwrites authored content.
@@ -180,9 +160,8 @@ The integration tests deliberately do **not** load it.
 Admin only — every route writes content, and content is written by the writing team.
 
 **Send `X-API-VERSION: 1` on every request.** The version is a header, not a path segment,
-matching RecapManager so the whole system is called the same way. A request to a versioned
-endpoint without the header is rejected; unversioned routes — Swagger, the actuator health
-endpoints — do not need it.
+matching RecapManager. A versioned endpoint rejects a request without it; unversioned
+routes — Swagger, the actuator health endpoints — do not need it.
 
 ```powershell
 curl.exe -s "http://localhost:8081/admin/scenes" -H "X-API-VERSION: 1"
@@ -201,23 +180,18 @@ curl.exe -s "http://localhost:8081/admin/scenes" -H "X-API-VERSION: 1"
 
 Two things that look like omissions and are not:
 
-- **`DELETE` usually retires.** Recorded player paths reference scenes and items, and
-  after the decomposition no foreign key stops an author from removing one. The
-  destructive version is not offered rather than guarded.
+- **`DELETE` usually retires.** Recorded player paths reference scenes and items, and no
+  foreign key stops an author removing one now. The destructive version is not offered
+  rather than guarded.
 - **There is no read endpoint for other services.** CharacterManager caches
-  `race-definition.updated` instead of asking for a race per character creation. A
-  convenient lookup here would make the cache optional in practice and the dependency
-  would quietly come back.
+  `race-definition.updated` instead of asking for a race per character creation. A lookup
+  here would make the cache optional and bring the dependency back.
 
 > **Authorization is not wired up — these routes are open to anyone who can reach the
-> port.** Deliberate, not forgotten: it waits for AccountManager to exist, so the token
-> handling can be built and tested against tokens someone can actually issue rather than
-> fixtures that only agree with each other. The interesting failures in this kind of
-> integration — a mismatched issuer, a rotated key, a claim that is an array where the
-> parser expected a string — are exactly the ones a mocked token does not have.
+> port.** It waits for AccountManager, so the token handling can be built against tokens
+> someone can actually issue rather than fixtures.
 >
-> Safe only because nothing is deployed anywhere reachable. **Do not expose this service
-> outside a laptop or a local cluster until it is done.**
+> **Do not expose this service outside a laptop or a local cluster until it is done.**
 >
 > There is a shape to copy when the time comes: RecapManager validates an RS256 token
 > against a public key and expects a single `role` claim of exactly `ROLE_USER` or
@@ -235,12 +209,12 @@ Two things that look like omissions and are not:
 
 | | |
 |---|---|
-| `ContractShapeTest` | parses the published AsyncAPI document and compares it field by field against what this service serialises, in both directions. It fails if a field is added to the code and not the contract, or the other way round |
+| `ContractShapeTest` | compares the published AsyncAPI document field by field against what this service serialises, in both directions |
 | `PayloadAssemblerTest` | the entity-to-payload mapping |
-| `ContentPublishingIT` | real MySQL built from `db-init/01_schema.sql`, real RabbitMQ, a queue bound the way a consumer would bind one. Tests the version discipline, which is what consumer correctness rests on |
+| `ContentPublishingIT` | real MySQL built from `db-init/01_schema.sql`, real RabbitMQ, a queue bound the way a consumer would bind one. Tests the version discipline |
 
 `ContentPublishingIT` builds the database from the committed SQL rather than from the
 entities, so `ddl-auto: validate` makes starting the context a check that the two agree.
 
 **If `verify` fails before any test runs, check Docker Desktop is actually running.**
-Testcontainers cannot tell you that in a useful way.
+Testcontainers does not say so clearly.

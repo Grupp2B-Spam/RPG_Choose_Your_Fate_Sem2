@@ -18,13 +18,7 @@ import dk.ek.gruppe2.storycontent.api.dto.ContentDtos.NpcResponse;
 import dk.ek.gruppe2.storycontent.service.NpcService;
 import jakarta.validation.Valid;
 
-/**
- * Authoring endpoints for NPCs.
- *
- * <p>Placing an NPC in a scene is not here — it is {@code PUT /admin/scenes/{id}/npcs},
- * because the scene is the aggregate that gets published and the placement is part of its
- * payload. An NPC's own name is not published at all, so editing it publishes nothing.
- */
+/** Authoring endpoints for NPCs. Placing one in a scene is PUT /admin/scenes/{id}/npcs. */
 @RestController
 @RequestMapping("/admin/npcs")
 public class NpcController {
@@ -57,10 +51,8 @@ public class NpcController {
     }
 
     /**
-     * Deletes an NPC, and republishes every scene it stood in.
-     *
-     * <p>A real delete, unlike scenes and items: nothing a player holds refers to an NPC,
-     * so there is no recorded history to break.
+     * Deletes an NPC, and republishes every scene it stood in. A real delete, unlike scenes
+     * and items: nothing a player holds refers to an NPC.
      */
     @DeleteMapping(path = "/{id}", version = "1")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {

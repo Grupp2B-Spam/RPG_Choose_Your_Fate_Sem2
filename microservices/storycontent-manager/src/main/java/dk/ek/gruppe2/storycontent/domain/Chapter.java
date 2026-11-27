@@ -10,19 +10,14 @@ import jakarta.persistence.Table;
 /**
  * A chapter groups scenes and names where a race's characters begin.
  *
- * <p>A chapter is not published as an event of its own. It reaches consumers twice over:
- * {@code chapterId} inside the scene payload, and {@code startingChapterId} plus
- * {@code startingSceneId} inside the race payload. The second is why changing
- * {@link #startingSceneId} is not a local edit — see
- * {@code RaceService#republishRacesStartingIn}.
+ * Not published as an event of its own. It reaches consumers as chapterId in the scene
+ * payload and as startingChapterId plus startingSceneId in the race payload. The second is
+ * why changing startingSceneId is not a local edit — see RaceService.
  *
- * <p>{@link #startingSceneId} is a plain integer rather than a {@code @ManyToOne Scene}.
- * Chapter and scene reference each other, and mapping both directions as associations
- * makes it impossible to persist the first chapter: the scene needs a chapter and the
- * chapter wants the scene. The monolith solved it by making the column nullable, and the
- * database here has no foreign key on it for the same reason. Keeping it as an integer in
- * the entity makes that honest rather than hiding a half-mapped association, and the
- * service validates the reference where it can produce a readable error.
+ * startingSceneId is a plain integer, not a @ManyToOne Scene. Chapter and scene reference
+ * each other, and mapping both directions makes the first chapter impossible to persist.
+ * The database has no foreign key on the column for the same reason, so the service
+ * validates the reference instead.
  */
 @Entity
 @Table(name = "chapter")

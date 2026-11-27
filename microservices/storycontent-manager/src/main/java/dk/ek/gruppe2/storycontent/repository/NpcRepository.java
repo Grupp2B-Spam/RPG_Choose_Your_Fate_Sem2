@@ -13,11 +13,8 @@ public interface NpcRepository extends JpaRepository<Npc, Integer> {
     boolean existsByRaceId(Integer raceId);
 
     /**
-     * The scenes an NPC stands in.
-     *
-     * <p>Needed when an NPC is deleted: every scene it was placed in loses an entry from
-     * its {@code npcIds}, which is a change a consumer can observe, so each of those
-     * scenes has to be republished with a new version.
+     * The scenes an NPC stands in. Needed on delete: each one loses an npcIds entry, which a
+     * consumer can see, so each has to be republished.
      */
     @Query("select s.id from Scene s join s.npcs n where n.id = :npcId")
     List<Integer> findSceneIdsContaining(@Param("npcId") Integer npcId);

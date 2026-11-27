@@ -19,11 +19,8 @@ import dk.ek.gruppe2.storycontent.service.QuestService;
 import jakarta.validation.Valid;
 
 /**
- * Authoring endpoints for quests.
- *
- * <p>A quest is created under the scene that offers it, because {@code scene_id} is
- * mandatory — a quest cannot exist without one. Reading and editing it afterwards is by
- * its own id, since the scene adds nothing to those operations.
+ * Authoring endpoints for quests. A quest is created under the scene that offers it,
+ * because scene_id is mandatory. It is read and edited afterwards by its own id.
  */
 @RestController
 @RequestMapping("/admin")

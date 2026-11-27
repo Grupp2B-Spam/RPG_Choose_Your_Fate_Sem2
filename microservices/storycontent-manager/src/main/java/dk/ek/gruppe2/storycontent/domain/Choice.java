@@ -17,19 +17,12 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 /**
- * One option a player can take in a scene.
+ * One option a player can take in a scene. Part of the scene aggregate: never published on
+ * its own.
  *
- * <p>Part of the scene aggregate: never published on its own, always inside its scene.
- *
- * <p>{@link #beat} is one authored sentence saying what happens if this choice is taken.
- * It is copied into the player's history when the choice is made, so that history records
- * a fact rather than a pointer to content an author can later rewrite or delete.
- * Mandatory, here and in the database, because it cannot be filled in afterwards: that
- * would mean knowing what the scene said at the time, and nobody does.
- *
- * <p>It is also what makes the service split safe. A player's history keeps a choice id
- * with nothing enforcing it any more, and that is only affordable because reading the
- * history no longer requires looking the choice up.
+ * beat is one authored sentence saying what happens if this choice is taken. It is copied
+ * into the player's history, so the history records a fact rather than a pointer to content
+ * an author can later rewrite. Mandatory, because it cannot be filled in afterwards.
  */
 @Entity
 @Table(name = "choice")
@@ -47,21 +40,18 @@ public class Choice {
     @JoinColumn(name = "destination_scene_id", nullable = false)
     private Scene destinationScene;
 
-    /** What the player reads on the choice. The monolith called this {@code description}. */
+    /** What the player reads on the choice. */
     @Column(nullable = false, length = 255)
     private String label;
 
     @Column(nullable = false, length = 500)
     private String beat;
 
-    /** Authoring weight, used when summarising a path. {@code story_weight} before. */
+    /** Authoring weight, used when summarising a path. */
     @Column(nullable = false)
     private short weight = 1;
 
-    /**
-     * Presentation order within the scene. The monolith had none and sorted by primary
-     * key, which means inserting a choice between two others was not expressible.
-     */
+    /** Presentation order within the scene. */
     @Column(nullable = false)
     private int ordinal = 0;
 

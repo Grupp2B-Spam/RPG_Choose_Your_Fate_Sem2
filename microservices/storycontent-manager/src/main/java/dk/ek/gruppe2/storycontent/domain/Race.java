@@ -16,15 +16,10 @@ import jakarta.persistence.Table;
 /**
  * A playable race, and the chapter its characters start in.
  *
- * <p>Called {@code race_details} in the monolith. Three services could have claimed it,
- * and it lives here because {@link #startingChapter} is a mandatory reference into story
- * content: owning races anywhere else would mean owning a foreign key into this database,
- * which is exactly the coupling we split the system up to remove. The reverse reference —
- * a character pointing at its race — is just an integer on the other side, which costs
- * nothing.
+ * It lives here because startingChapter is a mandatory reference into story content. Owning
+ * races on the state side would mean a foreign key into this database.
  *
- * <p>Published as {@code race-definition.updated}, which CharacterManager caches instead
- * of asking us per character creation.
+ * Published as race-definition.updated, which CharacterManager caches.
  */
 @Entity
 @Table(name = "race")
@@ -46,12 +41,9 @@ public class Race {
     private DefinitionStatus status = DefinitionStatus.ACTIVE;
 
     /**
-     * Bumped when the race changes, and also when its chapter's starting scene changes —
-     * because the published message carries that scene id, so editing the chapter changes
-     * the right answer for every race starting there.
-     *
-     * <p>Easy to forget, and forgetting it puts new characters in a scene the author moved
-     * away from.
+     * Bumped when the race changes, and also when its chapter's starting scene changes: the
+     * published message carries that scene id. Forgetting it puts new characters in a scene
+     * the author moved away from.
      */
     @Column(nullable = false)
     private int version = 1;

@@ -1,14 +1,11 @@
 package dk.ek.gruppe2.storycontent.messaging.payload;
 
 /**
- * One effect of taking a choice, as published.
+ * One effect of taking a choice, as published. Only the fields belonging to kind are set;
+ * the rest are omitted from the JSON.
  *
- * <p>As with {@link RequirementPayload}, only the fields belonging to {@code kind} are
- * set; the rest are omitted from the JSON.
- *
- * @param amount a delta, which may be negative. Deltas can be applied in any order and
- *               give the same result, which is what lets CharacterManager run several
- *               consumer instances at once
+ * @param amount a delta, which may be negative. Deltas can be applied in any order, which
+ *               is what lets CharacterManager run several consumer instances
  */
 public record EffectPayload(
         String kind,

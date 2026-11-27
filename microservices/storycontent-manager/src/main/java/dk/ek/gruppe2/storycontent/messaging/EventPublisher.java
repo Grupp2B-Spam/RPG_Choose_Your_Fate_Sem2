@@ -14,12 +14,10 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Publishes events onto this service's own exchange.
- *
- * <p>The body is serialised here rather than left to a message converter, so that the
- * AMQP properties and the JSON body are set in one place and match the contract exactly.
- * The same values appear both in the envelope and as AMQP properties, which makes the
- * broker UI readable without decoding the body.
+ * Publishes events onto this service's own exchange. The body is serialised here rather
+ * than left to a message converter, so the AMQP properties and the JSON body are set in one
+ * place. They carry the same values, which makes the broker UI readable without decoding
+ * the body.
  */
 @Component
 public class EventPublisher {

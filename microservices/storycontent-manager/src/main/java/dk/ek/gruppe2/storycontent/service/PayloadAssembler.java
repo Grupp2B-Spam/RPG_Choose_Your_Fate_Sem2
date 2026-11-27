@@ -26,12 +26,9 @@ import dk.ek.gruppe2.storycontent.messaging.payload.RequirementPayload;
 import dk.ek.gruppe2.storycontent.messaging.payload.ScenePayload;
 
 /**
- * Turns entities into the exact shapes the published contract describes.
- *
- * <p>Kept separate from both the entities and the services so that there is one place
- * where the wire format is produced. The contract is a document other teams build
- * against; scattering the mapping across whichever service happens to publish would mean
- * the shape is defined in several places and can drift between them.
+ * Turns entities into the exact shapes the published contract describes. Kept separate from
+ * the entities and the services so there is one place where the wire format is produced and
+ * it cannot drift.
  */
 @Component
 public class PayloadAssembler {
@@ -86,9 +83,8 @@ public class PayloadAssembler {
                     effect.getAmount(),
                     effect.getFlag()));
 
-            // grantedItemIds is the pre-1.1.0 spelling of the GRANT_ITEM effects. Derived
-            // here rather than stored, so the two cannot disagree: a consumer reading the
-            // old field and one reading the new one see the same thing by construction.
+            // grantedItemIds is the older spelling of the GRANT_ITEM effects. Derived here
+            // rather than stored, so the two cannot disagree.
             if (effect.getKind() == EffectKind.GRANT_ITEM) {
                 grantedItemIds.add(effect.getItemId());
             }
@@ -123,9 +119,8 @@ public class PayloadAssembler {
                 race.getStatus().name(),
                 race.getName(),
                 race.getStartingChapter().getId(),
-                // May legitimately be null while a chapter has no scenes yet. That is an
-                // unfinished-content state, and the contract says so rather than this
-                // service inventing a value a consumer would then act on.
+                // May legitimately be null while a chapter has no scenes yet. The contract
+                // allows that rather than this service inventing a value.
                 race.getStartingChapter().getStartingSceneId());
     }
 
@@ -137,18 +132,9 @@ public class PayloadAssembler {
 
     /**
      * Statistic names go on the wire in lower case, unlike every other enumeration in the
-     * contract.
-     *
-     * <p>Not an inconsistency we introduced and not one worth fixing. Version 1.0.0 of the
-     * contract already published statistic names in lower case, as the keys of an item's
-     * requirements and modifiers. When the same vocabulary was needed for a choice's
-     * {@code MODIFY_STAT} effect, there were two options: spell the new field like the
-     * other enumerations and have the document name statistics two ways, or spell it like
-     * the statistics already published and have one enumeration differ from the rest.
-     *
-     * <p>The second is the smaller inconsistency and, more to the point, the only one of
-     * the two that is free: normalising the older field would break every consumer already
-     * parsing it, for a cosmetic gain.
+     * contract. Version 1.0.0 already published them that way as the keys of an item's
+     * requirements and modifiers, and respelling those would break every consumer parsing
+     * them.
      */
     private String statName(CharacterStat stat) {
         return stat == null ? null : stat.name().toLowerCase(Locale.ROOT);

@@ -24,13 +24,9 @@ import dk.ek.gruppe2.storycontent.service.SceneService;
 /**
  * The HTTP layer: how a request is versioned, and what happens when it is not.
  *
- * <p>A slice test rather than a full one, so it runs without Docker — which matters,
- * because the integration tests call the service classes directly and never touch a
- * controller. Nothing else covers routing, the version header or request validation.
- *
- * <p>The version moved out of the path and into a header, and the thing most likely to go
- * wrong with that is silent: an endpoint that forgets to declare a version still answers,
- * and answers requests that never said which version they wanted.
+ * A slice test, so it runs without Docker. The integration tests call the service classes
+ * directly and never touch a controller, so nothing else covers routing, the version header
+ * or request validation.
  */
 @WebMvcTest(SceneController.class)
 @DisplayName("The API is versioned by header, not by path")
@@ -55,8 +51,8 @@ class ApiVersioningTest {
     @DisplayName("the same request without the header is refused")
     void anUnversionedRequestIsRefused() throws Exception {
         // The endpoint declares a version, so the header is mandatory. Without the
-        // interceptor this would quietly succeed: versionRequired is off globally so that
-        // Swagger and the Kubernetes probes work without a header.
+        // interceptor this would quietly succeed: versionRequired is off globally so Swagger
+        // and the Kubernetes probes work without a header.
         mvc.perform(get("/admin/scenes"))
                 .andExpect(status().is4xxClientError());
     }

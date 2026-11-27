@@ -1,12 +1,10 @@
 # StoryContentManager and the database it owns.
 #
-# Included from the root docker-compose.yml, so all services end up in one project on
-# one network. That means service names here share a namespace with every other
-# included file — hence the fully qualified names rather than "backend" and "db".
+# Included from the root docker-compose.yml, so service names here share a namespace with
+# every other included file — hence the full names rather than "backend" and "db".
 #
-# Relative paths (build context, bind mounts) resolve against THIS file's directory,
-# not the root, so the service stays runnable on its own:
-#     docker compose up -d        (from this directory)
+# Relative paths resolve against THIS file's directory, so "docker compose up -d" from here
+# still works.
 
 services:
   storycontent-manager:

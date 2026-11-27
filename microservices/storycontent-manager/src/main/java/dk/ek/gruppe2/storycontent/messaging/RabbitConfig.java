@@ -19,26 +19,23 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * The broker topology this service creates: its exchange, the consumer queues bound to
- * it, and the dead-letter path.
+ * The broker topology this service creates: its exchange, the consumer queues bound to it,
+ * and the dead-letter path.
  *
- * <p><b>Declaring the consumers' queues is temporary.</b> Normally a consumer declares its
- * own queue, so that adding one needs no change here. We do it instead because an exchange
- * stores nothing: it routes to the queues bound right now and drops the message if there
- * are none — and the publish call still succeeds. A consumer that has never started yet
- * has no queue, so everything published before its first run is lost silently. Seven
- * services are being built in parallel, so nobody can guarantee who starts first.
+ * Declaring the consumers' queues is temporary. Normally a consumer declares its own. We do
+ * it because an exchange stores nothing: it routes to the queues bound right now and drops
+ * the message if there are none, and the publish still succeeds. A consumer that has never
+ * started has no queue, so everything published before its first run is lost silently.
  *
- * <p>The cost is that this service has to know its consumers. A fourth consumer means
- * editing this file, which is the coupling we split the system up to avoid. The way out,
- * once there is a cluster, is to create the topology at deploy time instead.
+ * The cost is that this service has to know its consumers: a fourth one means editing this
+ * file.
  */
 @Configuration
 public class RabbitConfig {
 
     private static final Logger log = LoggerFactory.getLogger(RabbitConfig.class);
 
-    /** One topic exchange per publishing service, named {@code <service>.events}. */
+    /** One topic exchange per publishing service, named "service.events". */
     public static final String EXCHANGE = "storycontent.events";
 
     public static final String ROUTING_SCENE_CONTENT_UPDATED = "scene-content.updated";
@@ -46,10 +43,8 @@ public class RabbitConfig {
     public static final String ROUTING_RACE_DEFINITION_UPDATED = "race-definition.updated";
 
     /**
-     * Consumer queues, named {@code <consumer-service>.<purpose>}.
-     *
-     * <p>Renaming one breaks someone else's service, because they bind to the queue we
-     * created. The AsyncAPI contract lists them for that reason.
+     * Consumer queues, named "consumer-service.purpose". Renaming one breaks someone else's
+     * service, because they bind to the queue we created.
      */
     public static final String QUEUE_SCENE_CONTENT = "scenemanager.scene-content";
     public static final String QUEUE_ITEM_RULES = "charactermanager.item-rules";
@@ -65,12 +60,7 @@ public class RabbitConfig {
                 .build();
     }
 
-    /**
-     * The dead-letter exchange.
-     *
-     * <p>Direct, because each queue dead-letters to its own exact routing key
-     * {@code <queue-name>.dlq}.
-     */
+    /** Direct, because each queue dead-letters to its own routing key, the queue name + ".dlq". */
     @Bean
     public DirectExchange deadLetterExchange() {
         return ExchangeBuilder.directExchange(DEAD_LETTER_EXCHANGE)
@@ -81,14 +71,10 @@ public class RabbitConfig {
     /**
      * The three consumer queues with their bindings, and a dead-letter queue for each.
      *
-     * <p>Grouped in one bean so the whole topology reads in one place, and so adding a
-     * consumer is one entry rather than three beans someone can half-write.
-     *
-     * <p>The dead-letter <em>queues</em> matter as much as the exchange. RabbitMQ does not
-     * check {@code x-dead-letter-exchange} when a queue is declared, and an exchange with
-     * nothing bound to it throws away what it receives — so without these, a rejected
-     * message would vanish down a path that looks configured. Nothing consumes them; they
-     * exist so a failed message is somewhere a human can find it.
+     * The dead-letter queues matter as much as the exchange. RabbitMQ does not check
+     * x-dead-letter-exchange when a queue is declared, and an exchange with nothing bound to
+     * it throws away what it receives — so without these, a rejected message vanishes down a
+     * path that looks configured. Nothing consumes them.
      */
     @Bean
     public Declarables consumerTopology(
@@ -121,15 +107,12 @@ public class RabbitConfig {
     }
 
     /**
-     * Durable, and deliberately neither auto-delete nor exclusive.
+     * Durable, and deliberately neither auto-delete nor exclusive. Auto-delete would drop
+     * the queue when the last consumer disconnects, which is what an autoscaler causes on
+     * scale-down. Exclusive would stop the consumer being scaled at all.
      *
-     * <p>Auto-delete would drop the queue when the last consumer disconnects — which is
-     * what an autoscaler causes on scale-down, reopening the very gap these queues close.
-     * Exclusive would stop a second instance consuming at all, so the consumer could never
-     * be scaled. {@code QueueBuilder.durable} gives durable and excludes both.
-     *
-     * <p>Arguments are part of a queue's identity: a consumer that redeclares one of these
-     * with different arguments gets {@code PRECONDITION_FAILED} and will not start.
+     * Arguments are part of a queue's identity: a consumer that redeclares one of these with
+     * different arguments gets PRECONDITION_FAILED and will not start.
      */
     private Queue consumerQueue(String name) {
         return QueueBuilder.durable(name)
@@ -154,15 +137,11 @@ public class RabbitConfig {
     }
 
     /**
-     * Publishes with {@code mandatory} set, so the broker hands back a message it could
-     * not route instead of dropping it.
+     * Publishes with mandatory set, so the broker hands back a message it could not route
+     * instead of dropping it. Catches a deleted binding or a routing-key typo, which
+     * otherwise look exactly like a working system.
      *
-     * <p>Catches a deleted binding, a routing-key typo, or a queue renamed here without
-     * its binding. The publish call succeeds in all of those, so without this they look
-     * exactly like a working system.
-     *
-     * <p>The callback is asynchronous — {@code publish()} has already returned — and it
-     * reports a routing failure, not a delivery failure.
+     * The callback is asynchronous and reports a routing failure, not a delivery failure.
      */
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {

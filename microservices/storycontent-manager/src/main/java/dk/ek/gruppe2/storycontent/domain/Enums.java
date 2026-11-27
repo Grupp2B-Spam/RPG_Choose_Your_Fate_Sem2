@@ -2,12 +2,11 @@ package dk.ek.gruppe2.storycontent.domain;
 
 /**
  * The enumerated vocabularies of this bounded context, kept in one file because they are
- * read together and each is a handful of constants.
+ * read together.
  *
- * <p>Every one of them appears in the published AsyncAPI contract, so the constant names
- * are the wire format and cannot be renamed without a breaking change. They are stored as
- * strings rather than ordinals for the same reason: an ordinal makes reordering the enum a
- * silent data corruption.
+ * Every one appears in the published contract, so the constant names are the wire format
+ * and cannot be renamed without a breaking change. Stored as strings rather than ordinals
+ * for the same reason: an ordinal makes reordering an enum a silent data corruption.
  */
 public final class Enums {
 
@@ -15,10 +14,8 @@ public final class Enums {
     }
 
     /**
-     * Whether a scene is delivered to players.
-     *
-     * <p>{@code RETIRED} is deliberately not a deletion. Recorded paths reference scenes
-     * the player has already been through, and those references must keep resolving.
+     * Whether a scene is delivered to players. RETIRED is not a deletion: recorded paths
+     * reference scenes the player has already been through.
      */
     public enum SceneStatus {
         PUBLISHED,
@@ -26,29 +23,22 @@ public final class Enums {
     }
 
     /**
-     * Whether an item or race definition is still offered.
-     *
-     * <p>Same reasoning as {@link SceneStatus}: a player who holds a retired item must
-     * still be able to see it, and a character of a retired race must still be playable.
+     * Whether an item or race definition is still offered. Not a deletion: a player who
+     * holds a retired item must still be able to see it.
      */
     public enum DefinitionStatus {
         ACTIVE,
         RETIRED
     }
 
-    /**
-     * What an item is.
-     *
-     * <p>The monolith's enum mixed this with where the item is worn
-     * ({@code ARMOR_HEAD}, {@code WEAPON}). The contract separates the two, so this does.
-     */
+    /** What an item is. Kept separate from where it is worn. */
     public enum ItemType {
         EQUIPMENT,
         CONSUMABLE,
         QUEST
     }
 
-    /** Where an equipment item is worn. Set only when the type is {@code EQUIPMENT}. */
+    /** Where an equipment item is worn. Set only when the type is EQUIPMENT. */
     public enum EquipmentSlot {
         HEAD,
         CHEST,
@@ -57,11 +47,8 @@ public final class Enums {
     }
 
     /**
-     * The statistics a character has.
-     *
-     * <p>Enumerated because the set is small and fixed, and because the monolith's
-     * untyped effects name {@code lose_hp} — a statistic that exists nowhere in its
-     * schema. Nothing caught that; this enum is what catches it.
+     * The statistics a character has. Enumerated so an authored effect cannot name one that
+     * does not exist.
      */
     public enum CharacterStat {
         INTELLIGENCE,
@@ -78,12 +65,8 @@ public final class Enums {
     }
 
     /**
-     * What taking a choice does.
-     *
-     * <p>There is no {@code TRAVEL}: moving to the next scene is
-     * {@code choice.destinationSceneId}, which every choice already carries. The monolith
-     * stored that fact in both places, and its seed data contains rows where the two
-     * disagree.
+     * What taking a choice does. There is no TRAVEL: moving to the next scene is
+     * choice.destinationSceneId, which every choice already carries.
      */
     public enum EffectKind {
         GRANT_ITEM,

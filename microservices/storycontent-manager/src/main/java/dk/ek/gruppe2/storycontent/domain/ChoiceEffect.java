@@ -17,19 +17,12 @@ import jakarta.persistence.Table;
 /**
  * One thing that happens when a choice is taken.
  *
- * <p>Replaces the monolith's {@code consequence} / {@code target_id} / {@code value_int}
- * triple. Inside one process that was merely sloppy: whoever wrote the integer also read
- * it. Across a service boundary it is unusable — a consumer receiving {@code 5} cannot
- * tell a quest id from an item id from an amount. The monolith's own data does not follow
- * its own convention either.
+ * Typed rather than an untyped target id, so a malformed effect can be rejected before it
+ * is published. A consumer receiving a bare 5 cannot tell a quest id from an item id from
+ * an amount.
  *
- * <p>Typing it lets us reject a malformed effect before it is published, which matters
- * because our rule is that a consumer reacts to a message and never refuses it as
- * invalid. That rule is only honest if the publisher could actually check.
- *
- * <p>Built through the factory methods, never field by field, so an effect with the wrong
- * fields for its kind cannot be constructed. The database repeats the rule as a check
- * constraint, since this class will not always be the only writer.
+ * Built through the factory methods, so an effect with the wrong fields for its kind cannot
+ * be constructed. The database repeats the rule as a check constraint.
  */
 @Entity
 @Table(name = "choice_effect")
@@ -61,8 +54,8 @@ public class ChoiceEffect {
     private CharacterStat stat;
 
     /**
-     * A delta, which may be negative. Deltas can be applied in any order and give the same
-     * result, which is what lets the consumer run as several competing instances.
+     * A delta, which may be negative. Deltas can be applied in any order, which is what lets
+     * the consumer run as several instances.
      */
     @Column
     private Integer amount;

@@ -25,12 +25,8 @@ import dk.ek.gruppe2.storycontent.messaging.payload.ScenePayload;
 import dk.ek.gruppe2.storycontent.service.PayloadAssembler;
 
 /**
- * Unit tests for the mapping from entities to published payloads.
- *
- * <p>Ids are set by reflection because they are database-generated and this test
- * deliberately has no database: what is being checked is the mapping, and bringing up a
- * container to obtain three integers would make a fast test slow and a reliable one
- * dependent on Docker.
+ * Unit tests for the mapping from entities to published payloads. Ids are set by reflection
+ * because they are database-generated and this test has no database.
  */
 @DisplayName("Entities map to the published payload shapes")
 class PayloadAssemblerTest {
@@ -118,9 +114,8 @@ class PayloadAssemblerTest {
         scene.getNpcs().add(withId(new Npc("Merchant Vonn", race), 12));
         scene.getNpcs().add(withId(new Npc("Captain Elira", race), 4));
 
-        // Not cosmetic. A consumer applying last-write-wins compares payloads; an order
-        // that varies between publications of unchanged content makes every republication
-        // look like a change.
+        // An order that varies between publications of unchanged content makes every
+        // republication look like a change to a consumer comparing payloads.
         assertThat(assembler.scene(scene).npcIds()).containsExactly(4, 12);
     }
 
@@ -159,8 +154,8 @@ class PayloadAssemblerTest {
         Chapter chapter = withId(new Chapter("A new chapter"), 9);
         Race race = withId(new Race("mediums", chapter), 5);
 
-        // Unfinished content, and the contract says so. Substituting a value here would
-        // put new characters somewhere an author never chose.
+        // Unfinished content. Substituting a value here would put new characters somewhere
+        // an author never chose.
         assertThat(assembler.race(race).startingSceneId()).isNull();
     }
 

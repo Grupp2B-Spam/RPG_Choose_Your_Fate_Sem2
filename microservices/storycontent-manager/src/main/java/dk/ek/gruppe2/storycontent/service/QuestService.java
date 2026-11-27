@@ -19,26 +19,15 @@ import dk.ek.gruppe2.storycontent.repository.QuestRepository;
 import dk.ek.gruppe2.storycontent.repository.SceneRepository;
 
 /**
- * Authoring operations on quests.
+ * Authoring operations on quests. A quest is written against the scene that offers it and
+ * cannot exist without one. The progress per character is state and lives in
+ * CharacterManager.
  *
- * <p>A quest is written against the scene that offers it, and cannot exist without one.
- * That is what makes a quest content, rather than the authored half of a player's quest
- * progress — the progress is state and lives in CharacterManager.
+ * The scene message carries quest ids and nothing else, so creating or deleting a quest
+ * republishes its scene, and editing its text publishes nothing.
  *
- * <p>The scene message carries quest <em>ids</em> and nothing else about a quest, so:
- *
- * <ul>
- *   <li>Creating or deleting one changes the scene's quest ids, so the scene is
- *       republished.</li>
- *   <li>Editing its text or reward items changes nothing any consumer receives, so
- *       nothing is published.</li>
- * </ul>
- *
- * <p>The second point is a known hole, not a quirk of this class: CharacterManager needs
- * a quest's reward items in order to grant them and currently has no way to get them. It
- * read the table directly when everything was one database. Fixing it means adding to the
- * published contract, which other teams build against, so it needs agreeing rather than
- * committing.
+ * Known gap: CharacterManager needs a quest's reward items in order to grant them, and no
+ * event carries them. Fixing it means adding to the published contract.
  */
 @Service
 public class QuestService {
@@ -81,10 +70,8 @@ public class QuestService {
         quest.getRewardItems().addAll(resolveRewards(request.rewardItemIds()));
         quests.save(quest);
 
-        // Built before the version is incremented, not after. incrementVersion runs as a
-        // bulk update and clears the persistence context, which detaches this quest along
-        // with everything else — and reading its lazy scene or reward items afterwards
-        // would fail rather than simply be stale.
+        // Built before the version is incremented: incrementVersion runs as a bulk update
+        // that clears the persistence context, which detaches this quest.
         QuestResponse response = toResponse(quest);
 
         // questIds changes, so the scene's consumers can see this.

@@ -17,18 +17,12 @@ public interface SceneRepository extends JpaRepository<Scene, Integer> {
     boolean existsByChapterId(Integer chapterId);
 
     /**
-     * Loads a scene with everything the published payload needs.
+     * Loads a scene with everything the published payload needs, instead of one query per
+     * choice for its requirements and effects.
      *
-     * <p>Without this the payload builder triggers one query per choice for its
-     * requirements and effects, and another per scene for NPCs and quests. That is the
-     * N+1 problem, and it is worth avoiding here specifically because a scene is
-     * republished on every edit — the cost is paid on the write path, which is also where
-     * the broker is waiting.
-     *
-     * <p>Only one collection is fetched per query. Fetching two bags in one query makes
-     * the database return the cartesian product of them, which Hibernate rejects outright.
-     * The remaining collections are loaded by a second and third query through the batch
-     * settings in {@code application.yml}, which is two round trips rather than N.
+     * Only one collection is fetched per query. Two bags in one query makes the database
+     * return their cartesian product, which Hibernate rejects. The rest are loaded through
+     * the batch fetch size in application.yml.
      */
     @Query("""
             select distinct s from Scene s
@@ -38,15 +32,10 @@ public interface SceneRepository extends JpaRepository<Scene, Integer> {
     Optional<Scene> findByIdForPublishing(@Param("id") Integer id);
 
     /**
-     * Increments the version in a single statement rather than by reading it into the
-     * entity and writing it back.
-     *
-     * <p>This is what makes {@code sceneVersion} monotonic. Two authors saving the same
-     * scene at once would both read the same number and both write its successor, so a
-     * read-modify-write would hand two different payloads the same version — and a
-     * consumer whose whole defence against stale messages is "discard anything not newer"
-     * would then discard one of them at random. {@code version = version + 1} is resolved
-     * by the database and cannot produce a duplicate.
+     * Increments the version in one statement rather than reading it into the entity and
+     * writing it back. Two authors saving at once would otherwise read the same number and
+     * write its successor, so two different payloads would carry the same version and a
+     * consumer would discard one of them at random.
      *
      * @return the number of rows updated, which is 0 if the scene no longer exists
      */

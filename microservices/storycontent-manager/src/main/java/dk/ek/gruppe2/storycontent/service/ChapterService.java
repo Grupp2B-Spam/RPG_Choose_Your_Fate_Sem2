@@ -50,15 +50,7 @@ public class ChapterService {
         return toResponse(chapter);
     }
 
-    /**
-     * Renames a chapter.
-     *
-     * <p>Publishes nothing. A chapter reaches consumers only as {@code chapterId} inside a
-     * scene payload and as {@code startingChapterId} inside a race payload, so its name is
-     * not something any consumer can observe. Republishing every scene in the chapter to
-     * announce a rename nobody receives would inflate the versions consumers compare
-     * against, for no information.
-     */
+    /** Renames a chapter. Publishes nothing: a chapter's name reaches no consumer. */
     @Transactional
     public ChapterResponse update(Integer id, ChapterRequest request) {
         Chapter chapter = require(id);
@@ -68,12 +60,8 @@ public class ChapterService {
     }
 
     /**
-     * Sets the scene a chapter begins at.
-     *
-     * <p>Unlike a rename, this one is visible to consumers — not through any scene, but
-     * through every race starting in this chapter, because a race message carries this
-     * scene id so a new character can be placed without a second lookup. Those races are
-     * therefore republished with new versions.
+     * Sets the scene a chapter begins at. Unlike a rename, consumers can see this: a race
+     * message carries this scene id, so every race starting here is republished.
      */
     @Transactional
     public ChapterResponse setStartingScene(Integer chapterId, Integer sceneId) {

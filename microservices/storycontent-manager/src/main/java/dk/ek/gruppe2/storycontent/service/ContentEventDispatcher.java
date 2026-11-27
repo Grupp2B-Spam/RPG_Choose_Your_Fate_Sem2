@@ -18,29 +18,15 @@ import dk.ek.gruppe2.storycontent.repository.SceneRepository;
 /**
  * Publishes an aggregate to the broker once the transaction that changed it has committed.
  *
- * <p>A service method does not publish; it says that something changed, and this listens.
- * The reasoning for the split is in {@link ContentChanged} — in short, a message sent
- * before the commit survives a rollback, and a consumer that has accepted a version this
- * service never kept will discard every later event for that entity as stale.
+ * A service method does not publish; it says that something changed, and this listens. The
+ * reasoning for the split is in ContentChanged.
  *
- * <p>Each handler re-reads the aggregate in a new transaction rather than being handed the
- * object that was just saved. That is deliberate, and it is not merely about detached
- * entities:
+ * Each handler re-reads the aggregate in a new transaction, so what goes out is the
+ * committed state. If a second author has saved since, the re-read picks up their version,
+ * which is newer content under a newer number.
  *
- * <ul>
- *   <li>The committed state is the only state worth publishing. Anything else would be a
- *       claim about a transaction that might not have ended the way we assumed.</li>
- *   <li>If a second author has since saved the same scene, the re-read picks up their
- *       version, so this publication carries newer content under a newer number. A
- *       consumer applying last-write-wins guarded by the version reaches the same answer
- *       either way, so publishing the newer state is never wrong — and it is what makes
- *       two rapid edits converge rather than fight.</li>
- * </ul>
- *
- * <p>A failure to publish is logged and swallowed. Re-throwing here would do nothing
- * useful: the transaction has already committed, so there is nothing left to roll back,
- * and the exception would propagate out of an event listener into the HTTP response of a
- * request whose write actually succeeded.
+ * A failure to publish is logged and swallowed. The transaction has already committed, so
+ * there is nothing left to roll back.
  */
 @Component
 public class ContentEventDispatcher {

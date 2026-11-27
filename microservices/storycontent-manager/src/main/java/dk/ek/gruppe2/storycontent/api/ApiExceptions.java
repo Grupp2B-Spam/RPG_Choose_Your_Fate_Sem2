@@ -11,15 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * Turns the two kinds of refusal this service makes into HTTP responses.
- *
- * <p>Both matter more here than in an ordinary CRUD service, because this is the
- * publishing side of an event contract. The messaging convention is that a consumer reacts
- * to an event and never rejects it as invalid, which places the whole burden of validation
- * on the publisher — so a request that would produce content a consumer cannot act on has
- * to be refused here, with a reason an author can read.
- */
+/** Turns the two kinds of refusal this service makes into HTTP responses. */
 @RestControllerAdvice
 public class ApiExceptions {
 

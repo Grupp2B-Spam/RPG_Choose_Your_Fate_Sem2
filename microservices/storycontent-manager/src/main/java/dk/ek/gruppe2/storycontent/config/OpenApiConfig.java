@@ -15,12 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class OpenApiConfig {
 
     /**
-     * Shows {@code X-API-VERSION} as a required parameter on every versioned endpoint.
-     *
-     * <p>Without this the header is invisible in Swagger UI, so every "Try it out" fails
-     * with a missing-version error and the reason is nowhere on the page. Path versioning
-     * never had that problem — the version was in the URL — which is one of the things
-     * moving to a header costs, and this is what pays it back.
+     * Shows X-API-VERSION as a required parameter on every versioned endpoint. Without this
+     * the header is invisible in Swagger UI and every "Try it out" fails with a
+     * missing-version error.
      */
     @Bean
     public OperationCustomizer apiVersionHeader() {

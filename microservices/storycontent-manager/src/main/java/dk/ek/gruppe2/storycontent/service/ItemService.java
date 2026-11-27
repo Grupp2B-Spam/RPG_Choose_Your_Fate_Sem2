@@ -73,13 +73,9 @@ public class ItemService {
     }
 
     /**
-     * Withdraws an item from being granted or acquired.
-     *
-     * <p>Not a delete, and the contract says so explicitly: a player who already owns a
-     * retired item must still be able to see and use it, so the definition has to keep
-     * resolving on the consumer's side. Deleting it would leave CharacterManager holding
-     * inventory rows it cannot explain — and with the foreign key gone, nothing in the
-     * database would have stopped it.
+     * Withdraws an item from being granted or acquired. Not a delete: a player who owns one
+     * must still be able to use it, and deleting would leave CharacterManager holding
+     * inventory rows it cannot explain.
      */
     @Transactional
     public ItemResponse retire(Integer id) {
@@ -96,12 +92,8 @@ public class ItemService {
     }
 
     /**
-     * Equipment is worn somewhere; nothing else is.
-     *
-     * <p>The monolith could not state this, because its {@code type} column conflated what
-     * a thing is with where it goes — {@code ARMOR_HEAD} is both at once. Separating them
-     * is what makes the rule expressible, and the rule is worth having because the slot is
-     * published: an equipment item with no slot is one CharacterManager cannot place.
+     * Equipment is worn somewhere; nothing else is. The slot is published, so an equipment
+     * item without one is one CharacterManager cannot place.
      */
     private void validateSlot(ItemType type, EquipmentSlot slot) {
         if (type == ItemType.EQUIPMENT && slot == null) {
@@ -137,9 +129,9 @@ public class ItemService {
                 item.getSlot(),
                 item.getStatus(),
                 item.getVersion(),
-                // Copied into a plain map rather than an EnumMap: Hibernate replaces the
-                // field with its own collection wrapper, and EnumMap's copy constructor
-                // rejects an empty non-EnumMap source.
+                // A plain map, not an EnumMap: Hibernate replaces the field with its own
+                // collection wrapper, and EnumMap's copy constructor rejects an empty
+                // non-EnumMap source.
                 new LinkedHashMap<>(item.getRequirements()),
                 new LinkedHashMap<>(item.getModifiers()));
     }

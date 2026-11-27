@@ -4,9 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * The outer shape shared by every message in the system.
- *
- * <p>Only {@code payload} differs per event. See {@code microservices/contracts/README.md}.
+ * The outer shape shared by every message in the system. Only payload differs per event.
  *
  * @param eventId       unique per publication; consumers deduplicate on this, because
  *                      delivery is at-least-once

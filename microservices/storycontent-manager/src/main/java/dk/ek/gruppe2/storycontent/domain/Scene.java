@@ -24,20 +24,14 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 /**
- * A scene: one moment of the story, the choices available in it, the NPCs standing in it
- * and the quests it offers.
+ * A scene: one moment of the story, its choices, the NPCs standing in it and the quests it
+ * offers. The aggregate root published as scene-content.updated — everything reachable from
+ * here goes out in one message.
  *
- * <p>The aggregate root that {@code scene-content.updated} publishes: everything reachable
- * from here goes out in one message. That is why choices are edited through the scene
- * rather than on their own — a choice cannot change without changing the scene's message,
- * and routing every edit through the root makes that impossible to forget.
- *
- * <p>{@link #version} is the {@code sceneVersion} consumers compare against to throw away
- * stale or redelivered messages. It is a plain column rather than a JPA {@code @Version}:
- * optimistic locking counts changes to <em>this row</em>, while this has to count changes
- * to anything in the published message, including child rows. It is incremented with a
- * {@code version = version + 1} statement, not read-then-write, so two authors saving at
- * once cannot be handed the same number.
+ * version is the sceneVersion consumers compare against. Not a JPA @Version annotation:
+ * that counts changes to this row, and this has to count changes to the whole published
+ * message, child rows included. It is incremented by a SQL statement, not read-then-write,
+ * so two authors saving at once cannot be handed the same number.
  */
 @Entity
 @Table(name = "scene")
@@ -54,11 +48,7 @@ public class Scene {
     @Column(nullable = false, length = 100)
     private String name;
 
-    /**
-     * The prose shown to the player. Has no counterpart in the monolith, which stores only
-     * a name — the contract publishes a description, so this service is where it is
-     * authored.
-     */
+    /** The prose shown to the player. */
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
 
@@ -74,9 +64,8 @@ public class Scene {
     private List<Choice> choices = new ArrayList<>();
 
     /**
-     * Quests offered in this scene. Read-only from here; a quest is created against its
-     * scene. Mapped so that the payload's {@code questIds} can be built without a second
-     * query.
+     * Quests offered in this scene. Read-only here; a quest is created against its scene.
+     * Mapped so the payload's questIds can be built without a second query.
      */
     @OneToMany(mappedBy = "scene")
     @OrderBy("id ASC")

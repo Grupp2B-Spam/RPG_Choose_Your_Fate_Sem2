@@ -35,18 +35,12 @@ import dk.ek.gruppe2.storycontent.repository.SceneRepository;
 /**
  * Authoring operations on the scene aggregate.
  *
- * <p>Every write here ends the same way: increment the scene's version, then say the
- * scene changed. Consumers use that version to throw away stale or redelivered messages,
- * which is also what makes them safe to run as several instances at once. Changing the
- * scene without incrementing it does not just lose an update — it sends a message that
- * looks older than what the consumer already has, so the consumer discards it and nothing
- * is logged anywhere.
+ * Every write here increments the scene's version and then says the scene changed. Skipping
+ * the increment sends a message that looks older than what the consumer already has, so the
+ * consumer discards it and nothing is logged anywhere.
  *
- * <p>The opposite mistake matters just as much:
- * a change a consumer cannot observe must <em>not</em> increment it. Renaming an NPC is
- * the example. Only {@code npcIds} travels in the payload, so a rename changes nothing on
- * the wire, and bumping the version for it would mean republishing a byte-identical
- * message and inflating the number that consumers compare against.
+ * A change a consumer cannot observe must not increment it. Renaming an NPC is the example:
+ * only npcIds travels in the payload.
  */
 @Service
 public class SceneService {
@@ -96,8 +90,8 @@ public class SceneService {
         }
         scenes.save(scene);
 
-        // A new scene is published too. A consumer that only hears about scenes once they
-        // are edited would never learn of one that is authored correctly the first time.
+        // A new scene is published too, or a consumer would never learn of one that was
+        // authored correctly the first time.
         dispatcher.sceneChanged(scene.getId());
         return toResponse(scene);
     }
@@ -116,12 +110,8 @@ public class SceneService {
     }
 
     /**
-     * Withdraws a scene from delivery.
-     *
-     * <p>Deliberately not a delete. Recorded paths reference scenes the player has already
-     * been through, and those references have to keep resolving — the state side no longer
-     * has a foreign key to stop a delete, so this is the only thing standing between an
-     * author and a history that cannot be read.
+     * Withdraws a scene from delivery. Not a delete: recorded paths reference scenes the
+     * player has already been through, and no foreign key stops a delete now.
      */
     @Transactional
     public SceneResponse retire(Integer id) {
@@ -198,12 +188,8 @@ public class SceneService {
 
     /**
      * Increments the version and schedules the publication, then re-reads the scene so the
-     * caller's response carries the number that was actually published.
-     *
-     * <p>The increment is a statement rather than a field assignment, so concurrent authors
-     * cannot be given the same version. {@code clearAutomatically} on that query is what
-     * makes the re-read see the new value rather than the stale one in the persistence
-     * context.
+     * response carries the version that was published. clearAutomatically on the increment
+     * query is what makes the re-read see the new value.
      */
     private SceneResponse bumpAndPublish(Integer sceneId) {
         scenes.incrementVersion(sceneId);
@@ -223,14 +209,7 @@ public class SceneService {
         return choice;
     }
 
-    /**
-     * Builds the requirements, refusing any whose fields do not match its kind.
-     *
-     * <p>This is the check the monolith could not perform. Its {@code target_id} was a
-     * bare integer that meant a different thing per {@code consequence} value, so there
-     * was nothing to validate against — and its own seed data contains rows where the
-     * convention is not followed.
-     */
+    /** Builds the requirements, refusing any whose fields do not match its kind. */
     private void applyRequirements(Choice choice, List<RequirementRequest> requested) {
         if (requested == null) {
             return;
@@ -277,10 +256,8 @@ public class SceneService {
                     choice.addEffect(ChoiceEffect.completeQuest(effect.questId(), ordinal));
                 }
                 case MODIFY_STAT -> {
-                    // The statistic is an enum, so a name outside the three a character
-                    // actually has never gets this far — it fails to deserialise. Worth
-                    // having: the monolith's content contains `lose_hp`, and there is no
-                    // hp anywhere in its schema. Nothing ever caught that.
+                    // The statistic is an enum, so a name outside the three a character has
+                    // never gets this far: it fails to deserialise.
                     requirePresent(effect.stat(), "A MODIFY_STAT effect needs a stat");
                     requirePresent(effect.amount(), "A MODIFY_STAT effect needs an amount");
                     choice.addEffect(ChoiceEffect.modifyStat(effect.stat(), effect.amount(), ordinal));

@@ -11,23 +11,12 @@ import org.testcontainers.utility.MountableFile;
 /**
  * The two containers the integration tests run against.
  *
- * <p>The database image and the schema are deliberately the real ones. The schema is the
- * file in {@code db-init/}, copied to {@code /docker-entrypoint-initdb.d} exactly as
- * {@code compose.yaml} mounts it, rather than being generated from the entities by
- * Hibernate. That matters for two reasons:
+ * The schema is the file in db-init/, mounted exactly as compose.yaml mounts it, not
+ * generated from the entities. With ddl-auto: validate, starting the context is itself the
+ * check that the entities and the committed SQL agree.
  *
- * <ul>
- *   <li>It tests the file the database is actually created from. A schema generated from
- *       the entities would pass whatever the entities say, including things the committed
- *       SQL does not contain.</li>
- *   <li>With {@code ddl-auto: validate}, starting the context is itself the check that the
- *       entities and the committed SQL agree. A column added to one and forgotten in the
- *       other fails the build here instead of appearing in the cluster.</li>
- * </ul>
- *
- * <p>It also proves the boundary holds: this schema has to create on an empty database
- * with no reference to any other service's tables. A foreign key left dangling by the
- * split would show up here.
+ * It also proves the boundary holds: this schema has to create on an empty database with no
+ * reference to any other service's tables.
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class StoryContentContainers {

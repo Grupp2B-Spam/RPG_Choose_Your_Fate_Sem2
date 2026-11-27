@@ -2,10 +2,9 @@ spring:
   application:
     name: storycontent-manager
 
-  # Every host and credential comes from the environment with a local default, so the
-  # same image runs unchanged everywhere and only the configuration differs. The default
-  # points at the port compose publishes (3309 — 3307 and 3308 are the monolith's), so
-  # running this from the IDE against the compose database needs no setup.
+  # Every host and credential comes from the environment with a local default, so the same
+  # image runs unchanged everywhere. The default is the port compose publishes: 3309, since
+  # 3307 and 3308 are the monolith's.
   datasource:
     url: ${MYSQL_URI:jdbc:mysql://localhost:3309/story_content}
     username: ${MYSQL_USERNAME:root}
@@ -13,54 +12,41 @@ spring:
 
   jpa:
     hibernate:
-      # `validate`, never `update`. The schema lives as SQL in db-init/ and that is what
-      # the database is built from; letting Hibernate alter it would mean the running
-      # shape and the committed shape could drift apart, and the committed one is what
-      # everyone else reads. This way startup checks the two against each other: a column
-      # added to an entity but forgotten in the SQL fails the boot.
+      # validate, never update. The schema lives as SQL in db-init/ and that is what the
+      # database is built from. Startup then checks the entities against it: a column added
+      # to an entity but forgotten in the SQL fails the boot.
       ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
         jdbc:
           time_zone: UTC
-        # A scene is published on every edit, and building its payload walks the choices,
-        # then each choice's requirements and effects. Without batching that is one query
-        # per choice per collection — the N+1 problem, paid on the write path, with the
-        # broker waiting. Batching turns it into a handful of queries regardless of how
-        # many choices a scene has.
+        # Building a scene payload walks the choices, then each choice's requirements and
+        # effects. Without batching that is one query per choice per collection.
         default_batch_fetch_size: 32
 
   jackson:
-    # The event payloads set only the fields belonging to an effect's or a requirement's
-    # kind; the rest are null and must not appear on the wire. The contract describes an
-    # absent field, and "absent" and "present but null" are not the same statement to a
-    # consumer — the second invites the question of whether the publisher meant "none" or
-    # "unknown".
+    # The payloads set only the fields belonging to an effect's or a requirement's kind;
+    # the rest are null and must not appear on the wire. The contract says absent, and
+    # absent and null are not the same statement to a consumer.
     default-property-inclusion: non_null
 
-    # occurredAt is an ISO-8601 instant in the contract, not an epoch number. That is
-    # Spring Boot's default and is deliberately NOT pinned here: Jackson 3 moved
-    # WRITE_DATES_AS_TIMESTAMPS out of SerializationFeature, so the property that used to
-    # express it no longer binds and fails the context at startup. ContractShapeTest
-    # asserts the serialised form instead, which is the better guard anyway — it checks
-    # what goes on the wire rather than a setting that is supposed to produce it.
+    # occurredAt is an ISO-8601 instant in the contract. That is Spring Boot's default and
+    # is deliberately NOT pinned here: Jackson 3 moved WRITE_DATES_AS_TIMESTAMPS, so the
+    # property no longer binds and fails the context at startup. ContractShapeTest asserts
+    # the serialised form instead.
 
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
-    # Required for the returns callback in RabbitConfig to fire. The mandatory flag on
-    # the template asks the broker to hand back unroutable messages; this is what makes
-    # the connection able to receive them.
+    # Required for the returns callback in RabbitConfig to fire.
     publisher-returns: true
 
-  # Kubernetes sends SIGTERM on every deploy, scale-down and node drain. Without this
-  # the process dies mid-request, and once we also consume, mid-message — which
-  # at-least-once delivery then turns into a duplicate. The pod's
-  # terminationGracePeriodSeconds must exceed this value, or Kubernetes kills the pod
-  # before the timeout can expire.
+  # Kubernetes sends SIGTERM on every deploy, scale-down and node drain; without this the
+  # process dies mid-request. The pod's terminationGracePeriodSeconds must exceed this
+  # value, or Kubernetes kills the pod before the timeout can expire.
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
@@ -76,16 +62,13 @@ management:
   endpoint:
     health:
       show-details: always
-      # Liveness and readiness answer different questions, so they get separate
-      # endpoints: /actuator/health/liveness and /actuator/health/readiness.
+      # Splits /actuator/health/liveness from /actuator/health/readiness.
       probes:
         enabled: true
       group:
-        # Readiness includes broker and database connectivity: a service that cannot reach
-        # RabbitMQ or its own database must not receive traffic, because every write here
-        # both persists and publishes. Liveness deliberately includes neither — losing a
-        # dependency is not a reason to restart the process, and restarting would not fix
-        # it.
+        # A service that cannot reach RabbitMQ or its own database must not receive
+        # traffic: every write here both persists and publishes. Liveness includes neither
+        # — restarting the process will not bring a dependency back.
         readiness:
           include: readinessState,rabbit,db
 

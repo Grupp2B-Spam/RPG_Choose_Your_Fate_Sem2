@@ -13,13 +13,8 @@ import jakarta.persistence.Table;
 /**
  * A non-player character, placed in scenes.
  *
- * <p>Content, and mandatorily dependent on {@link Race}. That is the second, independent
- * reason races belong to this service: with no players in the system at all, content
- * already cannot be authored without them.
- *
- * <p>Only NPC <em>ids</em> go out in the scene message, so renaming one changes nothing a
- * consumer can see and must <em>not</em> bump the scene version. Putting an NPC into a
- * scene, or taking it out, does change the message and must.
+ * Only NPC ids go out in the scene message, so renaming one must not bump the scene
+ * version. Putting an NPC into a scene, or taking it out, must.
  */
 @Entity
 @Table(name = "npc")

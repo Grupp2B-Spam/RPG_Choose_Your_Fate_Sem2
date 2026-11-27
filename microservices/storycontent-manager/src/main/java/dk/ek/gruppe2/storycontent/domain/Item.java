@@ -25,14 +25,9 @@ import jakarta.persistence.Table;
 /**
  * An item definition: what an item is and what it does, not who holds one.
  *
- * <p>The distinction is the content/state line in miniature. {@code inventory_has_item}
- * on the other side of the boundary has the same shape as the reward tables here; what
- * separates them is whether an author or a player wrote the row.
- *
- * <p>Published as {@code item-definition.updated}. The payload deliberately carries only
- * what a consumer needs in order to enforce rules — type, slot, requirements, modifiers —
- * and not the name or description, which are presentation and are read from the content
- * side where they can be cached.
+ * Published as item-definition.updated. The payload carries only what a consumer needs in
+ * order to enforce rules — type, slot, requirements, modifiers — not the name or
+ * description.
  */
 @Entity
 @Table(name = "item")
@@ -52,7 +47,7 @@ public class Item {
     @Column(nullable = false, length = 16)
     private ItemType type;
 
-    /** Set exactly when {@link #type} is {@code EQUIPMENT}; enforced by a check constraint. */
+    /** Set exactly when type is EQUIPMENT; enforced by a check constraint. */
     @Enumerated(EnumType.STRING)
     @Column(length = 16)
     private EquipmentSlot slot;
@@ -65,12 +60,8 @@ public class Item {
     private int version = 1;
 
     /**
-     * Minimum statistics required to equip the item.
-     *
-     * <p>Rows rather than a JSON column, so that the statistic name is constrained. An
-     * authored value naming a statistic that does not exist is precisely the failure the
-     * monolith could not catch — its data contains {@code lose_hp}, and the schema has no
-     * hp.
+     * Minimum statistics required to equip the item. Rows rather than a JSON column, so the
+     * statistic name is constrained.
      */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "item_requirement", joinColumns = @JoinColumn(name = "item_id"))
