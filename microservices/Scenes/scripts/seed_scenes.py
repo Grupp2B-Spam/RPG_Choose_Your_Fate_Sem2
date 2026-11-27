@@ -9,16 +9,21 @@ import urllib.request
 URL = "http://localhost:15672/api/exchanges/%2F/game.events/publish"
 CREDS = base64.b64encode(b"dev:dev-local-only").decode("ascii")
 EVENTS = [
-    {"sceneId": "start", "version": 1, "operation": "UPSERT", "title": "Crossroads",
-     "text": "A path splits around an old tree.",
+    {"sceneId": "start", "version": 1, "operation": "UPSERT",
+     "chapterId": "chapter-1", "status": "PUBLISHED", "name": "Crossroads",
+     "description": "A path splits around an old tree.", "npcIds": [], "questIds": [],
      "choices": [
          {"id": "left", "text": "Go toward the mill", "nextSceneId": "mill", "effects": {"courage": 1}},
          {"id": "right", "text": "Go to the village", "nextSceneId": "village", "effects": {}}
      ]},
-    {"sceneId": "mill", "version": 1, "operation": "UPSERT", "title": "Old Mill",
-     "text": "The wheel turns slowly.", "choices": []},
-    {"sceneId": "village", "version": 1, "operation": "UPSERT", "title": "Village",
-     "text": "A lantern glows by the inn.", "choices": []},
+    {"sceneId": "mill", "version": 1, "operation": "UPSERT",
+     "chapterId": "chapter-1", "status": "PUBLISHED", "name": "Old Mill",
+     "description": "The wheel turns slowly.", "npcIds": [], "questIds": [],
+     "choices": []},
+    {"sceneId": "village", "version": 1, "operation": "UPSERT",
+     "chapterId": "chapter-1", "status": "PUBLISHED", "name": "Village",
+     "description": "A lantern glows by the inn.", "npcIds": [], "questIds": [],
+     "choices": []},
 ]
 
 def publish(event):

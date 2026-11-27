@@ -1,8 +1,9 @@
 /* Choose Your Fate - Scene Control. Browser code has no RabbitMQ credentials. */
 const byId = (id) => document.getElementById(id);
 const defaultEvent = {
-  sceneId: 'demo-start', version: 1, operation: 'UPSERT',
-  title: 'The Crossroads', text: 'The road splits beneath an ancient oak.',
+  sceneId: 'demo-start', version: 1, operation: 'UPSERT', chapterId: 'demo-chapter',
+  status: 'PUBLISHED', name: 'The Crossroads',
+  description: 'The road splits beneath an ancient oak.', npcIds: [], questIds: [],
   choices: [
     { id: 'left', text: 'Take the road to the mill', nextSceneId: 'demo-mill', effects: { courage: 1 } },
     { id: 'right', text: 'Walk toward the village', nextSceneId: 'demo-village', effects: {} },
@@ -11,13 +12,15 @@ const defaultEvent = {
 const deleteEvent = { sceneId: 'demo-start', version: 2, operation: 'DELETE' };
 const contractDefinitions = {
   scene: {
-    kind: 'MONGO DOCUMENT', title: 'SceneDocument',
+    kind: 'MONGO DOCUMENT', name: 'SceneDocument',
     description: 'The read-optimized scene projection. SceneIndexer writes it to MongoDB; SceneManager retrieves it.',
     note: 'A deleted scene is retained as a tombstone (deleted: true) and is hidden from the REST API.',
     example: {
-      id: 'demo-start', version: 1, title: 'The Crossroads',
-      text: 'The road splits beneath an ancient oak.',
+      id: 'demo-start', sceneId: 'demo-start', version: 1, chapterId: 'demo-chapter',
+      status: 'PUBLISHED', name: 'The Crossroads',
+      description: 'The road splits beneath an ancient oak.',
       choices: [{ id: 'left', text: 'Take the road to the mill', nextSceneId: 'demo-mill', effects: { courage: 1 } }],
+      npcIds: [], questIds: [],
       deleted: false,
     },
   },
@@ -39,7 +42,7 @@ const contractDefinitions = {
     note: 'Includes a scene/choice text snapshot so subsequent content edits do not change the player\'s recorded history.',
     example: {
       eventId: 'generated-uuid', characterId: 'demo-character', sceneId: 'demo-start', sceneVersion: 1,
-      sceneTitle: 'The Crossroads', sceneText: 'The road splits beneath an ancient oak.',
+      sceneName: 'The Crossroads', sceneText: 'The road splits beneath an ancient oak.',
       choiceId: 'left', choiceText: 'Take the road to the mill', nextSceneId: 'demo-mill',
       effects: { courage: 1 }, occurredAt: '2026-11-12T12:00:00Z',
     },
@@ -217,10 +220,10 @@ async function resetConnections() {
 function createPreview(scene) {
   const box = byId('scene-preview');
   box.replaceChildren();
-  const title = document.createElement('h3'); title.className = 'preview-title'; title.textContent = scene.title || '(untitled scene)';
+  const name = document.createElement('h3'); name.className = 'preview-name'; name.textContent = scene.name || '(unnamed scene)';
   const version = document.createElement('div'); version.className = 'preview-version'; version.textContent = `ID: ${scene.id} / VERSION: ${scene.version}`;
-  const description = document.createElement('p'); description.className = 'preview-story'; description.textContent = scene.text || '';
-  box.append(title, version, description);
+  const description = document.createElement('p'); description.className = 'preview-story'; description.textContent = scene.description || scene.text || '';
+  box.append(name, version, description);
   for (const choice of scene.choices || []) {
     const row = document.createElement('div'); row.className = 'preview-choice';
     const indicator = document.createElement('span'); indicator.textContent = '→';
@@ -316,7 +319,7 @@ function loadContract(key) {
     button.setAttribute('aria-selected', String(selected));
   });
   byId('contract-kind').textContent = contract.kind;
-  byId('contract-title').textContent = contract.title;
+  byId('contract-title').textContent = contract.name || contract.title;
   byId('contract-description').textContent = contract.description;
   byId('contract-note').textContent = contract.note;
   byId('contract-code').textContent = formatJSON(contract.example);

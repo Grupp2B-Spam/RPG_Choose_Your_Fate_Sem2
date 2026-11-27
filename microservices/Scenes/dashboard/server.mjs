@@ -120,15 +120,24 @@ function publicSettings(config) {
 
 const demoScenes = [
   {
-    sceneId: 'demo-start', version: 1, operation: 'UPSERT',
-    title: 'The Crossroads', text: 'The road splits beneath an ancient oak.',
+    sceneId: 'demo-start', version: 1, operation: 'UPSERT', chapterId: 'demo-chapter',
+    status: 'PUBLISHED', name: 'The Crossroads',
+    description: 'The road splits beneath an ancient oak.', npcIds: [], questIds: [],
     choices: [
       { id: 'left', text: 'Take the road to the mill', nextSceneId: 'demo-mill', effects: { courage: 1 } },
       { id: 'right', text: 'Walk toward the village', nextSceneId: 'demo-village', effects: {} },
     ],
   },
-  { sceneId: 'demo-mill', version: 1, operation: 'UPSERT', title: 'Old Mill', text: 'A waterwheel turns slowly.', choices: [] },
-  { sceneId: 'demo-village', version: 1, operation: 'UPSERT', title: 'Village', text: 'Lights flicker along a cobbled street.', choices: [] },
+  {
+    sceneId: 'demo-mill', version: 1, operation: 'UPSERT', chapterId: 'demo-chapter',
+    status: 'PUBLISHED', name: 'Old Mill', description: 'A waterwheel turns slowly.',
+    npcIds: [], questIds: [], choices: [],
+  },
+  {
+    sceneId: 'demo-village', version: 1, operation: 'UPSERT', chapterId: 'demo-chapter',
+    status: 'PUBLISHED', name: 'Village', description: 'Lights flicker along a cobbled street.',
+    npcIds: [], questIds: [], choices: [],
+  },
 ];
 
 function json(res, status, value) {
@@ -183,12 +192,21 @@ function validateSceneEvent(event) {
   if (!Number.isSafeInteger(event.version) || event.version < 1) return 'version must be a positive integer';
   if (!['UPSERT', 'DELETE'].includes(event.operation)) return 'operation must be UPSERT or DELETE';
   if (event.operation === 'UPSERT') {
-    if (typeof event.title !== 'string' || typeof event.text !== 'string' || !Array.isArray(event.choices)) {
-      return 'UPSERT requires title, text and choices[]';
+    const name = event.name ?? event.title;
+    const description = event.description ?? event.text;
+    if (typeof name !== 'string' || typeof description !== 'string' || !Array.isArray(event.choices)) {
+      return 'UPSERT requires name, description and choices[]';
     }
     for (const choice of event.choices) {
       if (!choice || typeof choice.id !== 'string' || !choice.id.trim() || typeof choice.text !== 'string') {
         return 'Every choice requires id and text';
+      }
+    }
+    if (event.chapterId !== undefined && typeof event.chapterId !== 'string') return 'chapterId must be a string';
+    if (event.status !== undefined && typeof event.status !== 'string') return 'status must be a string';
+    for (const key of ['npcIds', 'questIds']) {
+      if (event[key] !== undefined && (!Array.isArray(event[key]) || event[key].some(id => typeof id !== 'string'))) {
+        return `${key} must be an array of strings`;
       }
     }
   }

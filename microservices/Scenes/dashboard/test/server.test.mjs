@@ -15,7 +15,11 @@ async function fakeFetch(input, init = {}) {
     if (url.pathname === '/scenes/demo-start/choices/left' && init.method === 'POST') {
       return asJson({ eventId: 'abc-123', nextSceneId: 'demo-mill' }, 202);
     }
-    if (url.pathname === '/scenes/demo-start') return asJson({ id: 'demo-start', version: 1, title: 'The Crossroads', text: 'Old road', choices: [] });
+    if (url.pathname === '/scenes/demo-start') return asJson({
+      id: 'demo-start', sceneId: 'demo-start', version: 1, chapterId: 'demo-chapter',
+      status: 'PUBLISHED', name: 'The Crossroads', description: 'Old road',
+      choices: [], npcIds: [], questIds: [], deleted: false,
+    });
     if (url.pathname === '/scenes/not-found') return asJson({ title: 'Not Found', status: 404 }, 404);
     return asJson({ error: 'Unknown manager route' }, 404);
   }
@@ -36,6 +40,7 @@ async function fakeFetch(input, init = {}) {
 let server, base;
 before(async () => {
   server = createDashboardServer({
+    configFile: null,
     fetcher: fakeFetch,
     managerUrl: 'http://manager.test:8080', rabbitUrl: 'http://rabbit.test:15672',
     rabbitUser: 'server-only-user', rabbitPass: 'server-only-password',
@@ -90,6 +95,7 @@ test('Proxies GET /scenes/{id} JSON unchanged', async () => {
   const { status, body } = await call('/api/scenes/demo-start');
   assert.equal(status, 200);
   assert.equal(body.id, 'demo-start');
+  assert.equal(body.name, 'The Crossroads');
 });
 
 test('Proxies GET /scenes/{id}/nextscenes JSON unchanged', async () => {
@@ -132,6 +138,18 @@ test('Publishes a valid scene.changed event with server-side RabbitMQ auth', asy
   assert.equal(publish.headers.authorization, 'Basic ' + Buffer.from('server-only-user:server-only-password').toString('base64'));
 });
 
+test('Publishes SceneDocument-shaped scene.changed events', async () => {
+  const scene = {
+    sceneId: 'demo-new', version: 3, operation: 'UPSERT', chapterId: 'demo-chapter',
+    status: 'PUBLISHED', name: 'New', description: 'Hello',
+    choices: [], npcIds: ['npc-1'], questIds: ['quest-1'],
+  };
+  const { status } = await call('/api/mock/publish', { method: 'POST', body: JSON.stringify(scene) });
+  assert.equal(status, 202);
+  const publish = calls.filter((c) => c.url.includes('/api/exchanges/%2F/game.events/publish')).at(-1);
+  assert.deepEqual(JSON.parse(JSON.parse(publish.body).payload), scene);
+});
+
 test('Rejects invalid events without sending them to RabbitMQ', async () => {
   const before = calls.length;
   const { status, body } = await call('/api/mock/publish', { method: 'POST', body: JSON.stringify({ sceneId: 'bad', version: 0, operation: 'UPSERT' }) });
@@ -149,10 +167,15 @@ test('Seeds three demo-prefixed scenes with version 1', async () => {
   const events = calls.slice(before).map((c) => JSON.parse(JSON.parse(c.body).payload));
   assert.equal(events.every((event) => event.version === 1), true);
   assert.equal(events[0].choices.length, 2);
+  assert.equal(events.every((event) => event.status === 'PUBLISHED'), true);
+  assert.equal(events.every((event) => typeof event.name === 'string' && typeof event.description === 'string'), true);
+  assert.equal(events.every((event) => typeof event.chapterId === 'string'
+    && Array.isArray(event.npcIds) && Array.isArray(event.questIds)), true);
 });
 
 test('Returns 502 when a dependency is unreachable', async () => {
   const broken = createDashboardServer({
+    configFile: null,
     managerUrl: 'http://manager.test', rabbitUrl: 'http://rabbit.test',
     fetcher: () => { throw new Error('connection refused'); },
   });
