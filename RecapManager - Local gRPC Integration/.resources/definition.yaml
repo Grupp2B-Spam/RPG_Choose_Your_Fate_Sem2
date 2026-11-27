@@ -1,0 +1,21 @@
+$kind: collection
+description: |-
+  Calls RecapManager over HTTP. With its local Spring profile, RecapManager forwards the Bearer JWT to TextToSpeechManager over gRPC.
+
+  Setup:
+  1. Start TextToSpeechManager, RabbitMQ and the recap database.
+  2. Start RecapManager using the VS Code launch entry 'RecapManager (local integration)'.
+  3. From microservices/recapManager, run: java tools/LocalToken.java player-1 ROLE_USER
+  4. Paste the printed JWT into this collection's accessToken variable, without the Bearer prefix. Tokens expire after 15 minutes.
+  5. Send the request. If audioStatus is PENDING, send it again. READY includes an audioUrl you can open to play the audio. The local mock provider returns the bundled test tone.
+
+  Keep real tokens in your local Postman variable values and do not commit or share exports containing credentials.
+variables:
+  baseUrl: http://localhost:8090
+  accessToken: ""
+auth:
+  - id: d4668450-8654-45e4-8a17-76a8e222754b
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{accessToken}}"

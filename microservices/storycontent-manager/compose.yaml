@@ -19,8 +19,8 @@ services:
       SERVER_PORT: 8081
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
-      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_USER: ${RABBITMQ_USERNAME:-${RABBITMQ_USER:-rabbitmq}}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-rabbitmq}
       MYSQL_URI: jdbc:mysql://story-content-vault:3306/story_content
       MYSQL_USERNAME: root
       MYSQL_PASSWORD: ${STORY_CONTENT_ROOT_PASSWORD:-123456}

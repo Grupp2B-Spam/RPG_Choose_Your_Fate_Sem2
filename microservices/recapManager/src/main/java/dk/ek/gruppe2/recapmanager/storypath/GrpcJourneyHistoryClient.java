@@ -2,13 +2,15 @@ package dk.ek.gruppe2.recapmanager.storypath;
 
 import dk.ek.gruppe2.recapmanager.config.StoryPathProperties;
 import dk.ek.gruppe2.recapmanager.exception.StoryPathException;
-import dk.ek.gruppe2.recapmanager.grpc.storypath.v1.*;
+import dk.ek.gruppe2.recapmanager.grpc.storypath.v1.GetChoicesAfterRequest;
+import dk.ek.gruppe2.recapmanager.grpc.storypath.v1.StoryPathServiceGrpc;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.MetadataUtils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +70,11 @@ public class GrpcJourneyHistoryClient implements JourneyHistoryClient {
             }
             throw new StoryPathException("StoryPathManager exceeded the configured page limit");
         } catch (StatusRuntimeException exception) {
+            switch (exception.getStatus().getCode()) {
+                case UNAUTHENTICATED -> throw new InvalidBearerTokenException("StoryPathManager rejected the access token");
+                case PERMISSION_DENIED -> throw new AccessDeniedException("StoryPathManager denied access to this journey");
+                default -> { }
+            }
             // Unavailability is not an empty history: do not silently claim a stale summary is current.
             throw new StoryPathException("Could not retrieve new journey entries from StoryPathManager", exception);
         } catch (IllegalArgumentException exception) {

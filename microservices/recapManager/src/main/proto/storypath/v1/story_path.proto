@@ -5,14 +5,22 @@ option java_package = "dk.ek.gruppe2.recapmanager.grpc.storypath.v1";
 option java_multiple_files = true;
 
 // Implemented by StoryPathManager. RecapManager queries this service.
+// Consumer requirements and examples: contracts/STORYPATH_GRPC_CONTRACT.md in RecapManager.
+// Forward the caller's JWT in metadata: authorization: Bearer <access-token>.
+// The Java package is consumer-local; providers may use their own java_package.
+// Preserve the protobuf package, service/method names, field numbers and field types.
 service StoryPathService {
+  // Read-only incremental history; do not mark choices as consumed or advance a server-side cursor.
+  // A complete response set is bounded by the first response's snapshot_sequence.
   rpc GetChoicesAfter (GetChoicesAfterRequest) returns (GetChoicesAfterResponse);
 }
 
 message GetChoicesAfterRequest {
+  // Required positive character ID. Echo it in every response.
   int32 character_id = 1;
   // Exclusive, durable per-character event sequence; never use choice_id as a cursor.
   int64 after_sequence = 2;
+  // Required positive maximum number of choices in one response.
   int32 page_size = 3;
   // 0 captures the current high-water mark. Echo the returned value on subsequent pages.
   int64 snapshot_sequence = 4;
@@ -23,15 +31,24 @@ message GetChoicesAfterResponse {
   int64 snapshot_sequence = 2;
   // Strictly ascending sequence, after_sequence < sequence <= snapshot_sequence.
   repeated PathChoice choices = 3;
+  // True only when further choices remain inside this same snapshot.
+  // False requires the final returned sequence to equal snapshot_sequence.
+  // No additions: choices=[], has_more=false, snapshot_sequence=after_sequence.
   bool has_more = 4;
 }
 
 message PathChoice {
+  // Positive, stable, increasing per-character journey event sequence; gaps are permitted.
   int64 sequence = 1;
+  // Positive choice identifier. It is not the incremental cursor and need not increase.
   int32 choice_id = 2;
+  // Scene labels used as narrative context. Empty strings are accepted when unavailable.
   string from_scene = 3;
   string to_scene = 4;
+  // Required, non-blank description of the choice actually made.
   string description = 5;
+  // Empty string is accepted when there is no supplied consequence.
   string consequence = 6;
+  // Relative narrative importance. The current client imposes no numeric range beyond int32.
   int32 story_weight = 7;
 }

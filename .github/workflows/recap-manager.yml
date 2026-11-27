@@ -1,0 +1,162 @@
+name: RecapManager CI and Docker Hub
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'microservices/recapManager/pom.xml'
+      - '.github/workflows/recap-manager.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'microservices/recapManager/**'
+      - '.github/workflows/recap-manager.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recap-manager-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Detect RecapManager version change
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - name: Check out version history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Compare service version with the previous main revision
+        id: version
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import subprocess
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          pom = "microservices/recapManager/pom.xml"
+          ns = {"m": "http://maven.apache.org/POM/4.0.0"}
+
+          def project_version(contents):
+              value = ET.fromstring(contents).findtext("m:version", namespaces=ns)
+              if not value or not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}", value):
+                  raise SystemExit("RecapManager needs an explicit project version valid as a Docker tag.")
+              if value == "latest" or value.startswith("sha-"):
+                  raise SystemExit("RecapManager's version conflicts with a reserved image tag.")
+              return value
+
+          current = project_version(Path(pom).read_bytes())
+          publish = False
+          if os.environ["GITHUB_EVENT_NAME"] == "push" and os.environ["GITHUB_REF"] == "refs/heads/main":
+              event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
+              before = event["before"]
+              previous = None
+              if before != "0" * 40:
+                  # Fail on unavailable history; absence of the old service POM means its first release.
+                  subprocess.run(["git", "cat-file", "-e", before + "^{commit}"], check=True)
+                  old = subprocess.run(["git", "show", f"{before}:{pom}"], capture_output=True)
+                  if old.returncode == 0:
+                      previous = project_version(old.stdout)
+                  else:
+                      exists = subprocess.run(["git", "ls-tree", before, "--", pom],
+                                              check=True, capture_output=True)
+                      if exists.stdout:
+                          raise SystemExit("Could not read the previous RecapManager POM.")
+              publish = current != previous
+              print(f"RecapManager version: {previous or '(new service)'} -> {current}; publish={publish}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"version={current}\npublish={str(publish).lower()}\n")
+          PY
+
+  test-build-publish:
+    name: Test, build and publish RecapManager
+    needs: version
+    if: github.event_name != 'push' || needs.version.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: microservices/recapManager
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: microservices/recapManager/pom.xml
+
+      # The business suite uses H2, in-process gRPC senders and mocked external clients.
+      # It needs no production credentials, including on pull requests from forks.
+      - name: Run unit, integration and connection tests and package JAR
+        run: bash ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Validate Docker image without publishing
+        if: needs.version.outputs.publish != 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: ./microservices/recapManager
+          file: ./microservices/recapManager/Dockerfile
+          push: false
+          tags: recap-manager:ci
+
+      - name: Check publishing secrets
+        if: needs.version.outputs.publish == 'true'
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          for name in DOCKERHUB_USERNAME DOCKERHUB_TOKEN; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Required repository secret $name is missing."
+              exit 1
+            fi
+          done
+          if [[ ! "$DOCKERHUB_USERNAME" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
+            echo "::error::DOCKERHUB_USERNAME must be a lowercase Docker Hub account name."
+            exit 1
+          fi
+
+      - name: Log in to Docker Hub
+        if: needs.version.outputs.publish == 'true'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Use a path context so this image includes the JAR built and tested above.
+      # Runtime configuration must be injected when the container starts.
+      - name: Build and publish Docker image
+        if: needs.version.outputs.publish == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: ./microservices/recapManager
+          file: ./microservices/recapManager/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/recap-manager:${{ needs.version.outputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/recap-manager:sha-${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/recap-manager:latest

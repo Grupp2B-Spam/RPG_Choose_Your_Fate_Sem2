@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Comparator;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @Configuration
 @EnableConfigurationProperties(StoryPathProperties.class)
@@ -25,7 +26,7 @@ public class StoryPathClientConfig {
 
     @Bean
     @ConditionalOnProperty(name = "app.storypath.mode", havingValue = "grpc", matchIfMissing = true)
-    public JourneyHistoryClient grpcJourneyHistoryClient(ManagedChannel storyPathChannel, StoryPathProperties properties) {
+    public JourneyHistoryClient grpcJourneyHistoryClient(@Qualifier("storyPathChannel") ManagedChannel storyPathChannel, StoryPathProperties properties) {
         return new GrpcJourneyHistoryClient(StoryPathServiceGrpc.newBlockingStub(storyPathChannel), properties);
     }
 

@@ -1,0 +1,8 @@
+# The runtime image needs only the packaged application and its Dockerfile.
+# Keep local environment files, signing keys, sources and test reports out of context.
+**
+!Dockerfile
+!.dockerignore
+!target/
+target/**
+!target/*.jar

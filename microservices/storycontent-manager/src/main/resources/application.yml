@@ -4,8 +4,8 @@ spring:
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USER:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    username: ${RABBITMQ_USERNAME:${RABBITMQ_USER:rabbitmq}}
+    password: ${RABBITMQ_PASSWORD:rabbitmq}
     # Required for the returns callback in RabbitConfig to fire. The mandatory flag on
     # the template asks the broker to hand back unroutable messages; this is what makes
     # the connection able to receive them.

@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Uses collection-level Bearer authentication. Returns the current journey summary, updating it first if there are new choices. With audio=true, RecapManager makes a real gRPC lookup to TextToSpeechManager when its local profile is active.
+
+  Expected HTTP status: 200. Audio status READY includes audioUrl and contentHash. PENDING means generation is continuing; repeat this request. FAILED or UNAVAILABLE requires checking the service logs. HTTP 401 indicates an expired/invalid token; HTTP 403 indicates insufficient character access. Repeating an unchanged request reuses its saved summary and matching audio.
+url: "{{baseUrl}}/choose-your-fate/ai/ask"
+method: POST
+headers:
+  X-API-VERSION: "2"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "characterId": 1,
+      "requestType": "PATH_SUMMARY",
+      "audio": true
+    }
+order: 1000
