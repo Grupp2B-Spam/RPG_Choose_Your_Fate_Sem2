@@ -158,3 +158,18 @@ for the configured real model. IDE launch files remain local ignored settings.
 Do not change the deployment/default security profile to bypass its missing
 issuer configuration. The logged failure was a launch-profile selection problem;
 the database connection and JPA initialization had already succeeded.
+
+## 2026 11 27 StoryPathManager contract handoff
+
+Status: requested by the user. Document the existing StoryPath gRPC consumer
+requirements in contracts/STORYPATH_GRPC_CONTRACT.md and keep the canonical
+wire schema in src/main/proto/storypath/v1/story_path.proto. Annotate that proto
+without changing field numbers, types or behavior; do not duplicate the schema
+or implement the other team's provider.
+
+The handoff includes data fields, ProtoJSON examples, exclusive checkpoints,
+fixed-snapshot pagination, no-additions behavior, JWT forwarding, current client
+limits and failure handling. Mark provider addresses, trust/audience/roles,
+weight conventions and proposed error choices as requiring team agreement.
+Keep retrieval mocked until the integration is agreed and configured. Existing
+AI tools, checkpoint persistence and publication behavior remain the same.

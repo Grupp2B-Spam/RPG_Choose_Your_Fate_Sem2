@@ -1,6 +1,7 @@
 # Microservices
 
 - [Recap Manager](recapManager/) generates recaps and optional narration.
+- [RecapManager's StoryPath gRPC contract](recapManager/contracts/STORYPATH_GRPC_CONTRACT.md) describes the journey data and pagination required from StoryPathManager, with request/response examples.
 - [TextToSpeechManager](textToSpeechManager/README.md) generates reusable audio with Knative activation, MinIO audio storage and a MySQL metadata vault.
 - [AccountManager](accountManager/README.md) owns identity and JWT issuance in the architecture. Its scaffold publishes the public verification key via SOAP.
 
